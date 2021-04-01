@@ -1,30 +1,71 @@
 <!doctype html>
-<html xmlns="http://www.w3.org/1999/html">
-<meta charset="utf-8">
-<head>
-   <style>
-       svg {
-           width: 500px;
-           height: 500px;
-           border: 1px solid black;
-       }
+<html>
+   <meta charset="utf-8">
+   <head>
+      <style>
+          svg {
+              width: 500px;
+              height: 500px;
+              border: 1px solid black;
+          }
 
-       circle {
-           fill: green;
-       }
+          circle {
+              fill: green;
+          }
 
-       text {
-           font-size: 60px;
-           text-anchor: middle;
-           fill: gold;
-       }
-   </style>
-</head>
-<body>
-   <button id="agregaSVG">Clic para agregar otro SVG</button>
+          text {
+              font-size: 60px;
+              text-anchor: middle;
+              fill: gold;
+          }
+      </style>
+   </head>
+   <body>
+      <button id="agregaSVG">Clic para agregar otro SVG</button>
+      <svg id="containerSVG"  style="width: 1400px; height:900px; display: flex; flex-flow: row wrap">
 
-   <div id="containerSVG"  style="display: flex; flex-flow: row wrap">
-   </div>
-</body>
-<script src="js/addSVG.js"></script>
+      </svg>
+   </body>
+
+
+   <script>
+      let idNodes = [1];
+      const container = document.getElementById("containerSVG");
+      const button = document.getElementById("agregaSVG");
+      let x = 100, y = 100;
+      let cx = x, cy = y, radio = 70;
+      function create_svg(tipo, atributos_svg, propiedades) {
+         let nodo = document.createElementNS("http://www.w3.org/2000/svg", tipo);
+         for (let nombre in atributos_svg) {
+            nodo.setAttributeNS(null, nombre, atributos_svg[nombre]);
+         }
+         for (let nombre in propiedades) {
+            nodo[nombre] = propiedades[nombre];
+         }
+         return nodo
+      }
+
+      button.addEventListener("click", function() {
+         if(cy > 900){
+            alert('limite alcanzado');
+            return;
+         }
+
+         let node = create_svg("circle", { "cx": cx, "cy": cy, "r": 70 });
+         node.id = "svg" + idNodes[idNodes.length - 1];
+         idNodes.push(idNodes[idNodes.length - 1] + 1);
+         container.appendChild(node);
+
+         node = create_svg("text", { "x": cx, "y": cy + 25, "text-anchor":"middle"}, { "textContent": "SVG" });
+         node.id = "svg" + idNodes[idNodes.length - 1] + 'text';
+         container.appendChild(node);
+
+         if(cx + radio + 150 <= 1400){
+            cx +=150;
+         }else{
+            cy +=150;
+            cx = x;
+         }
+      });
+   </script>
 </html>
