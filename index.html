@@ -21,51 +21,112 @@
       </style>
    </head>
    <body>
-      <button id="agregaSVG">Clic para agregar otro SVG</button>
+      <button id="addSVG">Clic para agregar otro SVG</button>
+      <select id="typeSVG">
+         <option value="Arreglo">Arreglo</option>
+         <option value="Variable">Variable</option>
+      </select>
+      Nombre de la variable: <input id="nameVar" type="text"> </input>
+      elementos del arreglo: <input id="numElements" type="number"> </input>
       <svg id="containerSVG"  style="width: 1400px; height:900px; display: flex; flex-flow: row wrap">
-
+         <style>
+             .small{ font: italic 12px sans-serif; fill: black;}
+         </style>
       </svg>
    </body>
 
-
    <script>
-      function create_svg(tipo, atributos_svg, propiedades) {
-         let nodo = document.createElementNS("http://www.w3.org/2000/svg", tipo);
-         for (let nombre in atributos_svg) {
-            nodo.setAttributeNS(null, nombre, atributos_svg[nombre]);
+      function create_svg(type, svg_attributes, properties) {
+         let node = document.createElementNS("http://www.w3.org/2000/svg", type);
+         for (let name in svg_attributes) {
+            node.setAttributeNS(null, name, svg_attributes[name]);
          }
-         for (let nombre in propiedades) {
-            nodo[nombre] = propiedades[nombre];
+         for (let name in properties) {
+            node[name] = properties[name];
          }
-         return nodo
+         return node
       }
-      let idNodes = [1];
-      const posX = 100, posY = 100;
-      let cx = posX, cy = posY, radio = 70;
+      const posX = 30, posY = 30;
       const container = document.getElementById("containerSVG");
-      const button = document.getElementById("agregaSVG");
-      button.addEventListener("click", function() {
-         if(cy + radio > 900){
-            alert('limite alcanzado');
-            return;
+      const addSVG = document.getElementById("addSVG");
+      let idNodes = [1], cx = posX, cy = posY, tam = 60;
+
+
+      addSVG.addEventListener("click", function() {
+         let selectSVG = document.getElementById('typeSVG').options;
+         selectSVG = selectSVG[selectSVG.selectedIndex].value;
+         if(selectSVG == "Arreglo") {
+            createArr();
+         }else if(selectSVG == "Variable"){
+            createVar(document.getElementById("nameVar").value,  2 * tam);
          }
-
-         let node;
-         node = create_svg("circle", { "cx": cx, "cy": cy, "r": radio });
-         node.id = "svg" + idNodes[idNodes.length - 1];
-         container.appendChild(node);
-
-         node = create_svg("text", { "x": cx, "y": cy + 25, "text-anchor":"middle"}, { "textContent": "SVG" });
-         node.id = "svg" + idNodes[idNodes.length - 1] + 'text';
-         container.appendChild(node);
-
          idNodes.push(idNodes[idNodes.length - 1] + 1);
-         if(cx + radio + 150 <= 1400){
-            cx +=150;
-         }else{
-            cy +=150;
-            cx = posX;
-         }
       });
+      // this function uses createVar to create the necessary space for the array
+      function createArr( ){
+         let node, num = document.getElementById("numElements").value;
+         if(cx + tam * num + tam >= 1400){
+            cx = posX;
+            cy += 150;
+            if(cy >= 900 || cx + tam * num + tam >= 1400){
+               alert("El arreglo es demasiado grande");
+               return;
+            }
+         }
+         // Create the name of the array
+         let name = document.getElementById('nameVar').value + ':';
+         node = create_svg("text", { "x": cx, "y": cy + 5 + tam / 2, "text-anchor":"middle", "class": "small"}, { "textContent": name}); //array's name
+         node.id = "svg" + idNodes[idNodes.length - 1] + '_name';
+         container.appendChild(node);
+         cx+= tam / 2;
+
+         //Create array
+         for(let index = 0; index < num; ++index){
+            createVar(index, 0);
+            /*
+            node = create_svg('rect', { "x": cx, "y": cy, "width": tam, "height": tam, "fill": "white", "stroke":"black"}); //space
+            node.id = "svg" + idNodes[idNodes.length - 1] + '_element' + i;
+            container.appendChild(node);
+
+            node = create_svg("text", { "x": cx + tam / 2, "y": cy + 5 + tam / 2, "text-anchor":"middle", "class": "small"}, { "textContent": "8907097" }); //content
+            node.id = "svg" + idNodes[idNodes.length - 1] + '_text' + i;
+            container.appendChild(node);
+
+            node = create_svg("text", { "x": cx + tam / 2, "y": cy + 15 + tam, "text-anchor":"middle", "class": "small"}, { "textContent": i }); //index
+            node.id = "svg" + idNodes[idNodes.length - 1] + '_index' + i;
+            container.appendChild(node);
+            */
+            cx+=tam;
+         }
+         cx+=tam;
+      }
+      /*
+         this function receive the name of the space and the offset to add to cx;
+      */
+      function createVar(name, sumCx){
+         if(cx + tam >= 1400){
+            cx = posX;
+            cy += 150;
+            if(cy >= 900){
+               alert("Espacio lleno");
+               return;
+            }
+         }
+         // Create variable's name
+         let node;
+         node = create_svg("text", { "x": cx + tam / 2, "y": cy + 15 + tam, "text-anchor":"middle", "class": "small"}, { "textContent": name });
+         node.id = "svg" + idNodes[idNodes.length - 1] + '_name_' + name;
+         container.appendChild(node);
+
+         //Create variable
+         node = create_svg('rect', { "x": cx, "y": cy, "width": tam, "height": tam, "fill": "white", "stroke":"black"});
+         node.id = "svg" + idNodes[idNodes.length - 1] + '_element_' + name;
+         container.appendChild(node);
+
+         node = create_svg("text", { "x": cx + tam / 2, "y": cy + 5 + tam / 2, "text-anchor":"middle", "class": "small"}, { "textContent": "8907097" });
+         node.id = "svg" + idNodes[idNodes.length - 1] + '_text_' + name;
+         container.appendChild(node);
+         cx+= sumCx;
+      }
    </script>
 </html>
