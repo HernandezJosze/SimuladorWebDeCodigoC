@@ -56,9 +56,9 @@
          let selectSVG = document.getElementById('typeSVG').options;
          selectSVG = selectSVG[selectSVG.selectedIndex].value;
          if(selectSVG == "Arreglo") {
-            createArr();
+            createArr( );
          }else if(selectSVG == "Variable"){
-            createVar(document.getElementById("nameVar").value,  2 * tam);
+            createVar( );
          }
          idNodes.push(idNodes[idNodes.length - 1] + 1);
       });
@@ -82,7 +82,7 @@
 
          //Create array
          for(let index = 0; index < num; ++index){
-            createVar(index, 0);
+            createSpace(index, 0);
             /*
             node = create_svg('rect', { "x": cx, "y": cy, "width": tam, "height": tam, "fill": "white", "stroke":"black"}); //space
             node.id = "svg" + idNodes[idNodes.length - 1] + '_element' + i;
@@ -100,10 +100,7 @@
          }
          cx+=tam;
       }
-      /*
-         this function receive the name of the space and the offset to add to cx;
-      */
-      function createVar(name, sumCx){
+      function createVar( ){
          if(cx + tam >= 1400){
             cx = posX;
             cy += 150;
@@ -112,6 +109,13 @@
                return;
             }
          }
+         let name = document.getElementById('nameVar').value;
+         createSpace(name, 2 * tam);
+      }
+      /*
+         this function receive the name of the space and the offset to add to cx;
+      */
+      function createSpace(name, sumCx){
          // Create variable's name
          let node;
          node = create_svg("text", { "x": cx + tam / 2, "y": cy + 15 + tam, "text-anchor":"middle", "class": "small"}, { "textContent": name });
