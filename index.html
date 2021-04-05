@@ -14,13 +14,19 @@
       </style>
    </head>
    <body>
-      <button id="addSVG">Clic para agregar otro SVG</button>
+      tipo:
       <select id="typeSVG">
-         <option value="Arreglo">Arreglo</option>
+         <option value="Array">Arreglo</option>
          <option value="Variable">Variable</option>
       </select>
-      Nombre de la variable: <input id="nameVar" type="text"> </input>
-      elementos del arreglo: <input id="numElements" type="number"> </input>
+      Nombre de la variable: <input id="nameVar" type="text">
+      elementos del arreglo(si aplica): <input id="numElements" type="number">
+      <button id="addSVG">agregar SVG</button>
+      <br>
+      Variable a modificar (para una posición en el arreglo usar el formato arr[i] con i, el index a modificar): <input id="nameVarMod" type="text">
+      valor: <input id="valueVarMod" type="number">
+      <button id="ModifySVG">modificar SVG</button>
+
       <svg id="containerSVG"  style="width: 1400px; height:900px; display: flex; flex-flow: row wrap">
          <style>
              .small{ font: italic 12px sans-serif; fill: black;}
@@ -37,26 +43,47 @@
          for (let name in properties) {
             node[name] = properties[name];
          }
-         return node
+         return node;
       }
       const posX = 30, posY = 30;
       const container = document.getElementById("containerSVG");
+      let idVar = new Set( ), cx = posX, cy = posY, tam = 60;
+
       const addSVG = document.getElementById("addSVG");
-      let idNodes = [1], cx = posX, cy = posY, tam = 60;
-
-
       addSVG.addEventListener("click", function() {
          let selectSVG = document.getElementById('typeSVG').options;
          selectSVG = selectSVG[selectSVG.selectedIndex].value;
-         if(selectSVG == "Arreglo") {
-            createArr( );
-         }else if(selectSVG == "Variable"){
-            createVar( );
+
+         const num = document.getElementById("numElements").value;
+         const name = document.getElementById('nameVar').value;
+         const value = 645645;
+         if(isUsed(name)){
+            alert('El nombre de la variable está en uso');
+            return;
          }
-         idNodes.push(idNodes[idNodes.length - 1] + 1);
+
+         if(selectSVG === "Array"){
+            createArr(name, num, value);
+         }else if(selectSVG === "Variable") {
+            createVar(name, value);
+         }
+         idVar.add('svg|' + name + '|');
       });
-      function createArr( ){
-         let node, num = document.getElementById("numElements").value;
+
+      const modSVG = document.getElementById("ModifySVG");
+      modSVG.addEventListener('click', function (){
+         const name = document.getElementById('nameVarMod').value;
+         const value = document.getElementById('valueVarMod').value;
+         if(name && value){
+            modifyBox(name, value);
+         }else{
+            alert('Se requiere llenar el nombre y el valor');
+         }
+      });
+      function isUsed(name){
+         return idVar.has('svg|' + name + '|');
+      }
+      function createArr(name, num, value){
          if(cx + tam * num + tam >= 1400){
             cx = posX;
             cy += 150;
@@ -65,21 +92,20 @@
                return;
             }
          }
-         // Create the name of the array
-         let name = document.getElementById('nameVar').value + ':';
-         node = create_svg("text", { "x": cx, "y": cy + 5 + tam / 2, "text-anchor":"middle", "class": "small"}, { "textContent": name}); //array's name
-         node.id = "svg" + idNodes[idNodes.length - 1] + '_name';
+         //Create the name of the array
+         let node = create_svg("text", { "x": cx, "y": cy + 5 + tam / 2, "text-anchor": "middle", "class": "small"}, { "textContent": name + ':'});
+         node.id = `svg|${name}|`;
          container.appendChild(node);
          cx+= tam / 2;
 
          //Create array
          for(let index = 0; index < num; ++index){
-            createSpace(index);
+            createBox(index, value, name);
             cx+=tam;
          }
          cx+=tam;
       }
-      function createVar( ){
+      function createVar(name, value){
          if(cx + tam >= 1400){
             cx = posX;
             cy += 150;
@@ -88,29 +114,33 @@
                return;
             }
          }
-         let name = document.getElementById('nameVar').value;
-         createSpace(name);
+         createBox(name, value, "");
          cx += 2 * tam;
       }
-      /*
-         this function receive the name of the space and the offset to add to cx;
-      */
-      function createSpace(name){
+      function createBox(name, value, father){
          // Create variable's name
          let node;
          node = create_svg("text", { "x": cx + tam / 2, "y": cy + 15 + tam, "text-anchor":"middle", "class": "small"}, { "textContent": name });
-         node.id = "svg" + idNodes[idNodes.length - 1] + '_name_' + name;
+         node.id = father === '' ? (`svg|${name}|`) : (`svg|${father}[${name}]|name`);
          container.appendChild(node);
 
-         //Create variable
+         //Create box variable
          node = create_svg('rect', { "x": cx, "y": cy, "width": tam, "height": tam, "fill": "white", "stroke":"black"});
-         node.id = "svg" + idNodes[idNodes.length - 1] + '_element_' + name;
+         node.id = father === '' ? (`svg|${name}|box`) : (`svg|${father}[${name}]|box`);
          container.appendChild(node);
 
          //Create content
-         node = create_svg("text", { "x": cx + tam / 2, "y": cy + 5 + tam / 2, "text-anchor":"middle", "class": "small"}, { "textContent": "8907097" });
-         node.id = "svg" + idNodes[idNodes.length - 1] + '_text_' + name;
+         node = create_svg("text", { "x": cx + tam / 2, "y": cy + 5 + tam / 2, "text-anchor":"middle", "class": "small"}, { "textContent": value });
+         node.id = father === '' ? (`svg|${name}|value`) : (`svg|${father}[${name}]|value`);
          container.appendChild(node);
+      }
+      function modifyBox(name, value){
+         let node = document.getElementById(`svg|${name}|value`);
+         if(node){
+            node.textContent = value;
+         }else{
+            alert('No existe la variable ' + `svg|${name}|value`);
+         }
       }
    </script>
 </html>
