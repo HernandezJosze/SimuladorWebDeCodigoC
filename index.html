@@ -14,9 +14,9 @@
       </style>
    </head>
    <body>
-      <textarea id="input" placeholder="Write instructions"> </textarea>
-      <button id="getText">Procesar texto</button>
-      <button id="nextInst">Clic para ejecutar siguiente instrucción</button>
+      <textarea id="input" placeholder="" aceholder="Write ."></textarea>
+      <button id="btnGetText">Procesar texto</button>
+      <button id="btnNextInst">Clic para ejecutar siguiente instrucción</button>
       <svg id="containerSVG"  style="width: 1400px; height:900px; display: flex; flex-flow: row wrap">
          <style>
              .small{ font: italic 12px sans-serif; fill: black;}
@@ -25,7 +25,7 @@
    </body>
 
    <script>
-      function create_svg(type, svg_attributes, properties) {
+      function createSvg(type, svg_attributes, properties) {
          let node = document.createElementNS("http://www.w3.org/2000/svg", type);
          for (let name in svg_attributes) {
             node.setAttributeNS(null, name, svg_attributes[name]);
@@ -41,17 +41,17 @@
       let idVar = new Set( ), cx = posX, cy = posY;
       let tokens = [ ], currentInst = 0;
 
-      const getText = document.getElementById('getText');
-      getText.addEventListener('click', function ( ){
+      const btnGetText = document.getElementById('btnGetText');
+      btnGetText.addEventListener('click', function ( ){
          let line = document.getElementById('input').value.split('\n');;
-         tokens = [ ], currentInst = 0;
+         tokens = [ ], currentInst = 0; // clean vars
          for(let part of line){
             tokens.push(part.split(' '));
          }
       });
 
 
-      const btnNext = document.getElementById("nextInst");
+      const btnNext = document.getElementById("btnNextInst");
       btnNext.addEventListener('click', function( ){
          if(currentInst >= tokens.length){
             alert("Se terminaron de procesar las instrucciones");
@@ -80,14 +80,17 @@
          }
          currentInst++;
 /*
-CREA VAR a
-ESCRIBE a 5
-CREA ARR b 5
-ESCRIBE b[0] -3
-ESCRIBE b[1] -3
-ESCRIBE b[2] -3
-ESCRIBE b[3] -3
-ESCRIBE b[4] -3
+CREA ARR bh 10
+ESCRIBE bh[0] H
+ESCRIBE bh[1] o
+ESCRIBE bh[2] l
+ESCRIBE bh[3] a
+ESCRIBE bh[4]
+ESCRIBE bh[5] M
+ESCRIBE bh[6] u
+ESCRIBE bh[7] n
+ESCRIBE bh[8] d
+ESCRIBE bh[9] o
  */
       });
 
@@ -104,17 +107,17 @@ ESCRIBE b[4] -3
             }
          }
          //Create the name of the array
-         let node = create_svg("text", { "x": cx, "y": cy + 5 + tam / 2, "text-anchor": "middle", "class": "small"}, { "textContent": name + ':'});
+         let node = createSvg("text", { "x": cx, "y": cy + 5 + tam / 2, "text-anchor": "middle", "class": "small"}, { "textContent": name + ':'});
          node.id = `svg|${name}|`;
          container.appendChild(node);
-         cx+= tam / 2;
+         cx += tam / 2;
 
          //Create array
          for(let index = 0; index < num; ++index){
             createSpace(index, value, name);
-            cx+=tam;
+            cx += tam;
          }
-         cx+=tam;
+         cx += tam;
       }
       function createVar(name, value){
          if(cx + tam >= 1400){
@@ -132,17 +135,17 @@ ESCRIBE b[4] -3
          // Create variable's name
          let node;
          let id = (father === '' ? (`svg|${name}|`) : (`svg|${father}[${name}]|`));
-         node = create_svg("text", { "x": cx + tam / 2, "y": cy + 15 + tam, "text-anchor":"middle", "class": "small"}, { "textContent": name });
+         node = createSvg("text", { "x": cx + tam / 2, "y": cy + 15 + tam, "text-anchor":"middle", "class": "small"}, { "textContent": name });
          node.id = id + 'name';
          container.appendChild(node);
 
          //Create box variable
-         node = create_svg('rect', { "x": cx, "y": cy, "width": tam, "height": tam, "fill": "white", "stroke":"black"});
+         node = createSvg('rect', { "x": cx, "y": cy, "width": tam, "height": tam, "fill": "white", "stroke":"black"});
          node.id = id + 'box';
          container.appendChild(node);
 
          //Create content
-         node = create_svg("text", { "x": cx + tam / 2, "y": cy + 5 + tam / 2, "text-anchor":"middle", "class": "small"}, { "textContent": value });
+         node = createSvg("text", { "x": cx + tam / 2, "y": cy + 5 + tam / 2, "text-anchor":"middle", "class": "small"}, { "textContent": value });
          node.id = id + 'value'
          container.appendChild(node);
       }
