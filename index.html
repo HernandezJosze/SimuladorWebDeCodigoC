@@ -14,9 +14,44 @@
       </style>
    </head>
    <body>
-      <textarea id="input" placeholder="" aceholder="Write ."></textarea>
+      <textarea id="input">CREA ARR bh 10
+ESCRIBE bh[0] H
+ESCRIBE bh[1] o
+ESCRIBE bh[2] l
+ESCRIBE bh[3] a
+ESCRIBE bh[4]
+ESCRIBE bh[5] M
+ESCRIBE bh[6] u
+ESCRIBE bh[7] n
+ESCRIBE bh[8] d
+ESCRIBE bh[9] o
+CREA VAR ca
+CREA VAR cb
+CREA VAR cc
+CREA VAR cd
+CREA VAR ce
+CREA VAR cr
+CREA VAR cs
+ESCRIBE ca 3
+CREA ARR b 10
+ESCRIBE b[0] H
+ESCRIBE b[1] o
+ESCRIBE b[2] l
+ESCRIBE b[3] a
+ESCRIBE b[4]
+ESCRIBE b[5] M
+ESCRIBE b[6] u
+ESCRIBE b[7] n
+ESCRIBE b[8] d
+ESCRIBE b[9] o
+CREA VAR a
+ESCRIBE a 3
+CREA VAR ab
+ESCRIBE ab 34
+ESCRIBE ab 333</textarea>
       <button id="btnGetText">Procesar texto</button>
-      <button id="btnNextInst">Clic para ejecutar siguiente instrucción</button>
+      <button id="btnNextInst">Ejecutar siguiente</button>
+      <button id="btnPrevInst">Ejecutar anterior</button>
       <svg id="containerSVG"  style="width: 1400px; height:900px; display: flex; flex-flow: row wrap">
          <style>
              .small{ font: italic 12px sans-serif; fill: black;}
@@ -35,22 +70,22 @@
          }
          return node;
       }
-      const posX = 30, posY = 30, tam = 60;
-      const container = document.getElementById("containerSVG");
+      const posX = 30, posY = 30, tam = 60, container = document.getElementById("containerSVG");
 
-      let idVar = new Set( ), cx = posX, cy = posY;
-      let tokens = [ ], currentInst = 0;
-
+      let idVar = new Set( ), cx = posX, cy = posY, tokens = [ ], currentInst = 0;
       const btnGetText = document.getElementById('btnGetText');
       btnGetText.addEventListener('click', function ( ){
-         let line = document.getElementById('input').value.split('\n');;
-         tokens = [ ], currentInst = 0; // clean vars
+         let line = document.getElementById('input').value.split('\n');
+         tokens = [ ];
+         currentInst = 0; // clean vars
          for(let part of line){
             tokens.push(part.split(' '));
          }
       });
 
 
+
+      let mapVar = new Map( );
       const btnNext = document.getElementById("btnNextInst");
       btnNext.addEventListener('click', function( ){
          if(currentInst >= tokens.length){
@@ -62,45 +97,56 @@
             const type = tokens[currentInst][1];
             const name = tokens[currentInst][2];
             if(!isUsed(name)) {
-               if (type === "ARR") {
+               if(type === "ARR") {
                   const num = tokens[currentInst][3];
                   createArr(name, num, 0);
-               } else {
+               }else{
                   createVar(name, 0);
                }
                idVar.add(`svg|${name}|`);
             }else{
                alert('nombre en uso\n pasando a la siguiente instruccion');
             }
-
+            console.log(cx);
          }else if(command === 'ESCRIBE'){
             const name = tokens[currentInst][1];
             const value = tokens[currentInst][2];
+            mapVar[name].push(value);
             modifyBox(name, value);
          }
          currentInst++;
-/*
-CREA ARR bh 10
-ESCRIBE bh[0] H
-ESCRIBE bh[1] o
-ESCRIBE bh[2] l
-ESCRIBE bh[3] a
-ESCRIBE bh[4]
-ESCRIBE bh[5] M
-ESCRIBE bh[6] u
-ESCRIBE bh[7] n
-ESCRIBE bh[8] d
-ESCRIBE bh[9] o
- */
       });
 
+      let btnPrev = document.getElementById('btnPrevInst');
+      btnPrev.addEventListener('click', function(){
+         if(currentInst === 0){
+            alert("No hay una instrucción anterior");
+            return;
+         }
+         currentInst-=1;
+         const command = tokens[currentInst][0];
+         if(command === "CREA"){
+            const type = tokens[currentInst][1];
+            const name = tokens[currentInst][2];
+            if(type === "ARR") {
+               let num = tokens[currentInst][3];
+               deleteArr(name, num);
+            }else{
+               deleteVar(name);
+            }
+            idVar.delete(`svg|${name}|`);
+         }else if(command === 'ESCRIBE'){
+            const name = tokens[currentInst][1];
+            mapVar[name].pop( );
+            modifyBox(name,  mapVar[name][mapVar[name].length - 1]);
+         }
+      });
       function isUsed(name){
          return idVar.has(`svg|${name}|`);
       }
       function createArr(name, num, value){
          if(cx + tam + tam * num >= 1400){
-            cx = posX;
-            cy += 150;
+            cx = posX;  cy += 150;
             if(cy >= 900 || cx + tam * num + tam >= 1400){
                alert("El arreglo es demasiado grande");
                return;
@@ -119,6 +165,24 @@ ESCRIBE bh[9] o
          }
          cx += tam;
       }
+      function deleteArr(name, num){
+         document.getElementById(`svg|${name}|`).remove( );
+         while(num > 0){
+            --num;
+            let ids = [`svg|${name}[${num}]|box`, `svg|${name}[${num}]|value`, `svg|${name}[${num}]|name`]
+            for(let id of ids) {
+               document.getElementById(id).remove( );
+            }
+            cx -= tam;
+         }
+         let valor = document.getElementById('containerSVG').lastChild;
+         if(cx === posX){
+            cx = parseInt(valor.getAttribute('x')) + tam + tam / 2;
+            cy = cy !== 30 ? cy - 150 : cy;
+         }else{
+            cx = cx - num * tam - tam - tam / 2;
+         }
+      }
       function createVar(name, value){
          if(cx + tam >= 1400){
             cx = posX;
@@ -131,10 +195,24 @@ ESCRIBE bh[9] o
          createSpace(name, value, "");
          cx += 2 * tam;
       }
+      function deleteVar(name){
+         let ids = [`svg|${name}|box`, `svg|${name}|value`, `svg|${name}|name`]
+         for(let id of ids) {
+            document.getElementById(id).remove( );
+         }
+         let valor = document.getElementById('containerSVG').lastChild;
+         if(cx === posX){
+            cx = parseInt(valor.getAttribute('x')) + tam + tam / 2;
+            cy = cy !== 30 ? cy - 150 : cy;
+         }else{
+            cx = cx - 2 * tam;
+         }
+      }
       function createSpace(name, value, father){
          // Create variable's name
          let node;
-         let id = (father === '' ? (`svg|${name}|`) : (`svg|${father}[${name}]|`));
+         let NAME = (father === '' ? `${name}` : `${father}[${name}]`);
+         let id = (father === '' ? (`svg|${NAME}|`) : (`svg|${NAME}|`));
          node = createSvg("text", { "x": cx + tam / 2, "y": cy + 15 + tam, "text-anchor":"middle", "class": "small"}, { "textContent": name });
          node.id = id + 'name';
          container.appendChild(node);
@@ -146,16 +224,55 @@ ESCRIBE bh[9] o
 
          //Create content
          node = createSvg("text", { "x": cx + tam / 2, "y": cy + 5 + tam / 2, "text-anchor":"middle", "class": "small"}, { "textContent": value });
-         node.id = id + 'value'
+         node.id = id + 'value';
+         mapVar[NAME] = [value];
          container.appendChild(node);
       }
-      function modifyBox(name, value){
+      function modifyBox(name, value) {
          let node = document.getElementById(`svg|${name}|value`);
-         if(!node){
+         if (!node) {
             alert('No existe la variable ' + `svg|${name}|value`);
             return;
          }
          node.textContent = value;
       }
+      /*
+CREA ARR bh 10
+ESCRIBE bh[0] H
+ESCRIBE bh[1] o
+ESCRIBE bh[2] l
+ESCRIBE bh[3] a
+ESCRIBE bh[4]
+ESCRIBE bh[5] M
+ESCRIBE bh[6] u
+ESCRIBE bh[7] n
+ESCRIBE bh[8] d
+ESCRIBE bh[9] o
+CREA VAR ca
+CREA VAR cb
+CREA VAR cc
+CREA VAR cd
+CREA VAR ce
+CREA VAR cr
+CREA VAR cs
+ESCRIBE ca 3
+CREA ARR b 10
+ESCRIBE b[0] H
+ESCRIBE b[1] o
+ESCRIBE b[2] l
+ESCRIBE b[3] a
+ESCRIBE b[4]
+ESCRIBE b[5] M
+ESCRIBE b[6] u
+ESCRIBE b[7] n
+ESCRIBE b[8] d
+ESCRIBE b[9] o
+CREA VAR a
+ESCRIBE a 3
+CREA VAR ab
+ESCRIBE ab 34
+ESCRIBE ab 333
+*/
    </script>
 </html>
+
