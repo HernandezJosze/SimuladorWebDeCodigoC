@@ -17,6 +17,9 @@
           .small{
               font: italic 12px sans-serif; fill: black;
           }
+          .active{
+              fill: coral;
+          }
       </style>
    </head>
    <body>
@@ -64,7 +67,8 @@ ESCRIBE ab 333</textarea>
             <button id="btnNextInst" disabled>Ejecutar siguiente</button></div>
          <div>
             <button id="btnPlay" disabled>Reproducir</button>
-            <input type="range" id="speed" min="1" max="10" value="2">Velocidad
+            <label for="speed">Velocidad</label>
+               <input type="range" id="speed" min="1" max="10" value="2">
             <button id="btnStop" disabled>Detener</button>
          </div>
       </div>
@@ -88,8 +92,8 @@ ESCRIBE ab 333</textarea>
       let cx = posX, cy = posY, instructions = [ ], currentInst = 0, idVar = new Set( ), listOfValuesVars = new Map( );
 
       function cleanAll( ){
-         instructions = [ ], currentInst = 0, cx = posX, cy = posY, idVar = new Set( ), listOfValuesVars = new Map( );
-         while(container.hasChildNodes()){
+         cx = posX; cy = posY; instructions = [ ]; currentInst = 0; idVar = new Set( ); listOfValuesVars = new Map( );
+         while(container.hasChildNodes( )){
             container.removeChild(container.lastChild);
          }
       }
@@ -112,14 +116,13 @@ ESCRIBE ab 333</textarea>
          if(currentInst < instructions.length) {
             let timer = setTimeout(( ) => {
                executeNextInstruction( );
-               auxPlay() //recursive
+               auxPlay()
             }, 800 / parseInt(document.getElementById('speed').value));
             btnStop.onclick = ( )=>{
                clearTimeout(timer);
             }
          }else{
-            btnStop.click( );
-            btnNext.click( );
+            btnStop.click( ); btnNext.click( );
          }
       }
 
@@ -133,6 +136,7 @@ ESCRIBE ab 333</textarea>
          auxPlay();
       });
 
+
       const btnStop = document.getElementById('btnStop');
       btnStop.addEventListener('click', function( ){
          this.setAttribute('disabled', '');
@@ -142,15 +146,18 @@ ESCRIBE ab 333</textarea>
          }
       });
 
+
       const btnNext = document.getElementById("btnNextInst");
       btnNext.addEventListener('click', ( ) => {
          if(currentInst < instructions.length) {
-            document.getElementById('btnPrevInst').removeAttribute('disabled');
             executeNextInstruction();
-         }else{
+            document.getElementById('btnPrevInst').removeAttribute('disabled');
+         }
+         if(currentInst === instructions.length){
             btnNext.setAttribute('disabled','');
          }
       });
+
 
       function executeNextInstruction( ){
          const command = instructions[currentInst][0];   //command type/name name/value value
@@ -160,9 +167,9 @@ ESCRIBE ab 333</textarea>
             if (!isUsed(name)) {
                if (type === "ARR") {
                   const num = instructions[currentInst][3];
-                  createArr(name, num, 0);
+                  createArr(name, num);
                } else {
-                  createVar(name, 0);
+                  createVar(name);
                }
                idVar.add(`svg|${name}|`);
             }
@@ -188,6 +195,7 @@ ESCRIBE ab 333</textarea>
          backPrevInstruction( );
       });
 
+
       function backPrevInstruction( ){
          currentInst--;
          const command = instructions[currentInst][0];
@@ -208,11 +216,13 @@ ESCRIBE ab 333</textarea>
          }
       }
 
+
       function isUsed(name){
          return idVar.has(`svg|${name}|`);
       }
 
-      function createArr(name, num, value){
+
+      function createArr(name, num){
          if(cx + tam + tam * num >= MAX_X){
             cx = posX;  cy += 150;
             if(cy >= MAX_Y || cx + tam * num + tam >= MAX_X){
@@ -228,7 +238,7 @@ ESCRIBE ab 333</textarea>
 
          //Create array
          for(let index = 0; index < num; ++index){
-            createSpace(index, value, name);
+            createSpace(index, name);
             cx += tam;
          }
          cx += tam;
@@ -250,20 +260,20 @@ ESCRIBE ab 333</textarea>
             cx = parseInt(child.getAttribute('x')) + tam + tam / 2;
             cy = cy !== 30 ? cy - 150 : cy;
          }else{
-            cx = cx - num * tam - tam - tam / 2;
+            cx = (cx - num * tam - tam - tam / 2);
          }
       }
 
 
-      function createVar(name, value){
+      function createVar(name){
          if(cx + tam >= MAX_X){
-            cx = posX, cy += 150;
+            cx = posX; cy += 150;
             if(cy >= MAX_Y){
                alert("Espacio lleno");
                return;
             }
          }
-         createSpace(name, value, '');
+         createSpace(name, '');
          cx += 2 * tam;
       }
 
@@ -276,14 +286,14 @@ ESCRIBE ab 333</textarea>
          let valor = document.getElementById('containerSVG').lastChild;
          if(cx === posX){
             cx = parseInt(valor.getAttribute('x')) + tam + tam / 2;
-            cy -= cy !== 30 ? 150 : 0;
+            cy = cy !== 30 ? cy - 150 : cy;
          }else{
-            cx -= 2 * tam;
+            cx = cx - 2 * tam;
          }
       }
 
 
-      function createSpace(name, value, father){
+      function createSpace(name, father){
          // Create variable's name
          let node, NAME = (father === '' ? `${name}` : `${father}[${name}]`), id = `svg|${NAME}|`;
          node = createSvg("text", { "x": cx + tam / 2, "y": cy + 15 + tam, "text-anchor":"middle", "class": "small"}, { "textContent": name });
@@ -296,19 +306,24 @@ ESCRIBE ab 333</textarea>
          container.appendChild(node);
 
          //Create content
-         node = createSvg("text", { "x": cx + tam / 2, "y": cy + 5 + tam / 2, "text-anchor":"middle", "class": "small"}, { "textContent": value });
+         node = createSvg("text", { "x": cx + tam / 2, "y": cy + 5 + tam / 2, "text-anchor":"middle", "class": "small"}, { "textContent": '' });
          node.id = id + 'value';
-         listOfValuesVars[NAME] = [value];
          container.appendChild(node);
+         modifyBox(NAME, 0);
+         listOfValuesVars[NAME] = [0];
       }
 
-
+      let lastActive = undefined;
       function modifyBox(name, value) {
+         let box = document.getElementById(`svg|${name}|box`);
          let node = document.getElementById(`svg|${name}|value`);
          if (node) {
             node.textContent = value;
+            if(lastActive)
+               lastActive.removeAttribute('class');
+            box.setAttribute('class','active');
+            lastActive = box;
          }
       }
    </script>
 </html>
-
