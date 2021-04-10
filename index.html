@@ -109,6 +109,7 @@ ESCRIBE ab 333</textarea>
          for(let id of ids){
             document.getElementById(id).removeAttribute("disabled");
          }
+         document.getElementById('btnPrevInst').setAttribute('disabled','');
       });
 
 
@@ -172,6 +173,7 @@ ESCRIBE ab 333</textarea>
                   createVar(name);
                }
                idVar.add(`svg|${name}|`);
+               console.log(cx);
             }
             /*else {
                alert('nombre en uso\n pasando a la siguiente instruccion');
@@ -204,6 +206,7 @@ ESCRIBE ab 333</textarea>
             const name = instructions[currentInst][2];
             if(type === "ARR") {
                let num = instructions[currentInst][3];
+               console.log("antes de llamar delete: ", cx);
                deleteArr(name, num);
             }else{
                deleteVar(name);
@@ -248,20 +251,25 @@ ESCRIBE ab 333</textarea>
       function deleteArr(name, num){
          document.getElementById(`svg|${name}|`).remove( );
          while(num > 0){
+
             num -= 1;
             let ids = [`svg|${name}[${num}]|box`, `svg|${name}[${num}]|value`, `svg|${name}[${num}]|name`];
             for(let id of ids) {
                document.getElementById(id).remove( );
             }
             cx -= tam;
+            console.log("loop: ",cx);
          }
          let child = document.getElementById('containerSVG').lastChild;
-         if(cx === posX){
+         console.log("prev cx: ", cx);
+         console.log("prev cy: ", cy);
+         cx = (cx - num * tam - tam - tam / 2);
+         if(cx === posX && child){
             cx = parseInt(child.getAttribute('x')) + tam + tam / 2;
             cy = cy !== 30 ? cy - 150 : cy;
-         }else{
-            cx = (cx - num * tam - tam - tam / 2);
          }
+         console.log("cx: ", cx);
+         console.log("cy: ", cy);
       }
 
 
@@ -283,13 +291,16 @@ ESCRIBE ab 333</textarea>
          for(let id of ids) {
             document.getElementById(id).remove( );
          }
-         let valor = document.getElementById('containerSVG').lastChild;
-         if(cx === posX){
-            cx = parseInt(valor.getAttribute('x')) + tam + tam / 2;
+         let child = document.getElementById('containerSVG').lastChild;
+         console.log("jiji: ",cx);
+         console.log("jij2: ",cy);
+         cx = cx - 2 * tam;
+         if(cx === posX && child){
+            cx = parseInt(child.getAttribute('x')) + tam + tam / 2;
             cy = cy !== 30 ? cy - 150 : cy;
-         }else{
-            cx = cx - 2 * tam;
          }
+         console.log("jiji: ",cx);
+         console.log("jij2: ",cy);
       }
 
 
