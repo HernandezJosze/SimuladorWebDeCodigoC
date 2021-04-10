@@ -3,8 +3,13 @@
    <meta charset="utf-8">
    <head>
       <style>
-          svg {
+          #containerSVG {
               border: 1px solid black;
+              width: 1900px;
+              height: 840px;
+              display: flex;
+              flex-flow: row wrap;
+              background-color: ghostwhite;
           }
           text {
               font-size: 60px;
@@ -12,7 +17,7 @@
               fill: gold;
           }
           div{
-              margin: 3px;
+              margin: 2px;
           }
           .small{
               font: italic 12px sans-serif; fill: black;
@@ -20,11 +25,22 @@
           .active{
               fill: coral;
           }
+          #editor{
+              justify-content: right;
+          }
+          #nums{
+              padding: 5px;
+              width: 1%;
+              height: 98%;
+              text-align: right;
+          }
       </style>
    </head>
    <body>
-      <div style="display: grid; grid-template-columns: 1fr 1fr;">
-         <textarea id="input" style="grid-row: 1 / span 3;">CREA ARR bh 10
+      <div style="display: grid; grid-template-columns:1fr 1fr;">
+         <div id="editor" style="grid-row: 1 / span 3; grid-column: 1 / span 1; display: flex;">
+            <div id="nums" class="small">1<br>2<br>3<br>4</div>
+            <textarea id="input" style="width: 99%; height: 98%";>CREA ARR bh 10
 ESCRIBE bh[0] H
 ESCRIBE bh[1] o
 ESCRIBE bh[2] l
@@ -59,12 +75,14 @@ ESCRIBE a 3
 CREA VAR ab
 ESCRIBE ab 34
 ESCRIBE ab 333</textarea>
+         </div>
          <div>
             <button id="btnGetText">Cargar Instrucciones / reniciar entorno</button>
          </div>
          <div>
             <button id="btnPrevInst" disabled>Ejecutar anterior</button>
-            <button id="btnNextInst" disabled>Ejecutar siguiente</button></div>
+            <button id="btnNextInst" disabled>Ejecutar siguiente</button>
+         </div>
          <div>
             <button id="btnPlay" disabled>Reproducir</button>
             <label for="speed">Velocidad</label>
@@ -72,7 +90,7 @@ ESCRIBE ab 333</textarea>
             <button id="btnStop" disabled>Detener</button>
          </div>
       </div>
-      <svg id="containerSVG"  style="width: 1900px; height:840px; display: flex; flex-flow: row wrap">
+      <svg id="containerSVG">
       </svg>
    </body>
 
@@ -173,7 +191,6 @@ ESCRIBE ab 333</textarea>
                   createVar(name);
                }
                idVar.add(`svg|${name}|`);
-               console.log(cx);
             }
             /*else {
                alert('nombre en uso\n pasando a la siguiente instruccion');
@@ -206,7 +223,6 @@ ESCRIBE ab 333</textarea>
             const name = instructions[currentInst][2];
             if(type === "ARR") {
                let num = instructions[currentInst][3];
-               console.log("antes de llamar delete: ", cx);
                deleteArr(name, num);
             }else{
                deleteVar(name);
@@ -258,18 +274,13 @@ ESCRIBE ab 333</textarea>
                document.getElementById(id).remove( );
             }
             cx -= tam;
-            console.log("loop: ",cx);
          }
          let child = document.getElementById('containerSVG').lastChild;
-         console.log("prev cx: ", cx);
-         console.log("prev cy: ", cy);
-         cx = (cx - num * tam - tam - tam / 2);
+         cx = (cx - tam - tam / 2);
          if(cx === posX && child){
             cx = parseInt(child.getAttribute('x')) + tam + tam / 2;
             cy = cy !== 30 ? cy - 150 : cy;
          }
-         console.log("cx: ", cx);
-         console.log("cy: ", cy);
       }
 
 
@@ -292,15 +303,11 @@ ESCRIBE ab 333</textarea>
             document.getElementById(id).remove( );
          }
          let child = document.getElementById('containerSVG').lastChild;
-         console.log("jiji: ",cx);
-         console.log("jij2: ",cy);
          cx = cx - 2 * tam;
          if(cx === posX && child){
             cx = parseInt(child.getAttribute('x')) + tam + tam / 2;
             cy = cy !== 30 ? cy - 150 : cy;
          }
-         console.log("jiji: ",cx);
-         console.log("jij2: ",cy);
       }
 
 
@@ -324,14 +331,15 @@ ESCRIBE ab 333</textarea>
          listOfValuesVars[NAME] = [0];
       }
 
+
       let lastActive = undefined;
       function modifyBox(name, value) {
-         let box = document.getElementById(`svg|${name}|box`);
-         let node = document.getElementById(`svg|${name}|value`);
+         let box = document.getElementById(`svg|${name}|box`), node = document.getElementById(`svg|${name}|value`);
          if (node) {
             node.textContent = value;
-            if(lastActive)
+            if(lastActive) {
                lastActive.removeAttribute('class');
+            }
             box.setAttribute('class','active');
             lastActive = box;
          }
