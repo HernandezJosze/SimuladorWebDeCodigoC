@@ -9,7 +9,6 @@
               height: 840px;
               display: flex;
               flex-flow: row wrap;
-              background-color: ghostwhite;
           }
           text {
               font-size: 60px;
@@ -20,10 +19,11 @@
               margin: 2px;
           }
           .small{
-              font: italic 12px sans-serif; fill: black;
+              font: italic 12px "Arial";
+              fill: black;
           }
           .active{
-              fill: coral;
+              fill: darkcyan;
           }
           #editor{
               justify-content: right;
@@ -34,13 +34,25 @@
               height: 98%;
               text-align: right;
           }
+          .darkModeBody{
+              background-color: gray;
+              color: black;
+          }
+          .darkModeEditor{
+              background-color: lightgray;
+              color: black;
+          }
+          .darkModeContainer{
+              background-color: darkgrey;
+              text-decoration-color: black;
+          }
       </style>
    </head>
-   <body>
+   <body id="body">
       <div style="display: grid; grid-template-columns:1fr 1fr;">
-         <div id="editor" style="grid-row: 1 / span 3; grid-column: 1 / span 1; display: flex;">
+         <div id="editor"  style="grid-row: 1 / span 3; grid-column: 1 / span 1; display: flex;">
             <div id="nums" class="small">1<br>2<br>3<br>4</div>
-            <textarea id="input" style="width: 99%; height: 98%";>CREA ARR bh 10
+            <textarea class="darkmodeEditor" id="input" style="width: 99%; height: 98%;">CREA ARR bh 10
 ESCRIBE bh[0] H
 ESCRIBE bh[1] o
 ESCRIBE bh[2] l
@@ -77,6 +89,7 @@ ESCRIBE ab 34
 ESCRIBE ab 333</textarea>
          </div>
          <div>
+            <button id="btnDarkMode">Cambiar a modo oscuro</button>
             <button id="btnGetText">Cargar Instrucciones / reniciar entorno</button>
          </div>
          <div>
@@ -90,11 +103,19 @@ ESCRIBE ab 333</textarea>
             <button id="btnStop" disabled>Detener</button>
          </div>
       </div>
-      <svg id="containerSVG">
+      <svg id="containerSVG" class="darkmodeContaier">
       </svg>
    </body>
-
    <script>
+      let btnDark = document.getElementById('btnDarkMode');
+      btnDark.addEventListener('click', ( ) => {
+         document.getElementById('body').classList.toggle('darkModeBody');
+         document.getElementById('containerSVG').classList.toggle('darkModeContainer');
+         document.getElementById('input').classList.toggle('darkModeEditor');
+         btnDark.innerText = btnDark.textContent == "Cambiar a modo oscuro" ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
+      });
+      btnDark.click( );
+
       function createSvg(type, svg_attributes, properties) {
          let node = document.createElementNS("http://www.w3.org/2000/svg", type);
          for (let name in svg_attributes) {
@@ -319,7 +340,7 @@ ESCRIBE ab 333</textarea>
          container.appendChild(node);
 
          //Create box variable
-         node = createSvg('rect', { "x": cx, "y": cy, "width": tam, "height": tam, "fill": "white", "stroke":"black"});
+         node = createSvg('rect', { "x": cx, "y": cy, "width": tam, "height": tam, "fill": "lightgray", "stroke":"black"});
          node.id = id + 'box';
          container.appendChild(node);
 
