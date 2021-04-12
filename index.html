@@ -52,7 +52,7 @@
       <div style="display: grid; grid-template-columns:1fr 1fr;">
          <div id="editor"  style="grid-row: 1 / span 3; grid-column: 1 / span 1; display: flex;">
             <div id="nums" class="small">1<br>2<br>3<br>4</div>
-            <textarea class="darkmodeEditor" id="input" style="width: 99%; height: 98%;">CREA ARR bh 10
+            <textarea class="darkmodeEditor" id="input" style="width: 99%; height: 98%;">CREA ARR bh 10 5,4,3,4
 ESCRIBE bh[0] H
 ESCRIBE bh[1] o
 ESCRIBE bh[2] l
@@ -107,21 +107,24 @@ ESCRIBE ab 333</textarea>
       </svg>
    </body>
    <script>
+
+
       let btnDark = document.getElementById('btnDarkMode');
       btnDark.addEventListener('click', ( ) => {
          document.getElementById('body').classList.toggle('darkModeBody');
          document.getElementById('containerSVG').classList.toggle('darkModeContainer');
          document.getElementById('input').classList.toggle('darkModeEditor');
-         btnDark.innerText = btnDark.textContent == "Cambiar a modo oscuro" ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
+         btnDark.innerText = btnDark.textContent === "Cambiar a modo oscuro" ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
       });
       btnDark.click( );
 
+
       function createSvg(type, svg_attributes, properties) {
          let node = document.createElementNS("http://www.w3.org/2000/svg", type);
-         for (let name in svg_attributes) {
+         for (const name in svg_attributes) {
             node.setAttributeNS(null, name, svg_attributes[name]);
          }
-         for (let name in properties) {
+         for (const name in properties) {
             node[name] = properties[name];
          }
          return node;
@@ -130,12 +133,14 @@ ESCRIBE ab 333</textarea>
       const MAX_X = 1900, MAX_Y = 840;
       let cx = posX, cy = posY, instructions = [ ], currentInst = 0, idVar = new Set( ), listOfValuesVars = new Map( );
 
+
       function cleanAll( ){
          cx = posX; cy = posY; instructions = [ ]; currentInst = 0; idVar = new Set( ); listOfValuesVars = new Map( );
          while(container.hasChildNodes( )){
             container.removeChild(container.lastChild);
          }
       }
+
 
       const btnGetText = document.getElementById('btnGetText');
       btnGetText.addEventListener('click', ( ) =>{
@@ -165,6 +170,7 @@ ESCRIBE ab 333</textarea>
             btnStop.click( ); btnNext.click( );
          }
       }
+
 
       const btnPlay = document.getElementById('btnPlay');
       btnPlay.addEventListener('click', ( ) => {
@@ -207,15 +213,15 @@ ESCRIBE ab 333</textarea>
             if (!isUsed(name)) {
                if (type === "ARR") {
                   const num = instructions[currentInst][3];
-                  createArr(name, num);
+                  const value = instructions[currentInst].length === 5 ? instructions[currentInst][4] : '?';
+                  createArr(name, num, value);
                } else {
-                  createVar(name);
+                  const value = instructions[currentInst].length === 4 ? instructions[currentInst][3] : '?';
+                  createVar(name, value);
                }
                idVar.add(`svg|${name}|`);
             }
-            /*else {
-               alert('nombre en uso\n pasando a la siguiente instruccion');
-            }*/
+
          } else if (command === 'ESCRIBE') {
             const name = instructions[currentInst][1];
             const value = instructions[currentInst][2];
@@ -262,7 +268,7 @@ ESCRIBE ab 333</textarea>
       }
 
 
-      function createArr(name, num){
+      function createArr(name, num, value){
          if(cx + tam + tam * num >= MAX_X){
             cx = posX;  cy += 150;
             if(cy >= MAX_Y || cx + tam * num + tam >= MAX_X){
@@ -277,8 +283,13 @@ ESCRIBE ab 333</textarea>
          cx += tam / 2;
 
          //Create array
+         let insert = value === '?' ? '?' : '0';
+         let val = value.split(',');
+         while(val.length < num){
+            val.push(insert);
+         }
          for(let index = 0; index < num; ++index){
-            createSpace(index, name);
+            createSpace(index, name, val[index]);
             cx += tam;
          }
          cx += tam;
@@ -288,24 +299,19 @@ ESCRIBE ab 333</textarea>
       function deleteArr(name, num){
          document.getElementById(`svg|${name}|`).remove( );
          while(num > 0){
-
             num -= 1;
-            let ids = [`svg|${name}[${num}]|box`, `svg|${name}[${num}]|value`, `svg|${name}[${num}]|name`];
+            const ids = [`svg|${name}[${num}]|box`, `svg|${name}[${num}]|value`, `svg|${name}[${num}]|name`];
             for(let id of ids) {
                document.getElementById(id).remove( );
             }
             cx -= tam;
          }
-         let child = document.getElementById('containerSVG').lastChild;
          cx = (cx - tam - tam / 2);
-         if(cx === posX && child){
-            cx = parseInt(child.getAttribute('x')) + tam + tam / 2;
-            cy = cy !== 30 ? cy - 150 : cy;
-         }
+         reposition( );
       }
 
 
-      function createVar(name){
+      function createVar(name, value){
          if(cx + tam >= MAX_X){
             cx = posX; cy += 150;
             if(cy >= MAX_Y){
@@ -313,26 +319,30 @@ ESCRIBE ab 333</textarea>
                return;
             }
          }
-         createSpace(name, '');
+         createSpace(name, '', value);
          cx += 2 * tam;
       }
 
 
       function deleteVar(name){
-         let ids = [`svg|${name}|box`, `svg|${name}|value`, `svg|${name}|name`];
-         for(let id of ids) {
+         const ids = [`svg|${name}|box`, `svg|${name}|value`, `svg|${name}|name`];
+         for(const id of ids) {
             document.getElementById(id).remove( );
          }
-         let child = document.getElementById('containerSVG').lastChild;
          cx = cx - 2 * tam;
+         reposition( );
+      }
+
+
+      function reposition( ){
+         const child = document.getElementById('containerSVG').lastChild;
          if(cx === posX && child){
             cx = parseInt(child.getAttribute('x')) + tam + tam / 2;
             cy = cy !== 30 ? cy - 150 : cy;
          }
       }
 
-
-      function createSpace(name, father){
+      function createSpace(name, father, value){
          // Create variable's name
          let node, NAME = (father === '' ? `${name}` : `${father}[${name}]`), id = `svg|${NAME}|`;
          node = createSvg("text", { "x": cx + tam / 2, "y": cy + 15 + tam, "text-anchor":"middle", "class": "small"}, { "textContent": name });
@@ -345,11 +355,11 @@ ESCRIBE ab 333</textarea>
          container.appendChild(node);
 
          //Create content
-         node = createSvg("text", { "x": cx + tam / 2, "y": cy + 5 + tam / 2, "text-anchor":"middle", "class": "small"}, { "textContent": '' });
+         node = createSvg("text", { "x": cx + tam / 2, "y": cy + 5 + tam / 2, "text-anchor":"middle", "class": "small"});
          node.id = id + 'value';
          container.appendChild(node);
-         modifyBox(NAME, 0);
-         listOfValuesVars[NAME] = [0];
+         modifyBox(NAME, value);
+         listOfValuesVars[NAME] = [value];
       }
 
 
