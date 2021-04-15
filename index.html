@@ -4,17 +4,14 @@
    <head>
       <style>
           #containerSVG {
+              margin-top: 5px;
               border: 1px solid black;
               width: 1900px;
               height: 840px;
               display: flex;
               flex-flow: row wrap;
           }
-          text {
-              font-size: 60px;
-              text-anchor: middle;
-              fill: gold;
-          }
+
           div{
               margin: 2px;
           }
@@ -41,10 +38,26 @@
           .darkModeEditor{
               background-color: lightgray;
               color: black;
+              border-color: lightgray;
           }
           .darkModeContainer{
               background-color: darkgrey;
-              text-decoration-color: black;
+          }
+
+          /*  FOOTER */
+          footer{
+              background: lightslategray;
+              border: 1px solid #7d87ff;
+          }
+          .footer-content{
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              flex-wrap: wrap;
+          }
+          .about{
+              width: 30%;
+              color: white;
           }
       </style>
    </head>
@@ -52,7 +65,7 @@
       <div style="display: grid; grid-template-columns:1fr 1fr;">
          <div id="editor"  style="grid-row: 1 / span 3; grid-column: 1 / span 1; display: flex;">
             <div id="nums" class="small">1<br>2<br>3<br>4</div>
-            <textarea class="darkmodeEditor" id="input" style="width: 99%; height: 98%;">CREA ARR bh 10 5,4,3,4
+            <textarea class="darkmodeEditor" id="input" style=" width: 99%; height: 98%;">CREA ARR bh 10 5,4,3,4
 ESCRIBE bh[0] H
 ESCRIBE bh[1] o
 ESCRIBE bh[2] l
@@ -106,9 +119,27 @@ ESCRIBE ab 333</textarea>
       <svg id="containerSVG" class="darkmodeContaier">
       </svg>
    </body>
+   <!--
+   <footer id="footer">
+      <div class="footer-content">
+         <div class="about">
+            <h2>Acerca del proyecto</h2>
+         </div>
+         <div >
+            <a class="icons" target="_blank" href="https://www.linkedin.com/in/hernandezjosze">
+               <img src="img/linkedin.png" width="50" height="50">
+            </a>
+            <a class="icons" target="_blank" href="mailto:josehdzg097@gmail.com">
+               <img src="img/mail.png" width="60" height="50">
+            </a>
+            <a class="icons" target="_blank" href="https://github.com/HernandezJosze">
+               <img src="img/git.png" width="50" height="50">
+            </a>
+         </div>
+      </div>
+   </footer>
+   -->
    <script>
-
-
       let btnDark = document.getElementById('btnDarkMode');
       btnDark.addEventListener('click', ( ) => {
          document.getElementById('body').classList.toggle('darkModeBody');
@@ -117,6 +148,19 @@ ESCRIBE ab 333</textarea>
          btnDark.innerText = btnDark.textContent === "Cambiar a modo oscuro" ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
       });
       btnDark.click( );
+
+
+      const posX = 30, posY = 30, tam = 60, container = document.getElementById("containerSVG");
+      const MAX_X = 1900, MAX_Y = 840;
+      let cx = posX, cy = posY, instructions = [ ], currentInst = 0, idVar = new Set( ), listOfValuesVars = new Map( );
+
+
+      function cleanAll( ){
+         cx = posX; cy = posY; instructions = [ ]; currentInst = 0; idVar = new Set( ); listOfValuesVars = new Map( );
+         while(container.hasChildNodes( )){
+            container.removeChild(container.lastChild);
+         }
+      }
 
 
       function createSvg(type, svg_attributes, properties) {
@@ -128,17 +172,6 @@ ESCRIBE ab 333</textarea>
             node[name] = properties[name];
          }
          return node;
-      }
-      const posX = 30, posY = 30, tam = 60, container = document.getElementById("containerSVG");
-      const MAX_X = 1900, MAX_Y = 840;
-      let cx = posX, cy = posY, instructions = [ ], currentInst = 0, idVar = new Set( ), listOfValuesVars = new Map( );
-
-
-      function cleanAll( ){
-         cx = posX; cy = posY; instructions = [ ]; currentInst = 0; idVar = new Set( ); listOfValuesVars = new Map( );
-         while(container.hasChildNodes( )){
-            container.removeChild(container.lastChild);
-         }
       }
 
 
@@ -161,11 +194,11 @@ ESCRIBE ab 333</textarea>
          if(currentInst < instructions.length) {
             let timer = setTimeout(( ) => {
                executeNextInstruction( );
-               auxPlay()
+               auxPlay();
             }, 800 / parseInt(document.getElementById('speed').value));
-            btnStop.onclick = ( )=>{
+            btnStop.onclick = ( ) => {
                clearTimeout(timer);
-            }
+            };
          }else{
             btnStop.click( ); btnNext.click( );
          }
@@ -175,8 +208,8 @@ ESCRIBE ab 333</textarea>
       const btnPlay = document.getElementById('btnPlay');
       btnPlay.addEventListener('click', ( ) => {
          document.getElementById('btnStop').removeAttribute("disabled");
-         let ids = ["btnNextInst","btnPrevInst", "btnPlay"];
-         for(let id of ids){
+         const ids = ["btnNextInst","btnPrevInst", "btnPlay"];
+         for(const id of ids){
             document.getElementById(id).setAttribute("disabled", '' );
          }
          auxPlay();
@@ -186,8 +219,8 @@ ESCRIBE ab 333</textarea>
       const btnStop = document.getElementById('btnStop');
       btnStop.addEventListener('click', function( ){
          this.setAttribute('disabled', '');
-         let ids = ["btnNextInst","btnPrevInst", "btnPlay"];
-         for(let id of ids){
+         const ids = ["btnNextInst","btnPrevInst", "btnPlay"];
+         for(const id of ids){
             document.getElementById(id).removeAttribute("disabled");
          }
       });
@@ -283,7 +316,7 @@ ESCRIBE ab 333</textarea>
          cx += tam / 2;
 
          //Create array
-         let insert = value === '?' ? '?' : '0';
+         const insert = (value === '?' ? '?' : '0');
          let val = value.split(',');
          while(val.length < num){
             val.push(insert);
