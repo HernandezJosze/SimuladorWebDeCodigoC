@@ -5,7 +5,9 @@
 #ifndef SIMULADORWEBDECODIGOC_LEXER_H
 #define SIMULADORWEBDECODIGOC_LEXER_H
 #include <map>
-
+#include <cctype>
+#include <vector>
+#include <string_view>
 enum token{
     IF,
     ELSE,
@@ -40,6 +42,7 @@ enum token{
     LITERAL_FLOTANTE,
     LITERAL_CADENA,
     IDENTIFICADOR,
+    RETURN,
     END_FILE
 };
 struct token_anotada{
@@ -47,7 +50,7 @@ struct token_anotada{
     std::string_view location;
 };
 
-std::map<std::string_view, token> tokens {
+std::map<std::string_view, token> AlphaMp{
     {"if", IF},
     {"else", ELSE},
     {"for", FOR},
@@ -57,7 +60,10 @@ std::map<std::string_view, token> tokens {
     {"float", FLOAT},
     {"break", BREAK},
     {"continue", CONTINUE},
-    {"+", MAX},
+    {"return", RETURN}
+};
+std::map<std::string_view, token> SymbolsMp{
+    {"+", MAS},
     {"-", MENOS},
     {"*", MULTIPLICACION},
     {"%", MODULO},
@@ -77,16 +83,102 @@ std::map<std::string_view, token> tokens {
     {")", PARENTESIS_D},
     {",", COMA},
     {";", PUNTO_Y_COMA},
-    {"\0", END_FILE}
 };
-
-std::vector<token_anotada> lexer(const char* s){
-    std::vector<token_anotada> vectorLexer;
-    while(s){
-
+bool isYetId(const char& c){
+    return std::isalnum(c) || c == '_';
+}/*
+bool isAStartId(const char& c){
+    return std::isalpha(c) || c == '_';
+}*/
+bool isIntoAlphaMp(std::vector<token_anotada>& v, char *ptr){
+    std::string_view s;
+    char *ptr_end = ptr;
+    while(std::isalpha(*ptr_end)){
+        s.push_back(*ptr_end++);
+        auto fnd = AlphaMp.find(s);
+        if(fnd != AlphaMp.end( )){
+            if(!isYetId(*(++ptr_end))) {
+                v.push_back({fnd->second, std::string_view(ptr, ptr_end)});
+                return true;
+            }
+            return false;
+        }
     }
-    return vectorLexer;
+    return false;
+}
+bool isIntoSymbolsMp(std::vector<token_anotada>& v, char *ptr){
+    std::string_view s;
+    char *ptr_end = ptr;
+    while(!std::isalnum(*ptr_end)){
+        s.push_back(*ptr_end++);
+        auto fnd = AlphaMp.find(s);
+        if(fnd != AlphaMp.end( )){
+            if(isYetId(*(ptr_end + 1)) || std::isspace(*(ptr_end + 1))) {
+                v.push_back({fnd->second, std::string_view(ptr, ptr_end + 1)});
+                return true;
+            }
+        }
+    }
+    return false;
+}
+void isLiteralCad(std::vector<token_anotada>& v, char *ptr, char type) {
+    char* ptr_end = ptr;
+    while(*ptr_end != type || *(ptr_end - 1) == '\\') {
+        ++ptr_end;
+    }
+    v.push_back({LITERAL_CADENA, std::string_view(ptr, ptr_end)});
+}
+void numeric(std::vector<token_anotada>& v, char *ptr){
+    char *ptr_end = ptr;
+    bool isFloat = false;
+    while(std::isdigit(*ptr_end)) {
+        ++ptr_end;
+    }
+    isFloat = *ptr_end++ == '.';
+    while(std::isdigit(*ptr_end)) {
+        ++ptr_end;
+    }
+    v.push_back({isFloat ? LITERAL_FLOTANTE : LITERAL_ENTERA, std::string_view(ptr, ptr_end)});
+}
+void id(std::vector<token_anotada>& v, char *ptr){
+    char *ptr_end = ptr;
+    while(isYetId(*ptr_end)){
+        ++ptr_end;
+    }
+    v.push_back({IDENTIFICADOR, std::string_view(ptr_end)});
 }
 
+std::vector<token_anotada> lexer(char* ptr){
+    std::vector<token_anotada> vectorLexer;
+    while(*ptr != EOF){
+        if(std::isspace(*ptr)){
+            ++ptr;
+
+        }else if(*ptr == '\"') {
+            isLiteralCad(vectorLexer, ++ptr, '\"');
+            std::advance(ptr, vectorLexer.back( ).location.size( ) + 2);
+
+        }else if(*ptr == '\'') {
+            isLiteralCad(vectorLexer, ++ptr, '\'');
+            std::advance(ptr, vectorLexer.back( ).location.size( ) + 2);
+
+        }else if(isIntoAlphaMp(vectorLexer, ptr) || isIntoSymbolsMp(vectorLexer, ptr)){
+            std::advance(ptr, vectorLexer.back( ).location.size( ));
+
+        }else{
+            char* ini = ptr;
+            if(std::isdigit(*ptr)){
+                numeric(vectorLexer, ptr);
+                std::advance(ptr, vectorLexer.back().location.size( ));
+
+            }else{
+                id(vectorLexer, ptr);
+                std::advance(ptr, vectorLexer.back().location.size( ));
+            }
+        }
+    }
+    vectorLexer.push_back({END_FILE, std::string_view(ptr, ptr + 1)});
+    return vectorLexer;
+}
 
 #endif //SIMULADORWEBDECODIGOC_LEXER_H
