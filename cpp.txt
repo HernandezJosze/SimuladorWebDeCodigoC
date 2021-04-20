@@ -1,8 +1,10 @@
 int n = 5;
 if(n <= 10){
     int a;
-    a = a == 5;
+    a =(a == 5);
 }
+int arr[43] = { };
 for(int i = 0; i < n; ++i){
     break;
 }
+float tc = 23.43;
