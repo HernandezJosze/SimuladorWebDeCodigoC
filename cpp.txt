@@ -3,6 +3,8 @@ if(n <= 10){
     int a;
     a =(a == 5);
 }
+char mander[30 + 1] ="hola mundo";
+mander[30] = 'c';
 int arr[43] = { };
 for(int i = 0; i < n; ++i){
     break;
