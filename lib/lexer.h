@@ -170,11 +170,11 @@ std::vector<token_anotada> lexer(const char* ptr){
          ++ptr;
       }else if(*ptr == '\"') {
          isLiteralCad(vectorLexer, ++ptr, '\"');
-         std::advance(ptr, vectorLexer.back( ).location.size( ) + 2);
+         std::advance(ptr, vectorLexer.back( ).location.size( ) + 1);
 
       }else if(*ptr == '\'') {
          isLiteralCad(vectorLexer, ++ptr, '\'');
-         std::advance(ptr, vectorLexer.back( ).location.size( ) + 2);
+         std::advance(ptr, vectorLexer.back( ).location.size( ) + 1);
 
       }else if(isIntoAlphaMp(vectorLexer, ptr) || isIntoSymbolsMp(vectorLexer, ptr)){
          std::advance(ptr, vectorLexer.back( ).location.size( ));
