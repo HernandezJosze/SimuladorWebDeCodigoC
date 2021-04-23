@@ -8,3 +8,16 @@ for(int i = 0; i < n; ++i){
     break;
 }
 float tc = 23.43;
+
+"hola"
+"hola\n"
+"hola\""
+"hola\\"
+
+_
+
++1.23e-10
+
+gatito
+
+"wa
