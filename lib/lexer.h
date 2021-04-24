@@ -149,11 +149,7 @@ bool numeric(std::vector<token_anotada>& v,const char *ptr){
    while(std::isdigit(*ptr_end)) {
       ++ptr_end;      //std::cout << "digito: " << *ptr_end << "\n";
    }
-   if(*ptr_end == 'f' || *ptr_end == 'F'){
-      v.push_back({LITERAL_FLOTANTE, std::string_view(ptr, ++ptr_end)});
-   }else{
-      v.push_back({isFloat ? LITERAL_FLOTANTE : LITERAL_ENTERA, std::string_view(ptr, ptr_end)});
-   }
+   v.push_back({isFloat ? LITERAL_FLOTANTE : LITERAL_ENTERA, std::string_view(ptr, ptr_end)});
    return true;
 }
 bool id(std::vector<token_anotada>& v,const char *ptr){
