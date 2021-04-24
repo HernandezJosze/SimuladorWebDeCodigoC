@@ -143,13 +143,17 @@ bool numeric(std::vector<token_anotada>& v,const char *ptr){
    }
 
    bool isFloat = *ptr_end == '.';
-   if(isFloat)
+   if(isFloat){
       ptr_end++;
+   }
    while(std::isdigit(*ptr_end)) {
       ++ptr_end;      //std::cout << "digito: " << *ptr_end << "\n";
    }
-
-   v.push_back({isFloat ? LITERAL_FLOTANTE : LITERAL_ENTERA, std::string_view(ptr, ptr_end)});
+   if(*ptr_end == 'f' || *ptr_end == 'F'){
+      v.push_back({LITERAL_FLOTANTE, std::string_view(ptr, ++ptr_end)});
+   }else{
+      v.push_back({isFloat ? LITERAL_FLOTANTE : LITERAL_ENTERA, std::string_view(ptr, ptr_end)});
+   }
    return true;
 }
 bool id(std::vector<token_anotada>& v,const char *ptr){
@@ -171,8 +175,9 @@ bool isScientificNotation(std::vector<token_anotada>& v, const char *ptr){
       int countDot = 0;
       while(std::isdigit(*ptr_end) || *ptr_end == '.'){
          ++ptr_end;
+         countDot += *ptr_end == '.';
       }
-      if(*ptr_end == 'e'){
+      if(*ptr_end == 'e' && countDot <= 1){
          ++ptr_end;
          if(*ptr_end == '+' || *ptr_end == '-'){
             ++ptr_end;
