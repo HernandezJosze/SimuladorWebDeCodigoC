@@ -6,6 +6,7 @@
 #define SIMULADORWEBDECODIGOC_LEXER_H
 #include <map>
 #include <cctype>
+#include <cstdlib>
 #include <vector>
 #include <string_view>
 enum token{
@@ -136,20 +137,14 @@ bool isLiteralCad(std::vector<token_anotada>& v, const char *ptr, char type) {
    v.push_back({LITERAL_CADENA, std::string_view(ptr, ptr_end)});
    return true;
 }
-bool numeric(std::vector<token_anotada>& v,const char *ptr){
-   const char *ptr_end = ptr;
-   while(std::isdigit(*ptr_end)) {
-      ++ptr_end;      //std::cout << "digito: " << *ptr_end << "\n";
+bool isNumeric(std::vector<token_anotada>& v, const char *ptr){
+   auto ptr_endi = const_cast<char*>(ptr), ptr_endf = ptr_endi;
+   auto resi = strtol(ptr, &ptr_endi, 0);
+   auto resf = strtod(ptr, &ptr_endf);
+   if (ptr_endi == ptr && ptr_endf == ptr) {
+      return false;
    }
-
-   bool isFloat = *ptr_end == '.';
-   if(isFloat){
-      ptr_end++;
-   }
-   while(std::isdigit(*ptr_end)) {
-      ++ptr_end;      //std::cout << "digito: " << *ptr_end << "\n";
-   }
-   v.push_back({isFloat ? LITERAL_FLOTANTE : LITERAL_ENTERA, std::string_view(ptr, ptr_end)});
+   v.push_back({(ptr_endf > ptr_endi ? LITERAL_FLOTANTE : LITERAL_ENTERA), std::string_view(ptr, std::max(ptr_endi, ptr_endf))});
    return true;
 }
 bool id(std::vector<token_anotada>& v,const char *ptr){
@@ -164,29 +159,6 @@ bool id(std::vector<token_anotada>& v,const char *ptr){
    }
    return false;
 }
-bool isScientificNotation(std::vector<token_anotada>& v, const char *ptr){
-   const char* ptr_end = ptr;
-   if(*ptr_end == '+' || *ptr_end == '-' || std::isdigit(*ptr_end)){
-      *ptr_end++;
-      int countDot = 0;
-      while(std::isdigit(*ptr_end) || *ptr_end == '.'){
-         ++ptr_end;
-         countDot += *ptr_end == '.';
-      }
-      if(*ptr_end == 'e' && countDot <= 1){
-         ++ptr_end;
-         if(*ptr_end == '+' || *ptr_end == '-'){
-            ++ptr_end;
-            while(std::isdigit(*ptr_end)){
-               ++ptr_end;
-            }
-            v.push_back({LITERAL_FLOTANTE, std::string_view(ptr, ptr_end)});
-            return true;
-         }
-      }
-   }
-   return false;
-}
 
 std::vector<token_anotada> lexer(const char* ptr){
    std::vector<token_anotada> vectorLexer;
@@ -194,16 +166,13 @@ std::vector<token_anotada> lexer(const char* ptr){
       if(isSpace(*ptr)){
          ++ptr;
       }else if((*ptr == '\"' || *ptr == '\'') && isLiteralCad(vectorLexer, ptr, *ptr)) {
-         std::advance(ptr, vectorLexer.back( ).location.size( ) + 2); //cad + 2(")
+         std::advance(ptr, vectorLexer.back( ).location.size( ) + 2);
 
-      }else if(isScientificNotation(vectorLexer, ptr)){
+      }else if(isNumeric(vectorLexer, ptr)){
          std::advance(ptr, vectorLexer.back( ).location.size( ));
 
       }else if(isIntoAlphaMp(vectorLexer, ptr) || isIntoSymbolsMp(vectorLexer, ptr)){
          std::advance(ptr, vectorLexer.back( ).location.size( ));
-
-      }else if(std::isdigit(*ptr) && numeric(vectorLexer, ptr)){
-         std::advance(ptr, vectorLexer.back().location.size( ));
 
       }else if(isAStartId(*ptr) && id(vectorLexer, ptr)){
          std::advance(ptr, vectorLexer.back().location.size( ));

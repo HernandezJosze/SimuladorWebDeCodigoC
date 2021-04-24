@@ -7,20 +7,17 @@
 #include <emscripten.h>
 #endif
 
-extern "C" {
+extern "C"
 #ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
+   EMSCRIPTEN_KEEPALIVE
 #endif
-   const char* interpreta(const char* codigo) {
-      //std::cerr << codigo << "\n";
-      static std::string res = "";
-      //something
-      std::vector<token_anotada> v = lexer(codigo);
-      for(int i = 0; i < v.size( ); ++i){
-         std::cout << v[i].tipo << " " << v[i].location << '\n';
-      }
-      return res.c_str( );
+const char* interpreta(const char* codigo) {
+   static std::string res = "";
+   std::vector<token_anotada> v = lexer(codigo);
+   for(int i = 0; i < v.size( ); ++i){
+      std::cout << v[i].tipo << " " << v[i].location << '\n';
    }
+   return res.c_str( );
 }
 
 int main(int argc, const char* argv[]) {
