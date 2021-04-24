@@ -86,22 +86,21 @@ std::map<std::string_view, token> SymbolsMp{
 };
 bool isYetId(const char& c){
    return std::isalnum(c) || c == '_';
-}/*
+}
 bool isAStartId(const char& c){
     return std::isalpha(c) || c == '_';
-}*/
-bool isIntoAlphaMp(std::vector<token_anotada>& v,const char *ptr){
+}
+bool isSpace(const char c){
+   return std::isblank(c) || c == 13 || c == 10;
+}
+bool isIntoAlphaMp(std::vector<token_anotada>& v, const char *ptr){
    std::string s;
    const char *ptr_end = ptr;
    while(std::isalpha(*ptr_end)) {
       s.push_back(*ptr_end++);
       auto fnd = AlphaMp.find(s);
-      //std::cout << "Alpha: " << s << "\n";
-      if (fnd != AlphaMp.end()) {
-         //std::cout << "Alpha: " << s << "\n";
-         //std::cout << "->" << *(ptr_end) << "<-\n";
+      if (fnd != AlphaMp.end( )) {
          if (!isYetId(*(ptr_end))) {
-            //std::cout << "find\n";
             v.push_back({fnd->second, std::string_view(ptr, ptr_end)});
             return true;
          }
@@ -110,82 +109,106 @@ bool isIntoAlphaMp(std::vector<token_anotada>& v,const char *ptr){
    }
    return false;
 }
-bool isIntoSymbolsMp(std::vector<token_anotada>& v,const char *ptr){
+bool isIntoSymbolsMp(std::vector<token_anotada>& v, const char *ptr){
    std::string s;
    const char *ptr_end = ptr;
    while(!std::isalnum(*ptr_end)){
-      //std::cout << "Symbol: " << *ptr_end << "\n";
       s.push_back(*ptr_end++);
-      //std::cout << s << "\n";
       auto fnd = SymbolsMp.find(s);
-      if(fnd != SymbolsMp.end( )){
-         //std::cout << "->" << int(*ptr_end) << "<-" << std::endl;
-         if(SymbolsMp.find(s + *ptr_end) == SymbolsMp.end( )) {
-            //std::cout << "find\n";
-            v.push_back({fnd->second, std::string_view(ptr, ptr_end)});
+      if(fnd != SymbolsMp.end( ) && SymbolsMp.find(s + *ptr_end) == SymbolsMp.end( )){
+         v.push_back({fnd->second, std::string_view(ptr, ptr_end)});
+         return true;
+      }
+   }
+   return false;
+}
+bool isLiteralCad(std::vector<token_anotada>& v, const char *ptr, char type) {
+   const char* ptr_end = ++ptr;
+   while(*ptr_end != type || (*(ptr_end - 1) == '\\' && *(ptr_end - 2) != '\\')) {
+      if(*ptr_end == '\0'){
+         return false;
+      }
+      ++ptr_end;
+   }
+   if(ptr_end - ptr >= 2 && type == '\'' && *ptr != '\\'){
+      return false;
+   }
+   v.push_back({LITERAL_CADENA, std::string_view(ptr, ptr_end)});
+   return true;
+}
+bool numeric(std::vector<token_anotada>& v,const char *ptr){
+   const char *ptr_end = ptr;
+   while(std::isdigit(*ptr_end)) {
+      ++ptr_end;      //std::cout << "digito: " << *ptr_end << "\n";
+   }
+
+   bool isFloat = *ptr_end == '.';
+   if(isFloat)
+      ptr_end++;
+   while(std::isdigit(*ptr_end)) {
+      ++ptr_end;      //std::cout << "digito: " << *ptr_end << "\n";
+   }
+
+   v.push_back({isFloat ? LITERAL_FLOTANTE : LITERAL_ENTERA, std::string_view(ptr, ptr_end)});
+   return true;
+}
+bool id(std::vector<token_anotada>& v,const char *ptr){
+   const char *ptr_end = ptr;
+   while(isYetId(*ptr_end)){
+      ++ptr_end;      //std::cout << "id: " << *ptr_end << "\n";
+   }
+   std::string s = {*ptr_end};
+   if(isSpace(*ptr_end) || (SymbolsMp.find(s) != SymbolsMp.end( ))){
+      v.push_back({IDENTIFICADOR, std::string_view(ptr, ptr_end)});
+      return true;
+   }
+   return false;
+}
+bool isScientificNotation(std::vector<token_anotada>& v, const char *ptr){
+   const char* ptr_end = ptr;
+   if(*ptr_end == '+' || *ptr_end == '-' || std::isdigit(*ptr_end)){
+      *ptr_end++;
+      int countDot = 0;
+      while(std::isdigit(*ptr_end) || *ptr_end == '.'){
+         ++ptr_end;
+      }
+      if(*ptr_end == 'e'){
+         ++ptr_end;
+         if(*ptr_end == '+' || *ptr_end == '-'){
+            ++ptr_end;
+            while(std::isdigit(*ptr_end)){
+               ++ptr_end;
+            }
+            v.push_back({LITERAL_FLOTANTE, std::string_view(ptr, ptr_end)});
             return true;
          }
       }
    }
    return false;
 }
-void isLiteralCad(std::vector<token_anotada>& v,const char *ptr, char type) {
-   const char* ptr_end = ptr;
-   while(*ptr_end != type || *(ptr_end - 1) == '\\') {
-      //std::cout << "cad: " << *ptr_end << "\n";
-      ++ptr_end;
-   }
-   v.push_back({LITERAL_CADENA, std::string_view(ptr, ptr_end)});
-}
-void numeric(std::vector<token_anotada>& v,const char *ptr){
-   const char *ptr_end = ptr;
-   while(std::isdigit(*ptr_end)) {
-      //std::cout << "digito: " << *ptr_end << "\n";
-      ++ptr_end;
-   }
-   bool isFloat = *ptr_end == '.';
-   if(isFloat)
-      ptr_end++;
-   while(std::isdigit(*ptr_end)) {
-      //std::cout << "digito: " << *ptr_end << "\n";
-      ++ptr_end;
-   }
-   v.push_back({isFloat ? LITERAL_FLOTANTE : LITERAL_ENTERA, std::string_view(ptr, ptr_end)});
-}
-void id(std::vector<token_anotada>& v,const char *ptr){
-   const char *ptr_end = ptr;
-   while(isYetId(*ptr_end)){
-      //std::cout << "id: " << *ptr_end << "\n";
-      ++ptr_end;
-   }
-
-   v.push_back({IDENTIFICADOR, std::string_view(ptr, ptr_end)});
-}
 
 std::vector<token_anotada> lexer(const char* ptr){
    std::vector<token_anotada> vectorLexer;
    while(*ptr != '\0'){
-      //std::cout << "caracter: " << int(*ptr) << "\n";
-      if(std::isblank(*ptr) || *ptr == 13){
+      if(isSpace(*ptr)){
          ++ptr;
-      }else if(*ptr == '\"') {
-         isLiteralCad(vectorLexer, ++ptr, '\"');
-         std::advance(ptr, vectorLexer.back( ).location.size( ) + 1);
+      }else if((*ptr == '\"' || *ptr == '\'') && isLiteralCad(vectorLexer, ptr, *ptr)) {
+         std::advance(ptr, vectorLexer.back( ).location.size( ) + 2); //cad + 2(")
 
-      }else if(*ptr == '\'') {
-         isLiteralCad(vectorLexer, ++ptr, '\'');
-         std::advance(ptr, vectorLexer.back( ).location.size( ) + 1);
+      }else if(isScientificNotation(vectorLexer, ptr)){
+         std::advance(ptr, vectorLexer.back( ).location.size( ));
 
       }else if(isIntoAlphaMp(vectorLexer, ptr) || isIntoSymbolsMp(vectorLexer, ptr)){
          std::advance(ptr, vectorLexer.back( ).location.size( ));
+
+      }else if(std::isdigit(*ptr) && numeric(vectorLexer, ptr)){
+         std::advance(ptr, vectorLexer.back().location.size( ));
+
+      }else if(isAStartId(*ptr) && id(vectorLexer, ptr)){
+         std::advance(ptr, vectorLexer.back().location.size( ));
+
       }else{
-         if(std::isdigit(*ptr)){
-            numeric(vectorLexer, ptr);
-            std::advance(ptr, vectorLexer.back().location.size( ));
-         }else{
-            id(vectorLexer, ptr);
-            std::advance(ptr, vectorLexer.back().location.size( ));
-         }
+            throw std::runtime_error("ERROR LEXER");
       }
    }
    vectorLexer.push_back({END_FILE, std::string_view(ptr, ptr + 1)});

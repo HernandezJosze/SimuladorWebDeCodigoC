@@ -11,16 +11,16 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-const char* interpreta(const char* codigo) {
-   std::cerr << codigo << "\n";
-   static std::string res = "";
-   //something
-   std::vector<token_anotada> v = lexer(codigo);
-   for(int i = 0; i < v.size( ); ++i){
-      std::cout << v[i].tipo << " " << v[i].location << '\n';
+   const char* interpreta(const char* codigo) {
+      //std::cerr << codigo << "\n";
+      static std::string res = "";
+      //something
+      std::vector<token_anotada> v = lexer(codigo);
+      for(int i = 0; i < v.size( ); ++i){
+         std::cout << v[i].tipo << " " << v[i].location << '\n';
+      }
+      return res.c_str( );
    }
-   return res.c_str( );
-}
 }
 
 int main(int argc, const char* argv[]) {
@@ -37,7 +37,6 @@ int main(int argc, const char* argv[]) {
       std::cout << "No se pudo abrir " << argv[1] << "\n";
       return 0;
    }
-
    std::ostringstream buffer;
    buffer << file.rdbuf( );
    std::cout << interpreta(std::move(buffer).str( ).c_str( ));

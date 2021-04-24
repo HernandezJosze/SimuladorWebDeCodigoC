@@ -15,6 +15,9 @@ float tc = 23.43;
 "hola\n"
 "hola\""
 "hola\\"
+'\n'
+'7'
+0123
 
 _
 
@@ -22,4 +25,4 @@ _
 
 gatito
 
-"wa
+"waA
