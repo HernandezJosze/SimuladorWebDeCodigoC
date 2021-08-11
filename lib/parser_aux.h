@@ -21,7 +21,6 @@ const token_anotada* espera(const token_anotada*& iter, token esperada){
 }
 
 int precedencia(token t) {
-   // corregir con todos los operadores que s� tenemos (seguir la tabla de precedencia de C; mayor n�mero es mayor precedencia)
    if(t == ASIGNACION || t == DIFERENTE){
       return 1;
    }else if(t == MENOR || t == MENOR_IGUAL || t == MAYOR || t == MAYOR_IGUAL){
@@ -47,7 +46,6 @@ bool es_operador_prefijo(token t){
 }
 
 bool es_operador_binario(token t){
-   // corregir con todos los operadores que s� tenemos
     return t == IGUAL || t == MAS || t == MENOS || t == DIVISION || t == MULTIPLICACION || t == DIFERENTE || t == MAYOR || t == MENOR || t == MAYOR_IGUAL || t == MENOR_IGUAL;
 }
 
