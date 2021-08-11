@@ -1,0 +1,3 @@
+C:\Users\Hernandez\AppData\Local\JetBrains\Toolbox\apps\CLion\ch-0\212.4746.93\bin\cmake\win\bin\cmake.exe -E rm -f CMakeFiles\SimuladorWebDeCodigoC.dir/objects.a
+C:\mingw64\bin\ar.exe cr CMakeFiles\SimuladorWebDeCodigoC.dir/objects.a @CMakeFiles\SimuladorWebDeCodigoC.dir\objects1.rsp
+C:\mingw64\bin\g++.exe -g -Wl,--whole-archive CMakeFiles\SimuladorWebDeCodigoC.dir/objects.a -Wl,--no-whole-archive -o SimuladorWebDeCodigoC.exe -Wl,--out-implib,libSimuladorWebDeCodigoC.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\SimuladorWebDeCodigoC.dir\linklibs.rsp
