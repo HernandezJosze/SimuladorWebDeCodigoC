@@ -2,15 +2,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "C++ Compiler",
+            "name": "C++ Debug (Windows)",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "C:/MinGW/bin",
+            "program": "${workspaceFolder}/bin/main.exe",
+            "preLaunchTask": "Build C++ project",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
-            "externalConsole": true
-        },
+            "externalConsole": true,
+        }
     ]
 }

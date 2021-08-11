@@ -20,11 +20,11 @@
    En este lenguaje tonto, las sentencias son del tipo:
       EJECUTA expresion;
       IF (expresion) {
-         cero o más sentencias
+         cero o mï¿½s sentencias
       }
 */
 
-// LEXER ------------------------------------------------- en este ejemplo no tendremos token_anotada y daremos directamente la lista de tokens en el código
+// LEXER ------------------------------------------------- en este ejemplo no tendremos token_anotada y daremos directamente la lista de tokens en el cï¿½digo
 
 enum token {
    EJECUTA,
@@ -48,13 +48,14 @@ enum token {
 struct expresion {
    virtual ~expresion() = 0;
 };
-expresion::~expresion(){}
+expresion::~expresion(){
+
+}
 
 struct expresion_terminal : expresion {      // identificador o literal entera
    const token* t;
 
-   expresion_terminal(const token* tp)
-   : t(tp) {
+   expresion_terminal(const token* tp) : t(tp) {
    }
 };
 
@@ -83,14 +84,14 @@ bool es_operador_binario(token t) {
    return t == MAS || t == MENOS;
 }
 
-const token* espera(const token*& iter, auto pred){            // si lo que vemos cumple el predicado, avanzamos el iterador pero regresamos el que había cumplido; en caso contrario es un error fatal
+const token* espera(const token*& iter, auto pred){            // si lo que vemos cumple el predicado, avanzamos el iterador pero regresamos el que habï¿½a cumplido; en caso contrario es un error fatal
    if(!pred(*iter)){
       throw std::runtime_error("ERROR PARSER");
    }
    return iter++;
 }
 
-const token* espera(const token*& iter, token esperada){       // si lo que vemos es el token que esperamos, avanzamos el iterador pero regresamos el que había cumplido; en caso contrario es un error fatal
+const token* espera(const token*& iter, token esperada){       // si lo que vemos es el token que esperamos, avanzamos el iterador pero regresamos el que habï¿½a cumplido; en caso contrario es un error fatal
    return espera(iter, [&](token tipo) {
       return tipo == esperada;
    });
@@ -113,9 +114,9 @@ std::unique_ptr<expresion> parsea_expresion(const token*& iter){      // por ref
    }
 
    auto izq = espera(iter, IDENTIFICADOR);         // si no era entero, entonces forzosamente debe ser identificador
-   if (*iter == CORCHETE_IZQ) {                    // ¿tenemos corchete?
+   if (*iter == CORCHETE_IZQ) {                    // ï¿½tenemos corchete?
       ++iter;                                      // lo ignoramos
-      auto expr = parsea_expresion(iter);          // jalamos la expresión interna de los corchetes
+      auto expr = parsea_expresion(iter);          // jalamos la expresiï¿½n interna de los corchetes
       espera(iter, CORCHETE_DER);                  // forzosamente debe venir el que cierra
       return std::make_unique<expresion_corchetes>(izq, std::move(expr));
    } else {
@@ -132,7 +133,7 @@ struct sentencia {
 };
 sentencia::~sentencia(){}
 
-struct sentencia_ejecuta : sentencia {       // EJECUTA expresión
+struct sentencia_ejecuta : sentencia {       // EJECUTA expresiï¿½n
    std::unique_ptr<expresion> ex;
 
    sentencia_ejecuta(std::unique_ptr<expresion>&& e)
@@ -140,7 +141,7 @@ struct sentencia_ejecuta : sentencia {       // EJECUTA expresión
    }
 };
 
-struct sentencia_if : sentencia {    // IF (expresión) { cero o más sentencias }
+struct sentencia_if : sentencia {    // IF (expresiï¿½n) { cero o mï¿½s sentencias }
    std::unique_ptr<expresion> ex;
    std::vector<std::unique_ptr<sentencia>> sentencias;
 
@@ -157,7 +158,7 @@ std::unique_ptr<sentencia> parsea_sentencia(const token*& iter) {
 
       EJECUTA expresion;
       IF (expresion) {
-         cero o más sentencias
+         cero o mï¿½s sentencias
       }
    */
 
@@ -177,7 +178,7 @@ std::unique_ptr<sentencia> parsea_sentencia(const token*& iter) {
    while (*iter != LLAVE_DER) {
       sentencias.push_back(parsea_sentencia(iter));      // recursivo
    }
-   espera(iter, LLAVE_DER);      // ya sabemos que viene (sino el ciclo while no hubiera terminado), pero lo hacemos explícito
+   espera(iter, LLAVE_DER);      // ya sabemos que viene (sino el ciclo while no hubiera terminado), pero lo hacemos explï¿½cito
    return std::make_unique<sentencia_if>(std::move(ex), std::move(sentencias));
 }
 

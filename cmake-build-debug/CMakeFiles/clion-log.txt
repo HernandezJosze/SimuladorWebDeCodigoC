@@ -1,80 +1,16 @@
-C:\Users\Hernandez\AppData\Local\JetBrains\CLion2021.1\cygwin_cmake\bin\cmake.exe -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" "/cygdrive/d/Nueva carpeta/Documents/GitHub/SimuladorWebDeCodigoC"
--- The C compiler identification is GNU 10.2.0
--- The CXX compiler identification is GNU 10.2.0
-CMake Warning at /cygdrive/c/Users/Hernandez/AppData/Local/JetBrains/CLion2021.1/cygwin_cmake/share/cmake-3.19.2/Modules/Platform/CYGWIN.cmake:15 (message):
-  CMake no longer defines WIN32 on Cygwin!
-
-  (1) If you are just trying to build this project, ignore this warning or
-  quiet it by setting CMAKE_LEGACY_CYGWIN_WIN32=0 in your environment or in
-  the CMake cache.  If later configuration or build errors occur then this
-  project may have been written under the assumption that Cygwin is WIN32.
-  In that case, set CMAKE_LEGACY_CYGWIN_WIN32=1 instead.
-
-  (2) If you are developing this project, add the line
-
-    set(CMAKE_LEGACY_CYGWIN_WIN32 0) # Remove when CMake >= 2.8.4 is required
-
-  at the top of your top-level CMakeLists.txt file or set the minimum
-  required version of CMake to 2.8.4 or higher.  Then teach your project to
-  build on Cygwin without WIN32.
-Call Stack (most recent call first):
-  /cygdrive/c/Users/Hernandez/AppData/Local/JetBrains/CLion2021.1/cygwin_cmake/share/cmake-3.19.2/Modules/CMakeSystemSpecificInformation.cmake:26 (include)
-  CMakeLists.txt:2 (project)
-
-
+C:\Users\Hernandez\AppData\Local\JetBrains\Toolbox\apps\CLion\ch-0\212.4746.93\bin\cmake\win\bin\cmake.exe -DCMAKE_BUILD_TYPE=Debug -DCMAKE_DEPENDS_USE_COMPILER=FALSE -G "CodeBlocks - MinGW Makefiles" "D:\Nueva carpeta\Documents\GitHub\SimuladorWebDeCodigoC"
+-- The C compiler identification is GNU 10.3.0
+-- The CXX compiler identification is GNU 10.3.0
 -- Detecting C compiler ABI info
-CMake Error at /cygdrive/c/Users/Hernandez/AppData/Local/JetBrains/CLion2021.1/cygwin_cmake/share/cmake-3.19.2/Modules/CMakeDetermineCompilerABI.cmake:48 (try_compile):
-  Failed to open
-
-    /cygdrive/d/Nueva carpeta/Documents/GitHub/SimuladorWebDeCodigoC/cmake-build-debug/CMakeFiles/CMakeTmp/CMakeLists.txt
-
-  Permission denied
-Call Stack (most recent call first):
-  /cygdrive/c/Users/Hernandez/AppData/Local/JetBrains/CLion2021.1/cygwin_cmake/share/cmake-3.19.2/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)
-  CMakeLists.txt:2 (project)
-
-
--- Detecting C compiler ABI info - failed
--- Check for working C compiler: /usr/bin/cc
-CMake Error at /cygdrive/c/Users/Hernandez/AppData/Local/JetBrains/CLion2021.1/cygwin_cmake/share/cmake-3.19.2/Modules/CMakeTestCCompiler.cmake:53 (try_compile):
-  Failed to open
-
-    /cygdrive/d/Nueva carpeta/Documents/GitHub/SimuladorWebDeCodigoC/cmake-build-debug/CMakeFiles/CMakeTmp/CMakeLists.txt
-
-  Permission denied
-Call Stack (most recent call first):
-  CMakeLists.txt:2 (project)
-
-
--- Check for working C compiler: /usr/bin/cc - broken
-CMake Error at /cygdrive/c/Users/Hernandez/AppData/Local/JetBrains/CLion2021.1/cygwin_cmake/share/cmake-3.19.2/Modules/CMakeTestCCompiler.cmake:66 (message):
-  The C compiler
-
-    "/usr/bin/cc"
-
-  is not able to compile a simple test program.
-
-  It fails with the following output:
-
-    
-
-  
-
-  CMake will not be able to correctly generate this project.
-Call Stack (most recent call first):
-  CMakeLists.txt:2 (project)
-
-
-CMake Warning (dev) in CMakeLists.txt:
-  No cmake_minimum_required command is present.  A line of code such as
-
-    cmake_minimum_required(VERSION 3.19)
-
-  should be added at the top of the file.  The version specified may be lower
-  if you wish to support older CMake versions for this project.  For more
-  information run "cmake --help-policy CMP0000".
-This warning is for project developers.  Use -Wno-dev to suppress it.
-
--- Configuring incomplete, errors occurred!
-See also "/cygdrive/d/Nueva carpeta/Documents/GitHub/SimuladorWebDeCodigoC/cmake-build-debug/CMakeFiles/CMakeOutput.log".
-See also "/cygdrive/d/Nueva carpeta/Documents/GitHub/SimuladorWebDeCodigoC/cmake-build-debug/CMakeFiles/CMakeError.log".
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: C:/mingw64/bin/gcc.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/mingw64/bin/g++.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done
+-- Generating done
+-- Build files have been written to: D:/Nueva carpeta/Documents/GitHub/SimuladorWebDeCodigoC/cmake-build-debug

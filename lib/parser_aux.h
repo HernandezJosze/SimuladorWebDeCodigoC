@@ -21,46 +21,42 @@ const token_anotada* espera(const token_anotada*& iter, token esperada){
 }
 
 int precedencia(token t) {
-   // corregir con todos los operadores que sí tenemos (seguir la tabla de precedencia de C; mayor número es mayor precedencia)
-   /*if(t == OR){
+   // corregir con todos los operadores que sï¿½ tenemos (seguir la tabla de precedencia de C; mayor nï¿½mero es mayor precedencia)
+   if(t == ASIGNACION || t == DIFERENTE){
       return 1;
-   }else if(t == AND){
-      return 2;
-   }else if(t == IGUAL || t == DIFERENTE){
-      return 3;
    }else if(t == MENOR || t == MENOR_IGUAL || t == MAYOR || t == MAYOR_IGUAL){
+      return 2;
+   }else if(t == MAS || t == MENOS){
+      return 3;
+   }else if(t == MULTIPLICACION || t == DIVISION || t == MODULO){
       return 4;
-   }else if(t == SUMA || t == RESTA){
+   }else if(t == PARENTESIS_I){
       return 5;
-   }else if(t == MULTIPLICACION || t == DIVISION || t == PISO || t == RESIDUO){
-      return 6;
-   }else if(t == POTENCIA){
-      return 7;
-   }*/
+   }else if(t == CORCHETE_I || t == COMA){
+       return 6;
+   }
    return -1;
 }
 
 int asociatividad(token t) {
-   return (t != ASIGNACION);
+   return t != ASIGNACION;
 }
 
 bool es_operador_prefijo(token t){
-   // corregir con todos los operadores que sí tenemos
-   // return t == MAS || t == MENOS;
+   return t ==  PARENTESIS_I || t == CORCHETE_I;
 }
 
 bool es_operador_binario(token t){
-   // corregir con todos los operadores que sí tenemos
-   // return t == IGUAL || t == SUMA || t == RESTA || t == DIVISION || t == MULTIPLICACION || t == RESIDUO || t == PISO || t == POTENCIA || t == AND || t == OR || t == DIFERENTE;
+   // corregir con todos los operadores que sï¿½ tenemos
+    return t == IGUAL || t == MAS || t == MENOS || t == DIVISION || t == MULTIPLICACION || t == DIFERENTE || t == MAYOR || t == MENOR || t == MAYOR_IGUAL || t == MENOR_IGUAL;
 }
 
 bool es_tipo(token t){
-   // corregir con todos los operadores que sí tenemos (ej INT, FLOAT)
+    return t == INT || t == FLOAT;
 }
 
 bool es_literal(token t){
-   // corregir con todos los operadores que sí tenemos
-   //return t == LITERAL_ENTERA || t == LITERAL_FLOTANTE || t == LITERAL_CADENA;
+   return t == LITERAL_ENTERA || t == LITERAL_FLOTANTE || t == LITERAL_CADENA;
 }
 
 bool es_terminal(token t){
