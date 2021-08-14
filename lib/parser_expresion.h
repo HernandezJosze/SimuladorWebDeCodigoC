@@ -76,13 +76,18 @@ std::unique_ptr<expresion> parsea_expresion_primaria(const token_anotada*& iter)
       std::unique_ptr<expresion> ex = parsea_expresion(++iter);
       espera(iter, PARENTESIS_D);
       return ex;
-   }else{
-      /* reconocer inicializadores de arreglo       { a, b, c, d }       donde los elementos podrían estar también dentro de llaves */
-      /*std::vector<std::unique_ptr<expresion>> elem;
+   }else if(iter->tipo == LLAVE_I){
+      /* reconocer inicializadores de arreglo       { a, b, c, d }       donde los elementos podrï¿½an estar tambiï¿½n dentro de llaves */
+      std::vector<std::unique_ptr<expresion>> elem;
       espera(iter, LLAVE_I);
-      //...
+      while(iter->tipo != LLAVE_D){
+          elem.push_back(parsea_expresion(iter));
+          if(iter->tipo != LLAVE_D){
+              espera(iter, COMA);
+          }
+      }
       espera(iter, LLAVE_D);
-      return std::make_unique<expresion_arreglo>(std::move(elem));*/
+      return std::make_unique<expresion_arreglo>(std::move(elem));
    }
 }
 
@@ -92,14 +97,14 @@ std::unique_ptr<expresion> parsea_expresion_unaria(const token_anotada*& iter){
       return std::make_unique<expresion_op_prefijo>(operador, parsea_expresion_unaria(iter));
    }
 
-   auto ex = parsea_expresion_primaria(iter);
+   auto ex = parsea_expresion_primaria(iter); //si no es un prefijo ya comienza una expresiÃ³n
    while(iter->tipo == PARENTESIS_I || iter->tipo == CORCHETE_I){
       if(iter->tipo == PARENTESIS_I){
          ++iter;
          std::vector<std::unique_ptr<expresion>> parametros;
          while(iter->tipo != PARENTESIS_D){
             parametros.push_back(parsea_expresion(iter));
-            if(iter->tipo != PARENTESIS_D){
+            if(iter->tipo != PARENTESIS_D){ // si es parentesis no es una funcion, por lo tanto es parametro y esperamos una coma
                espera(iter, COMA);
             }
          }

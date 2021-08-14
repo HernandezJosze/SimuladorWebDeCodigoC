@@ -41,19 +41,29 @@ struct sentencia_return : sentencia{
    }
 };
 
+struct sentencia_for : sentencia{
+    std::vector<std::unique_ptr<sentencia>> inicializacion;
+    std::vector<std::unique_ptr<expresion>> condicion;
+    std::vector<std::unique_ptr<expresion>> incrementos;
+
+    sentencia_for(std::vector<std::unique_ptr<sentencia>>&& ini, std::vector<std::unique_ptr<expresion>>&& cond, std::vector<std::unique_ptr<expresion>>&& inc)
+    : inicializacion(std::move(ini)), condicion(std::move(cond)), incrementos(std::move(inc)) {
+    }
+};
+
 std::unique_ptr<sentencia> parsea_sentencia(const token_anotada*&);
 
 std::unique_ptr<sentencia> parsea_declaracion(const token_anotada*& iter){
-   /*auto tipo = espera(iter, es_tipo);
+   auto tipo = espera(iter, es_tipo);
    auto nombre = espera(iter, IDENTIFICADOR);
    espera(iter, ASIGNACION);
    auto ex = parsea_expresion(iter);
    espera(iter, PUNTO_Y_COMA);
-   return std::make_unique<sentencia_declaracion>(tipo, nombre, std::move(ex));*/
+   return std::make_unique<sentencia_declaracion>(tipo, nombre, std::move(ex));
 }
 
 std::unique_ptr<sentencia> parsea_if(const token_anotada*& iter){
-   /*espera(iter, IF);
+   espera(iter, IF);
    std::unique_ptr<expresion> cond = parsea_expresion(iter);
    espera(iter, LLAVE_I);
    std::vector<std::unique_ptr<sentencia>> si;
@@ -74,24 +84,52 @@ std::unique_ptr<sentencia> parsea_if(const token_anotada*& iter){
          espera(iter, LLAVE_D);
       }
    }
-   return std::make_unique<sentencia_if>(std::move(cond), std::move(si), std::move(no));*/
+   return std::make_unique<sentencia_if>(std::move(cond), std::move(si), std::move(no));
 }
 
 std::unique_ptr<sentencia> parsea_return(const token_anotada*& iter){
-   /*espera(iter, RETURN);
+   espera(iter, RETURN);
    auto ex = parsea_expresion(iter);
    espera(iter, PUNTO_Y_COMA);
-   return std::make_unique<sentencia_return>(std::move(ex));*/
+   return std::make_unique<sentencia_return>(std::move(ex));
 }
-
+std::unique_ptr<sentencia> parsea_for(const token_anotada*& iter){
+    espera(iter, FOR);
+    espera(iter, PARENTESIS_I);
+    std::vector<std::unique_ptr<sentencia>> ini;
+    while(iter->tipo != PUNTO_Y_COMA){
+        ini.push_back(parsea_sentencia(iter));
+        if(iter->tipo == COMA){
+            espera(iter, COMA);
+        }
+    }
+    espera(iter, PUNTO_Y_COMA);
+    std::vector<std::unique_ptr<expresion>> cond;
+    while(iter->tipo != PUNTO_Y_COMA){
+        cond.push_back(parsea_expresion(iter));
+    }
+    espera(iter, PUNTO_Y_COMA);
+    std::vector<std::unique_ptr<expresion>> inc;
+    while(iter->tipo != PUNTO_Y_COMA){
+        inc.push_back(parsea_expresion(iter));
+        if(iter->tipo == COMA){
+            espera(iter, COMA);
+        }
+    }
+    espera(iter, PARENTESIS_D);
+    return std::make_unique<sentencia_for>(std::move(ini), std::move(cond), std::move(inc));
+}
 std::unique_ptr<sentencia> parsea_sentencia(const token_anotada*& iter){
-   /*if(es_tipo(iter->tipo)){
+   if(es_tipo(iter->tipo)){
       return parsea_declaracion(iter);
    }else if(iter->tipo == IF){
       return parsea_if(iter);
+   }else if(iter->tipo == FOR){
+       return parsea_for(iter);
    }else{
       return parsea_return(iter);
-   }*/
+   }
+   //for(int i = 0, j = 0; i < 10 && j < 10; ++i,++j);
 }
 
 #endif

@@ -21,18 +21,24 @@ const token_anotada* espera(const token_anotada*& iter, token esperada){
 }
 
 int precedencia(token t) {
-   if(t == ASIGNACION || t == DIFERENTE){
-      return 1;
+    if(t == COMA){
+        return 1;
+    }else if(t == ASIGNACION){
+        return 2;
+    }else if(t == OR || t == AND){
+        return 3;
+    }else if(t == IGUAL || t == DIFERENTE){
+        return 4;
    }else if(t == MENOR || t == MENOR_IGUAL || t == MAYOR || t == MAYOR_IGUAL){
-      return 2;
-   }else if(t == MAS || t == MENOS){
-      return 3;
-   }else if(t == MULTIPLICACION || t == DIVISION || t == MODULO){
-      return 4;
-   }else if(t == PARENTESIS_I){
       return 5;
-   }else if(t == CORCHETE_I || t == COMA){
-       return 6;
+   }else if(t == MAS || t == MENOS){
+      return 6;
+   }else if(t == MULTIPLICACION || t == DIVISION || t == MODULO){
+       return 7;
+   }else if(t == INCREMENTO || t == DECREMENTO || t == NOT){
+       return 8;
+   }else if(t == CORCHETE_I || t == PARENTESIS_I){
+       return 9;
    }
    return -1;
 }
@@ -42,11 +48,12 @@ int asociatividad(token t) {
 }
 
 bool es_operador_prefijo(token t){
-   return t ==  PARENTESIS_I || t == CORCHETE_I;
+   return t == INCREMENTO || t == DECREMENTO || t == NOT || t == MAS || t == MENOS;
 }
 
 bool es_operador_binario(token t){
-    return t == IGUAL || t == MAS || t == MENOS || t == DIVISION || t == MULTIPLICACION || t == DIFERENTE || t == MAYOR || t == MENOR || t == MAYOR_IGUAL || t == MENOR_IGUAL;
+    return t == IGUAL || t == MAS || t == MENOS || t == DIVISION || t == MULTIPLICACION || t == DIFERENTE ||
+           t == MAYOR || t == MENOR || t == MAYOR_IGUAL || t == MENOR_IGUAL || t == OR || t == AND;
 }
 
 bool es_tipo(token t){

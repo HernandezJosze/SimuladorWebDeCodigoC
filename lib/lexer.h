@@ -20,7 +20,12 @@ enum token{
    BREAK,
    CONTINUE,
    MAS,
+   INCREMENTO,
+   DECREMENTO,
    MENOS,
+   NOT,
+   AND,
+   OR,
    MULTIPLICACION,
    MODULO,
    DIVISION,
@@ -66,6 +71,7 @@ std::map<std::string_view, token> AlphaMp{
 std::map<std::string_view, token> SymbolsMp{
         {"+", MAS},
         {"-", MENOS},
+        {"!", NOT},
         {"*", MULTIPLICACION},
         {"%", MODULO},
         {"/", DIVISION},
@@ -75,6 +81,8 @@ std::map<std::string_view, token> SymbolsMp{
         {">=", MAYOR_IGUAL},
         {"!=", DIFERENTE},
         {"==", IGUAL},
+        {"++", INCREMENTO},
+        {"--", DECREMENTO},
         {"=", ASIGNACION},
         {"[", CORCHETE_I},
         {"]", CORCHETE_D},
@@ -84,6 +92,8 @@ std::map<std::string_view, token> SymbolsMp{
         {")", PARENTESIS_D},
         {",", COMA},
         {";", PUNTO_Y_COMA},
+        {"&&", AND},
+        {"||", OR}
 };
 bool isYetId(const char& c){
    return std::isalnum(c) || c == '_';
