@@ -7,6 +7,7 @@ src/
 build/
 CMakeLists.txt
 CMakeSettings.json
+package.json
 *.exe
 *.o
 *.exe
