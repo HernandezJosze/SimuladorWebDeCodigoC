@@ -49,7 +49,8 @@ enum token{
    LITERAL_CADENA,
    IDENTIFICADOR,
    RETURN,
-   END_FILE
+   END_FILE,
+   WRONG_TOKEN
 };
 struct token_anotada{
    token tipo;
@@ -188,7 +189,7 @@ std::vector<token_anotada> lexer(const char* ptr){
          std::advance(ptr, vectorLexer.back().location.size( ));
 
       }else{
-            throw std::runtime_error("ERROR LEXER");
+          throw std::pair(token_anotada{WRONG_TOKEN, std::string_view(ptr, ptr + 1)}, "Lexer error");
       }
    }
    vectorLexer.push_back({END_FILE, std::string_view(ptr, ptr + 1)});

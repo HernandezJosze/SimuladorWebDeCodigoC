@@ -13,7 +13,15 @@ struct sentencia{
 };
 sentencia::~sentencia(){}
 
-struct sentencia_declaracion : sentencia{
+struct sentencia_expresion : sentencia{
+   std::unique_ptr<expresion> ex;
+
+   sentencia_expresion(std::unique_ptr<expresion>&& e)
+   : ex(std::move(e)) {
+   }
+};
+
+/*struct sentencia_declaracion : sentencia{
    const token_anotada* tipo;
    const token_anotada* nombre;
    std::unique_ptr<expresion> inicializador;
@@ -124,9 +132,10 @@ std::unique_ptr<sentencia> parsea_for(const token_anotada*& iter){
     }
     espera(iter, PARENTESIS_D);
     return std::make_unique<sentencia_for>(std::move(ini), std::move(cond), std::move(inc));
-}
+}*/
+
 std::unique_ptr<sentencia> parsea_sentencia(const token_anotada*& iter){
-   if(es_tipo(iter->tipo)){
+   /*if(es_tipo(iter->tipo)){
       return parsea_declaracion(iter);
    }else if(iter->tipo == IF){
       return parsea_if(iter);
@@ -138,10 +147,21 @@ std::unique_ptr<sentencia> parsea_sentencia(const token_anotada*& iter){
 
    }else if(iter->tipo == CONTINUE){
       return parsea_continue(iter);
-   }else{
+   }else if (iter->tipo == RETURN) {
       return parsea_return(iter);
+   }else {*/
+      auto ex = parsea_expresion(iter);
+      espera(iter, PUNTO_Y_COMA, "Se esperaba ;");
+      return std::make_unique<sentencia_expresion>(std::move(ex));
+   /* } */
+}
+
+std::vector<std::unique_ptr<sentencia>> parser(const std::vector<token_anotada>& v){
+   std::vector<std::unique_ptr<sentencia>> res;
+   for (auto iter = v.data( ); iter->tipo != END_FILE;) {
+      res.push_back(parsea_sentencia(iter));
    }
-   //for(int i = 0, j = 0; i < 10 && j < 10; ++i,++j);
+   return res;
 }
 
 #endif

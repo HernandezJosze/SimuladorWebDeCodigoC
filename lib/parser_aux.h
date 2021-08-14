@@ -6,39 +6,34 @@
 #define SIMULADORWEBDECODIGOC_PARSER_AUX_H
 
 #include "lexer.h"
+#include <utility>
 
-const token_anotada* espera(const token_anotada*& iter, auto pred){
+const token_anotada* espera(const token_anotada*& iter, auto pred, const char* mensaje){
    if(!pred(iter->tipo)){
-      throw std::runtime_error("ERROR PARSER");
+      throw std::pair(*iter, mensaje);
    }
    return iter++;
 }
 
-const token_anotada* espera(const token_anotada*& iter, token esperada){
+const token_anotada* espera(const token_anotada*& iter, token esperada, const char* mensaje){
    return espera(iter, [&](token tipo) {
       return tipo == esperada;
-   });
+   }, mensaje);
 }
 
 int precedencia(token t) {
-    if(t == COMA){
+    if(t == ASIGNACION){
         return 1;
-    }else if(t == ASIGNACION){
-        return 2;
     }else if(t == OR || t == AND){
-        return 3;
+        return 2;
     }else if(t == IGUAL || t == DIFERENTE){
-        return 4;
+        return 3;
    }else if(t == MENOR || t == MENOR_IGUAL || t == MAYOR || t == MAYOR_IGUAL){
-      return 5;
+      return 4;
    }else if(t == MAS || t == MENOS){
-      return 6;
+      return 5;
    }else if(t == MULTIPLICACION || t == DIVISION || t == MODULO){
-       return 7;
-   }else if(t == INCREMENTO || t == DECREMENTO || t == NOT){
-       return 8;
-   }else if(t == CORCHETE_I || t == PARENTESIS_I){
-       return 9;
+       return 6;
    }
    return -1;
 }
@@ -49,6 +44,10 @@ int asociatividad(token t) {
 
 bool es_operador_prefijo(token t){
    return t == INCREMENTO || t == DECREMENTO || t == NOT || t == MAS || t == MENOS;
+}
+
+bool es_operador_posfijo(token t) {
+   return t == INCREMENTO || t == DECREMENTO || t == PARENTESIS_I || t == CORCHETE_I;
 }
 
 bool es_operador_binario(token t){
