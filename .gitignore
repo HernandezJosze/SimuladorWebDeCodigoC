@@ -1,4 +1,12 @@
-
+.idea
+.vs
+.vscode
+cmake-build-debug
+out
+src
+build
+CMakeLists.txt
+CMakeSettings.json
 *.exe
 *.o
 *.exe
