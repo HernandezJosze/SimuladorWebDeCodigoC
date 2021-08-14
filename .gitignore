@@ -1,10 +1,10 @@
-.idea
-.vs
-.vscode
-cmake-build-debug
-out
-src
-build
+.idea/
+.vs/
+.vscode/
+cmake-build-debug/
+out/
+src/
+build/
 CMakeLists.txt
 CMakeSettings.json
 *.exe
