@@ -93,6 +93,12 @@ std::unique_ptr<sentencia> parsea_return(const token_anotada*& iter){
    espera(iter, PUNTO_Y_COMA);
    return std::make_unique<sentencia_return>(std::move(ex));
 }
+std::unique_ptr<sentencia> parsea_continue(const token_anotada*& iter){
+    espera(iter, CONTINUE);
+
+    espera(iter, PUNTO_Y_COMA);
+    return std::make_unique<sentencia_return>(std::move(ex));
+}
 std::unique_ptr<sentencia> parsea_for(const token_anotada*& iter){
     espera(iter, FOR);
     espera(iter, PARENTESIS_I);
@@ -126,6 +132,12 @@ std::unique_ptr<sentencia> parsea_sentencia(const token_anotada*& iter){
       return parsea_if(iter);
    }else if(iter->tipo == FOR){
        return parsea_for(iter);
+   }else if(iter->tipo == DO){
+
+   }else if(iter->tipo == WHILE){
+
+   }else if(iter->tipo == CONTINUE){
+      return parsea_continue(iter);
    }else{
       return parsea_return(iter);
    }
