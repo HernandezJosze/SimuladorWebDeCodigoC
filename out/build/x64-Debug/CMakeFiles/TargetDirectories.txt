@@ -1,3 +1,0 @@
-D:/Nueva carpeta/Documents/GitHub/SimuladorWebDeCodigoC/out/build/x64-Debug/CMakeFiles/SimuladorWebDeCodigoC.dir
-D:/Nueva carpeta/Documents/GitHub/SimuladorWebDeCodigoC/out/build/x64-Debug/CMakeFiles/edit_cache.dir
-D:/Nueva carpeta/Documents/GitHub/SimuladorWebDeCodigoC/out/build/x64-Debug/CMakeFiles/rebuild_cache.dir
