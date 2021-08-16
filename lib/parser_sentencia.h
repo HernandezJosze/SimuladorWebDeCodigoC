@@ -24,23 +24,21 @@ struct sentencia_expresion : sentencia{
 struct sentencia_declaracion : sentencia{
    const token_anotada* tipo;
    const token_anotada* nombre;
+   std::unique_ptr<expresion> tamanio;
    std::unique_ptr<expresion> inicializador;
 
-   sentencia_declaracion(const token_anotada* t, const token_anotada* n, std::unique_ptr<expresion>&& i)
-   : tipo(t), nombre(n), inicializador(std::move(i)) {
-   }
-   sentencia_declaracion(const token_anotada* t, const token_anotada* n)
-   : tipo(t), nombre(n) {
+   sentencia_declaracion(const token_anotada* t, const token_anotada* n, std::unique_ptr<expresion>&& tam, std::unique_ptr<expresion>&& i)
+   : tipo(t), nombre(n), tamanio(std::move(tam)), inicializador(std::move(i)) {
    }
 };
 struct sentencia_asignacion : sentencia{
    const token_anotada* nombre;
+   std::unique_ptr<expresion> tamanio;
    std::unique_ptr<expresion> inicializador;
 
-   sentencia_asignacion(const token_anotada* n, std::unique_ptr<expresion>&& i)
-   : nombre(n), inicializador(std::move(i)) {
+   sentencia_asignacion(const token_anotada* n, std::unique_ptr<expresion>&& tam, std::unique_ptr<expresion>&& i)
+   : nombre(n), tamanio(std::move(tam)), inicializador(std::move(i)) {
    }
-
 };
 struct sentencia_if : sentencia{
    std::unique_ptr<expresion> condicion;
@@ -75,25 +73,35 @@ std::unique_ptr<sentencia> parsea_sentencia(const token_anotada*&);
 std::unique_ptr<sentencia> parsea_declaracion(const token_anotada*& iter){
    auto tipo = espera(iter, es_tipo, "Se esperaba una declaracion");
    auto nombre = espera(iter, IDENTIFICADOR, "Se esperaba un identificador");
-   if(iter->tipo == ASIGNACION){
-    espera(iter, ASIGNACION, "Se esperaba una asignacion");
-    auto ex = parsea_expresion(iter);
-    espera(iter, PUNTO_Y_COMA, "Se esperaba un ;declara1");
-    return std::make_unique<sentencia_declaracion>(tipo, nombre, std::move(ex));
-
-   }else{
-    espera(iter, PUNTO_Y_COMA, "Se esperaba un ;declara2");
-    return std::make_unique<sentencia_declaracion>(tipo, nombre);
+   std::unique_ptr<expresion>&& tam = nullptr, ex = nullptr;
+   if(iter->tipo == CORCHETE_I){
+      espera(iter, CORCHETE_I, "Se espera un [");
+      tam = parsea_expresion(iter);
+      espera(iter, CORCHETE_D, "Se espera un ]");
    }
+   if(iter->tipo == ASIGNACION){
+        espera(iter, ASIGNACION, "Se esperaba una asignacion");
+        ex = parsea_expresion(iter);
+   }
+    espera(iter, PUNTO_Y_COMA, "Se esperaba un ;");
+    return std::make_unique<sentencia_declaracion>(tipo, nombre, std::move(tam), std::move(ex));
 }
 std::unique_ptr<sentencia> parsea_asignacion(const token_anotada*& iter){
    auto nombre = espera(iter, IDENTIFICADOR, "Se esperaba un identificador");
-   espera(iter, ASIGNACION, "Se esperaba una asignacion");
-   auto ex = parsea_expresion(iter);
-   std::cerr << iter->tipo << '\n';
-   espera(iter, PUNTO_Y_COMA, "Se esperaba un ;asigna");
-   return std::make_unique<sentencia_asignacion>(nombre, std::move(ex));
+   std::unique_ptr<expresion>&& tam = nullptr, ex = nullptr;
+   if(iter->tipo == CORCHETE_I){
+      espera(iter, CORCHETE_I, "Se espera un [");
+      tam = parsea_expresion(iter);
+      espera(iter, CORCHETE_D, "Se espera un ]");
+   }
+   if(iter->tipo == ASIGNACION){
+        espera(iter, ASIGNACION, "Se esperaba una asignacion");
+        ex = parsea_expresion(iter);
+   }
+    espera(iter, PUNTO_Y_COMA, "Se esperaba un ;");
+    return std::make_unique<sentencia_asignacion>(nombre, std::move(tam), std::move(ex));
 }
+
 std::unique_ptr<sentencia> parsea_if(const token_anotada*& iter){
    espera(iter, IF, "Se esperaba una if");
    std::unique_ptr<expresion> cond = parsea_expresion(iter);
@@ -173,11 +181,12 @@ std::unique_ptr<sentencia> parsea_sentencia(const token_anotada*& iter){
       return parsea_continue(iter);
    }else if (iter->tipo == RETURN) {
       return parsea_return(iter);
-   }else if(es_literal(iter->tipo)){
+   }else if(es_terminal(iter->tipo)){
       return parsea_asignacion(iter);
    }else {
+       std::cout << iter->location << ' ';
       auto ex = parsea_expresion(iter);
-      espera(iter, PUNTO_Y_COMA, "Se esperaba ;mmm");
+      espera(iter, PUNTO_Y_COMA, "Se esperaba ;");
       return std::make_unique<sentencia_expresion>(std::move(ex));
     }
 }
