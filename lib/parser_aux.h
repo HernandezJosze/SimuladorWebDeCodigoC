@@ -56,7 +56,7 @@ bool es_operador_binario(token t){
 }
 
 bool es_tipo(token t){
-    return t == INT || t == FLOAT;
+    return t == INT || t == FLOAT || t == CHAR;
 }
 
 bool es_literal(token t){
