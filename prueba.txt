@@ -1,8 +1,11 @@
-//int n = 5;
-//if(n <= 10){
+int n = 5;
+if(n <= 10){
     int a;
     a =(a == 5);
-//}
+}
+for(int i = 0; i < 5; ++i, ++j){
+   int cq;
+}
 char mander[30 + 1] ="hola mundo";
 mander[30] = 'c';
 int arr[43] = { };
@@ -11,6 +14,19 @@ int arr[43] = { };
 //}
 float tc = 23.43;
 "hola";
+"hola\n";
+"hola\"";
+"hola\\";
+'\n';
+'7';
+0123f;
+0123;
+
+_;
+
++1.23e-10;
+gatito;
+"waA";"hola";
 "hola\n";
 "hola\"";
 "hola\\";
