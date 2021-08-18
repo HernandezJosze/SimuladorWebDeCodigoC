@@ -1,18 +1,6 @@
-int n = 5;
-if(n <= 10){
-    int a;
-    a =(a == 5);
-}
-for(int i = 0; i < 5; ++i, ++j){
-   int cq;
-}
-char mander[30 + 1] ="hola mundo";
-mander[30] = 'c';
-int arr[43] = { };
-//for(int i = 0; i < n; ++i){
-//    break;
-//}
-float tc = 23.43;
+//int n = 5;
+n <= 10;
+cq;
 "hola";
 "hola\n";
 "hola\"";
@@ -21,9 +9,7 @@ float tc = 23.43;
 '7';
 0123f;
 0123;
-
 _;
-
 +1.23e-10;
 gatito;
 "waA";"hola";
@@ -34,9 +20,7 @@ gatito;
 '7';
 0123f;
 0123;
-
-_;
-
-+1.23e-10;
-gatito;
-"waA";
+a + 5 * 8;
+a = f( ) + a[2] * 5 - 1;
+b -= f(1, g(5, arr[2] / 5) + 9) * 5 + 1;
+a[1][2][3] = b[6][(1 - 7) / 2];
