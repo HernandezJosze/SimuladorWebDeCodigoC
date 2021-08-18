@@ -51,7 +51,7 @@ bool es_operador_posfijo(token t) {
 }
 
 bool es_operador_binario(token t){
-    return t == IGUAL || t == MAS || t == MENOS || t == DIVISION || t == MULTIPLICACION || t == DIFERENTE ||
+    return t == ASIGNACION || t == IGUAL || t == MAS || t == MENOS || t == DIVISION || t == MULTIPLICACION || t == DIFERENTE ||
            t == MAYOR || t == MENOR || t == MAYOR_IGUAL || t == MENOR_IGUAL || t == OR || t == AND;
 }
 

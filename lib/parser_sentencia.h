@@ -21,7 +21,7 @@ struct sentencia_expresion : sentencia{
    }
 };
 
-struct sentencia_declaracion : sentencia{
+/*struct sentencia_declaracion : sentencia{
    const token_anotada* tipo;
    std::vector<const token_anotada*> nombre;
    std::vector<std::unique_ptr<expresion>> tamanio;
@@ -29,15 +29,6 @@ struct sentencia_declaracion : sentencia{
 
    sentencia_declaracion(const token_anotada* t, std::vector<const token_anotada*> n, std::vector<std::unique_ptr<expresion>>&& tam, std::vector<std::unique_ptr<expresion>>&& i)
    : tipo(t), nombre(n), tamanio(std::move(tam)), inicializador(std::move(i)) {
-   }
-};
-struct sentencia_asignacion : sentencia{
-   std::vector<const token_anotada*> nombre;
-   std::vector<std::unique_ptr<expresion>> tamanio;
-   std::vector<std::unique_ptr<expresion>> inicializador;
-
-   sentencia_asignacion(std::vector<const token_anotada*> n, std::vector<std::unique_ptr<expresion>>&& tam, std::vector<std::unique_ptr<expresion>>&& i)
-   : nombre(std::move(n)), tamanio(std::move(tam)), inicializador(std::move(i)) {
    }
 };
 struct sentencia_if : sentencia{
@@ -194,10 +185,10 @@ std::unique_ptr<sentencia> parsea_for(const token_anotada*& iter){
    }
    espera(iter, LLAVE_D, "Se esperaba un }");
    return std::make_unique<sentencia_for>(std::move(ini), std::move(cond), std::move(inc), std::move(ejecutar));
-}
+}*/
 
 std::unique_ptr<sentencia> parsea_sentencia(const token_anotada*& iter){
-   if(es_tipo(iter->tipo)){
+   /*if(es_tipo(iter->tipo)){
       return parsea_declaracion(iter);
    }else if(iter->tipo == IF){
       return parsea_if(iter);
@@ -211,14 +202,11 @@ std::unique_ptr<sentencia> parsea_sentencia(const token_anotada*& iter){
       return parsea_continue(iter);
    }else if (iter->tipo == RETURN) {
       return parsea_return(iter);
-   }else if(es_terminal(iter->tipo)){
-      return parsea_asignacion(iter);
-   }else {
-       std::cout << iter->location << ' ';
+   }else {*/
       auto ex = parsea_expresion(iter);
-      espera(iter, PUNTO_Y_COMA, "Se esperaba ;fuera");
+      espera(iter, PUNTO_Y_COMA, "Se esperaba ;");
       return std::make_unique<sentencia_expresion>(std::move(ex));
-    }
+    //}
 }
 
 std::vector<std::unique_ptr<sentencia>> parser(const std::vector<token_anotada>& v){
