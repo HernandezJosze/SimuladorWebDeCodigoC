@@ -21,11 +21,11 @@ std::ostream& operator<<(std::ostream& os, const expresion& e) {
    } else if (auto checar = dynamic_cast<const expresion_op_posfijo*>(&e); checar != nullptr) {
       os << "(" << *checar->sobre << *checar->operador << ")";
    } else if (auto checar = dynamic_cast<const expresion_op_binario*>(&e); checar != nullptr) {
-      os << "(" << *checar->izq << *checar->operador << *checar->der << ")";
+      os << "(" << *checar->izq << ' ' << *checar->operador << ' ' << *checar->der << ")";
    } else if (auto checar = dynamic_cast<const expresion_llamada*>(&e); checar != nullptr) {
       os << *checar->func << "(";
       for (const auto& p : checar->parametros) {
-         os << *p << ",";
+         os << *p << (checar->parametros.back( ) == p ? "" : ", ");
       }
       os << ")";
    } else if (auto checar = dynamic_cast<const expresion_corchetes*>(&e); checar != nullptr) {
@@ -33,7 +33,7 @@ std::ostream& operator<<(std::ostream& os, const expresion& e) {
    } else if (auto checar = dynamic_cast<const expresion_arreglo*>(&e); checar != nullptr) {
       os << "{";
       for (const auto& e : checar->elementos) {
-         os << *e << ",";
+         os << *e << (checar->elementos.back( ) == e ? "" : ", ");
       }
       os << "}";
    }

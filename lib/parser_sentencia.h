@@ -97,33 +97,6 @@ std::unique_ptr<sentencia> parsea_declaracion(const token_anotada*& iter){
     espera(iter, PUNTO_Y_COMA, "Se esperaba un ;");
     return std::make_unique<sentencia_declaracion>(tipo, nombre, std::move(vtam), std::move(vex));
 }
-std::unique_ptr<sentencia> parsea_asignacion(const token_anotada*& iter){
-   bool _continue = true;
-   std::vector<const token_anotada*> nombre;
-   std::vector<std::unique_ptr<expresion>> vtam, vex;
-   do{
-      nombre.push_back(espera(iter, IDENTIFICADOR, "Se esperaba un identificador"));
-      std::unique_ptr<expresion> tam = nullptr, ex = nullptr;
-      if(iter->tipo == CORCHETE_I){
-         espera(iter, CORCHETE_I, "Se espera un [");
-         tam = parsea_expresion(iter);
-         espera(iter, CORCHETE_D, "Se espera un ]");
-      }
-      if(iter->tipo == ASIGNACION){
-         espera(iter, ASIGNACION, "Se esperaba una asignacion");
-         ex = parsea_expresion(iter);
-      }
-      vtam.push_back(std::move(tam));
-      vex.push_back(std::move(ex));
-      if(iter->tipo == COMA){
-         espera(iter, COMA, "Se esperaba una ,");
-      }else{
-         _continue = false;
-      }
-   }while(_continue);
-   espera(iter, PUNTO_Y_COMA, "Se esperaba un ;");
-   return std::make_unique<sentencia_asignacion>(std::move(nombre), std::move(vtam), std::move(vex));
-}
 
 std::unique_ptr<sentencia> parsea_if(const token_anotada*& iter){
    espera(iter, IF, "Se esperaba una if");

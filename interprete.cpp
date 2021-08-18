@@ -48,7 +48,6 @@ const char* interpreta(const char* codigo) {
                 << "\t^\n"
                 << e.second << "\n";
    }
-
    return res.c_str( );
 }
 

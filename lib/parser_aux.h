@@ -22,12 +22,12 @@ const token_anotada* espera(const token_anotada*& iter, token esperada, const ch
 }
 
 int precedencia(token t) {
-    if(t == ASIGNACION){
-        return 1;
-    }else if(t == OR || t == AND){
-        return 2;
-    }else if(t == IGUAL || t == DIFERENTE){
-        return 3;
+   if(t == ASIGNACION || t == MAS_IGUAL || t == MENOS_IGUAL || t == MULTIPLICA_IGUAL || t == DIVIDE_IGUAL || t == MODULO_IGUAL){
+       return 1;
+   }else if(t == OR || t == AND){
+       return 2;
+   }else if(t == IGUAL || t == DIFERENTE){
+       return 3;
    }else if(t == MENOR || t == MENOR_IGUAL || t == MAYOR || t == MAYOR_IGUAL){
       return 4;
    }else if(t == MAS || t == MENOS){
@@ -51,8 +51,9 @@ bool es_operador_posfijo(token t) {
 }
 
 bool es_operador_binario(token t){
-    return t == ASIGNACION || t == IGUAL || t == MAS || t == MENOS || t == DIVISION || t == MULTIPLICACION || t == DIFERENTE ||
-           t == MAYOR || t == MENOR || t == MAYOR_IGUAL || t == MENOR_IGUAL || t == OR || t == AND;
+    return t == ASIGNACION || t == MAS_IGUAL || t == MENOS_IGUAL || t == MULTIPLICA_IGUAL || t == DIVIDE_IGUAL || t == MODULO_IGUAL ||
+           t == OR || t == AND || t == IGUAL || t == DIFERENTE || t == MENOR || t == MENOR_IGUAL || t == MAYOR || t == MAYOR_IGUAL ||
+           t == MAS || t == MENOS || t == MULTIPLICACION || t == DIVISION || t == MODULO;
 }
 
 bool es_tipo(token t){
