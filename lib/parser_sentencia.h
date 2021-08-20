@@ -21,7 +21,7 @@ struct sentencia_expresion : sentencia{
    }
 };
 
-/*struct sentencia_declaracion : sentencia{
+struct sentencia_declaracion : sentencia{
    const token_anotada* tipo;
    std::vector<const token_anotada*> nombre;
    std::vector<std::unique_ptr<expresion>> tamanio;
@@ -32,12 +32,13 @@ struct sentencia_expresion : sentencia{
    }
 };
 struct sentencia_if : sentencia{
+   bool esElseif = false;
    std::unique_ptr<expresion> condicion;
    std::vector<std::unique_ptr<sentencia>> parte_si;
    std::vector<std::unique_ptr<sentencia>> parte_no;
 
-   sentencia_if(std::unique_ptr<expresion>&& cond, std::vector<std::unique_ptr<sentencia>>&& si, std::vector<std::unique_ptr<sentencia>>&& no)
-   : condicion(std::move(cond)), parte_si(std::move(si)), parte_no(std::move(no)) {
+   sentencia_if(std::unique_ptr<expresion>&& cond, std::vector<std::unique_ptr<sentencia>>&& si, std::vector<std::unique_ptr<sentencia>>&& no, bool esElif)
+   : condicion(std::move(cond)), parte_si(std::move(si)), parte_no(std::move(no)), esElseif(esElif) {
    }
 };
 struct sentencia_for : sentencia{
@@ -108,9 +109,11 @@ std::unique_ptr<sentencia> parsea_if(const token_anotada*& iter){
    }
    espera(iter, LLAVE_D, "Se esperaba un }");
    std::vector<std::unique_ptr<sentencia>> no;
+   bool esElseIf = false;
    if(iter->tipo == ELSE){
       ++iter;
       if(iter->tipo == IF){
+         esElseIf = true;
          no.push_back(parsea_if(iter));
       }else{
          espera(iter, LLAVE_I, "Se esperaba un {");
@@ -120,14 +123,7 @@ std::unique_ptr<sentencia> parsea_if(const token_anotada*& iter){
          espera(iter, LLAVE_D, "Se esperaba un }");
       }
    }
-   return std::make_unique<sentencia_if>(std::move(cond), std::move(si), std::move(no));
-}
-
-std::unique_ptr<sentencia> parsea_return(const token_anotada*& iter){
-   espera(iter, RETURN, "Se esperaba un return");
-   auto ex = parsea_expresion(iter);
-   espera(iter, PUNTO_Y_COMA, "Se esperaba un ;");
-   return std::make_unique<sentencia_return>(std::move(ex));
+   return std::make_unique<sentencia_if>(std::move(cond), std::move(si), std::move(no), esElseIf);
 }
 std::unique_ptr<sentencia> parsea_continue(const token_anotada*& iter){
     espera(iter, CONTINUE, "Se esperaba un continue");
@@ -138,10 +134,21 @@ std::unique_ptr<sentencia> parsea_continue(const token_anotada*& iter){
 std::unique_ptr<sentencia> parsea_for(const token_anotada*& iter){
    espera(iter, FOR, "Se esperaba un for");
    espera(iter, PARENTESIS_I, "Se esperaba un (");
-   std::unique_ptr<sentencia> ini = parsea_sentencia(iter);
-   std::unique_ptr<expresion> cond = parsea_expresion(iter);
+   std::unique_ptr<sentencia> ini;
+   std::unique_ptr<expresion> cond;
 
+   if(iter->tipo != PUNTO_Y_COMA){
+      ini = parsea_sentencia(iter);
+   }else{
+      espera(iter, PUNTO_Y_COMA, "Se esperaba un ;for");
+   }
+
+   if(iter->tipo != PUNTO_Y_COMA){
+      cond = parsea_expresion(iter);
+   }
    espera(iter, PUNTO_Y_COMA, "Se esperaba un ;for");
+
+
 
    std::vector<std::unique_ptr<expresion>> inc;
    while(iter->tipo != PARENTESIS_D){
@@ -158,10 +165,9 @@ std::unique_ptr<sentencia> parsea_for(const token_anotada*& iter){
    }
    espera(iter, LLAVE_D, "Se esperaba un }");
    return std::make_unique<sentencia_for>(std::move(ini), std::move(cond), std::move(inc), std::move(ejecutar));
-}*/
-
+}
 std::unique_ptr<sentencia> parsea_sentencia(const token_anotada*& iter){
-   /*if(es_tipo(iter->tipo)){
+   if(es_tipo(iter->tipo)){
       return parsea_declaracion(iter);
    }else if(iter->tipo == IF){
       return parsea_if(iter);
@@ -173,13 +179,11 @@ std::unique_ptr<sentencia> parsea_sentencia(const token_anotada*& iter){
 
    }else if(iter->tipo == CONTINUE){
       return parsea_continue(iter);
-   }else if (iter->tipo == RETURN) {
-      return parsea_return(iter);
-   }else {*/
+   }else {
       auto ex = parsea_expresion(iter);
       espera(iter, PUNTO_Y_COMA, "Se esperaba ;");
       return std::make_unique<sentencia_expresion>(std::move(ex));
-    //}
+    }
 }
 
 #endif

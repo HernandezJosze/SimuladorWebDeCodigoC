@@ -10,7 +10,7 @@
 #include <iostream>
 
 std::ostream& operator<<(std::ostream& os, const token_anotada& t) {
-   return os << t.location;
+   return os << (t.tipo == LITERAL_CADENA ? "\"" : "") << t.location << (t.tipo == LITERAL_CADENA ? "\"" : "");
 }
 
 std::ostream& operator<<(std::ostream& os, const expresion& e) {
@@ -44,6 +44,45 @@ std::ostream& operator<<(std::ostream& os, const expresion& e) {
 std::ostream& operator<<(std::ostream& os, const sentencia& s) {
    if (auto checar = dynamic_cast<const sentencia_expresion*>(&s); checar != nullptr) {
       os << *checar->ex << ";";
+   }else if(auto checar = dynamic_cast<const sentencia_declaracion*>(&s); checar != nullptr){
+      os << *checar->tipo << " ";
+      for(int i = 0; i < checar->nombre.size( ); ++i){
+         os << *checar->nombre[i];
+         if(checar->tamanio[i]){
+            os << "[" << *checar->tamanio[i] << "]";
+         }
+         if(checar->inicializador[i]){
+            os << " = " << *checar->inicializador[i];
+         }
+         os << (i + 1 == checar->nombre.size( ) ? ";" : ", ");
+      }
+   }else if (auto checar = dynamic_cast<const sentencia_if*>(&s); checar != nullptr){
+      os << "if(" << *checar->condicion << "){\n";
+      for (const auto& p : checar->parte_si){
+         os << "   " << *p << '\n';
+      }
+      os << "}" << (checar->esElseif ? "else " : (checar->parte_no.empty( ) ? "" : "else{\n"));
+      for (const auto& p : checar->parte_no){
+         os << (checar->esElseif && p == checar->parte_no.front( ) ? "" : "   ") << *p << '\n';
+      }
+      os << (checar->esElseif ? "" : (checar->parte_no.empty( ) ? "" : "}\n"));
+
+   }else if(auto checar = dynamic_cast<const sentencia_for*>(&s); checar != nullptr){
+      os << "for(";
+      if(checar->inicializacion){
+         os << *checar->inicializacion;
+      }else{
+         os << ";";
+      }
+      os << *checar->condicion << ";";
+      for(auto& p : checar->incrementos){
+         os << *p << (p == checar->incrementos.back( ) ? "" : ", ");
+      }
+      os << "){\n";
+      for(auto& se : checar->aEjecutar){
+         os << "   " << *se << "\n";
+      }
+      os << "\n}\n";
    }
 
    return os;

@@ -21,19 +21,19 @@ const token_anotada* espera(const token_anotada*& iter, token esperada, const ch
    }, mensaje);
 }
 
-int precedencia(token t) {
+int precedencia(token t){
    if(t == ASIGNACION || t == MAS_IGUAL || t == MENOS_IGUAL || t == MULTIPLICA_IGUAL || t == DIVIDE_IGUAL || t == MODULO_IGUAL){
-       return 1;
+      return 1;
    }else if(t == OR || t == AND){
-       return 2;
+      return 2;
    }else if(t == IGUAL || t == DIFERENTE){
-       return 3;
+      return 3;
    }else if(t == MENOR || t == MENOR_IGUAL || t == MAYOR || t == MAYOR_IGUAL){
       return 4;
    }else if(t == MAS || t == MENOS){
       return 5;
    }else if(t == MULTIPLICACION || t == DIVISION || t == MODULO){
-       return 6;
+      return 6;
    }
    return -1;
 }
