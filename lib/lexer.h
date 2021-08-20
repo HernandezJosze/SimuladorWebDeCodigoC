@@ -32,6 +32,7 @@ enum token{
    MULTIPLICACION,
    MODULO,
    DIVISION,
+   DIRECCION,
    MENOR,
    MAYOR,
    MENOR_IGUAL,
@@ -56,8 +57,6 @@ enum token{
    LITERAL_FLOTANTE,
    LITERAL_CADENA,
    IDENTIFICADOR,
-   COMENTARIO,
-   RETURN,
    END_FILE,
    WRONG_TOKEN
 };
@@ -76,8 +75,7 @@ std::map<std::string_view, token> AlphaMp{
         {"float", FLOAT},
         {"char", CHAR},
         {"break", BREAK},
-        {"continue", CONTINUE},
-        {"return", RETURN}
+        {"continue", CONTINUE}
 };
 std::map<std::string_view, token> SymbolsMp{
         {"+", MAS},
@@ -86,6 +84,7 @@ std::map<std::string_view, token> SymbolsMp{
         {"*", MULTIPLICACION},
         {"%", MODULO},
         {"/", DIVISION},
+        {"&", DIRECCION},
         {"<", MENOR},
         {">", MAYOR},
         {"<=", MENOR_IGUAL},
@@ -109,17 +108,13 @@ std::map<std::string_view, token> SymbolsMp{
         {",", COMA},
         {";", PUNTO_Y_COMA},
         {"&&", AND},
-        {"||", OR},
-        {"//", COMENTARIO}
+        {"||", OR}
 };
 bool isYetId(const char& c){
    return std::isalnum(c) || c == '_';
 }
 bool isAStartId(const char& c){
     return std::isalpha(c) || c == '_';
-}
-bool isSpace(const char c){
-   return std::isblank(c) || c == 13 || c == 10;
 }
 bool isIntoAlphaMp(std::vector<token_anotada>& v, const char *ptr){
    std::string s;
@@ -183,7 +178,7 @@ bool id(std::vector<token_anotada>& v,const char *ptr){
       ++ptr_end;      //std::cout << "id: " << *ptr_end << "\n";
    }
    std::string s = {*ptr_end};
-   if(isSpace(*ptr_end) || (SymbolsMp.find(s) != SymbolsMp.end( ))){
+   if(std::isspace(*ptr_end) || (SymbolsMp.find(s) != SymbolsMp.end( ))){
       v.push_back({IDENTIFICADOR, std::string_view(ptr, ptr_end)});
       return true;
    }
@@ -207,8 +202,10 @@ int isComment(const char* ptr){
 std::vector<token_anotada> lexer(const char* ptr){
    std::vector<token_anotada> vectorLexer;
    while(*ptr != '\0'){
-       if(isSpace(*ptr)){
+       if(std::isspace(*ptr)){
          ++ptr;
+      } else if (int advance = isComment(ptr); advance != 0) {
+         std::advance(ptr, advance);
       }else if((*ptr == '\"' || *ptr == '\'') && isLiteralCad(vectorLexer, ptr, *ptr)) {
          std::advance(ptr, vectorLexer.back( ).location.size( ) + 2);
 
@@ -222,13 +219,7 @@ std::vector<token_anotada> lexer(const char* ptr){
          std::advance(ptr, vectorLexer.back().location.size( ));
 
       }else{
-          int advance = isComment(ptr);
-          if(advance){
-            std::advance(ptr, advance);
-          }else{
-            throw std::pair(token_anotada{WRONG_TOKEN, std::string_view(ptr, ptr + 1)}, "Lexer error");
-          }
-
+         throw std::pair(token_anotada{WRONG_TOKEN, std::string_view(ptr, ptr + 1)}, "Lexer error");
       }
    }
    vectorLexer.push_back({END_FILE, std::string_view(ptr, ptr + 1)});

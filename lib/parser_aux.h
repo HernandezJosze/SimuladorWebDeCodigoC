@@ -43,7 +43,7 @@ int asociatividad(token t) {
 }
 
 bool es_operador_prefijo(token t){
-   return t == INCREMENTO || t == DECREMENTO || t == NOT || t == MAS || t == MENOS;
+   return t == INCREMENTO || t == DECREMENTO || t == MAS || t == MENOS || t == NOT || t == DIRECCION;
 }
 
 bool es_operador_posfijo(token t) {
@@ -52,8 +52,11 @@ bool es_operador_posfijo(token t) {
 
 bool es_operador_binario(token t){
     return t == ASIGNACION || t == MAS_IGUAL || t == MENOS_IGUAL || t == MULTIPLICA_IGUAL || t == DIVIDE_IGUAL || t == MODULO_IGUAL ||
-           t == OR || t == AND || t == IGUAL || t == DIFERENTE || t == MENOR || t == MENOR_IGUAL || t == MAYOR || t == MAYOR_IGUAL ||
-           t == MAS || t == MENOS || t == MULTIPLICACION || t == DIVISION || t == MODULO;
+           t == OR || t == AND ||
+           t == IGUAL || t == DIFERENTE ||
+           t == MENOR || t == MENOR_IGUAL || t == MAYOR || t == MAYOR_IGUAL ||
+           t == MAS || t == MENOS ||
+           t == MULTIPLICACION || t == DIVISION || t == MODULO;
 }
 
 bool es_tipo(token t){

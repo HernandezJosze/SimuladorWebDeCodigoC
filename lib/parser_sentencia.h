@@ -182,12 +182,4 @@ std::unique_ptr<sentencia> parsea_sentencia(const token_anotada*& iter){
     //}
 }
 
-std::vector<std::unique_ptr<sentencia>> parser(const std::vector<token_anotada>& v){
-   std::vector<std::unique_ptr<sentencia>> res;
-   for (auto iter = v.data( ); iter->tipo != END_FILE;) {
-      res.push_back(parsea_sentencia(iter));
-   }
-   return res;
-}
-
 #endif

@@ -37,7 +37,7 @@ const char* interpreta(const char* codigo) {
          std::cout << actual.tipo << " " << actual << '\n';
       }
       std::cout << "EXPRESIONES:\n";
-      std::vector<std::unique_ptr<sentencia>> w = parser(v);
+      std::vector<std::unique_ptr<sentencia>> w = parser(v.data( ));
       for (const auto& actual : w) {
          std::cout << *actual << '\n';
       }
