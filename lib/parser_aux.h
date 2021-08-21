@@ -60,7 +60,7 @@ bool es_operador_binario(token t){
 }
 
 bool es_tipo(token t){
-    return t == INT || t == FLOAT || t == CHAR;
+    return t == INT || t == FLOAT;
 }
 
 bool es_literal(token t){
@@ -69,6 +69,10 @@ bool es_literal(token t){
 
 bool es_terminal(token t){
    return t == IDENTIFICADOR || es_literal(t);
+}
+
+bool es_inicio_expresion(token t) {
+   return es_literal(t) || es_terminal(t) || es_operador_prefijo(t) || t == PARENTESIS_I || t == LLAVE_I;
 }
 
 #endif

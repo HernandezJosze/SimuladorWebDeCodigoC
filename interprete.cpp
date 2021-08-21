@@ -34,12 +34,12 @@ const char* interpreta(const char* codigo) {
       std::cout << "TOKENS:\n";
       std::vector<token_anotada> v = lexer(codigo);
       for (const auto& actual : v) {
-         std::cout << actual.tipo << " " << actual << '\n';
+         std::cout << actual.tipo << " " << actual << "\n";
       }
-      std::cout << "EXPRESIONES:\n";
+      std::cout << "SENTENCIAS:\n";
       std::vector<std::unique_ptr<sentencia>> w = parser(v.data( ));
       for (const auto& actual : w) {
-         std::cout << *actual << '\n';
+         std::cout << *actual << "\n";
       }
    } catch (const std::pair<token_anotada, const char*>& e) {
       auto ini = codigo, fin = codigo + strlen(codigo);

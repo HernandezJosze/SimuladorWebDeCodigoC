@@ -3,9 +3,9 @@ if(n <= 10 && p == 34 || p == 23){
     int a = __[54%23];
     a =(a == 5);
 }else if(bb != 0){
- char h[20] = "Hola";
+ int h[20] = "Hola";
 }else{
- char h[20] = "adios";
+ int h[20] = "adios";
 }
 if(algo){
 	int a = 3, b, c = 10, d;
@@ -30,7 +30,7 @@ float fdsfsd = 3;
 for(int i = 0; i < 5; ++i, ++j){
    int cq;
 
-char mander[30 + 1] ="hola mundo";
+int mander[30 + 1] ="hola mundo";
 int arr[43] = { };
 }
 for(;;){

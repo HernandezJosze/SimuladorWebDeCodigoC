@@ -42,47 +42,53 @@ std::ostream& operator<<(std::ostream& os, const expresion& e) {
 }
 
 std::ostream& operator<<(std::ostream& os, const sentencia& s) {
-   if (auto checar = dynamic_cast<const sentencia_expresion*>(&s); checar != nullptr) {
-      os << *checar->ex << ";";
-   }else if(auto checar = dynamic_cast<const sentencia_declaracion*>(&s); checar != nullptr){
-      os << *checar->tipo << " ";
-      for(int i = 0; i < checar->nombre.size( ); ++i){
-         os << *checar->nombre[i];
-         if(checar->tamanio[i]){
-            os << "[" << *checar->tamanio[i] << "]";
+   static int indentacion = 0;
+   if (auto checar = dynamic_cast<const sentencia_expresiones*>(&s); checar != nullptr) {
+      os << std::string(indentacion, ' ');
+      for (int i = 0; i < checar->ex.size( ); ++i) {
+         os << *checar->ex[i];
+         if (i < checar->ex.size( ) - 1) {
+            os << ", ";
          }
-         if(checar->inicializador[i]){
-            os << " = " << *checar->inicializador[i];
+      }
+   }else if(auto checar = dynamic_cast<const sentencia_declaraciones*>(&s); checar != nullptr){
+      os << std::string(indentacion, ' ') << *checar->tipo << " ";
+      for(int i = 0; i < checar->subdeclaraciones.size( ); ++i){
+         os << *checar->subdeclaraciones[i].nombre;
+         for (const auto& actual : checar->subdeclaraciones[i].tamanios) {
+            os << "[" << *actual << "]";
          }
-         os << (i + 1 == checar->nombre.size( ) ? ";" : ", ");
+         if(checar->subdeclaraciones[i].inicializador != nullptr){
+            os << " = " << *checar->subdeclaraciones[i].inicializador;
+         }
+         os << (i + 1 == checar->subdeclaraciones.size( ) ? "" : ", ");
       }
    }else if (auto checar = dynamic_cast<const sentencia_if*>(&s); checar != nullptr){
-      os << "if(" << *checar->condicion << "){\n";
+      os << std::string(indentacion, ' ') << "if(" << *checar->condicion << "){\n";
+      indentacion += 3;
       for (const auto& p : checar->parte_si){
-         os << "   " << *p << '\n';
+         os << *p << "\n";
       }
-      os << "}" << (checar->esElseif ? "else " : (checar->parte_no.empty( ) ? "" : "else{\n"));
+      indentacion -= 3;
+      os << std::string(indentacion, ' ') << "}" << (checar->parte_no.empty( ) ? "" : "else{\n");
+      indentacion += 3;
       for (const auto& p : checar->parte_no){
-         os << (checar->esElseif && p == checar->parte_no.front( ) ? "" : "   ") << *p << '\n';
+         os << *p << "\n";
       }
-      os << (checar->esElseif ? "" : (checar->parte_no.empty( ) ? "" : "}\n"));
-
+      indentacion -= 3;
+      os << std::string(indentacion, ' ') << (checar->parte_no.empty( ) ? "" : "}");
    }else if(auto checar = dynamic_cast<const sentencia_for*>(&s); checar != nullptr){
-      os << "for(";
-      if(checar->inicializacion){
-         os << *checar->inicializacion;
-      }else{
-         os << ";";
-      }
-      os << *checar->condicion << ";";
-      for(auto& p : checar->incrementos){
-         os << *p << (p == checar->incrementos.back( ) ? "" : ", ");
-      }
-      os << "){\n";
+      os << std::string(indentacion, ' ') << "for(" << *checar->inicializacion << ";" << *checar->condicion << ";" << *checar->actualizacion << "){\n";
+      indentacion += 3;
       for(auto& se : checar->aEjecutar){
-         os << "   " << *se << "\n";
+         os << *se << "\n";
       }
-      os << "\n}\n";
+      indentacion -= 3;
+      os << std::string(indentacion, ' ') << "\n}";
+   }else if(auto checar = dynamic_cast<const sentencia_break*>(&s); checar != nullptr){
+      os << std::string(indentacion, ' ') << "break";
+   }else if(auto checar = dynamic_cast<const sentencia_continue*>(&s); checar != nullptr){
+      os << std::string(indentacion, ' ') << "continue";
    }
 
    return os;

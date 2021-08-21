@@ -19,7 +19,6 @@ enum token{
    WHILE,
    INT,
    FLOAT,
-   CHAR,
    BREAK,
    CONTINUE,
    LITERAL_ENTERA,
@@ -58,9 +57,7 @@ enum token{
    COMA,
    PUNTO_Y_COMA,
    AND,
-   OR,
-   TRUE,
-   FALSE
+   OR
 };
 struct token_anotada{
    token tipo;
@@ -75,11 +72,8 @@ std::map<std::string_view, token> AlphaMp{
         {"while", WHILE},
         {"int", INT},
         {"float", FLOAT},
-        {"char", CHAR},
         {"break", BREAK},
-        {"continue", CONTINUE},
-        {"true", TRUE},
-        {"false", FALSE}
+        {"continue", CONTINUE}
 };
 std::map<std::string_view, token> SymbolsMp{
         {"+", MAS},
