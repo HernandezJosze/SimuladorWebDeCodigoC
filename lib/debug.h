@@ -77,18 +77,36 @@ std::ostream& operator<<(std::ostream& os, const sentencia& s) {
       }
       indentacion -= 3;
       os << std::string(indentacion, ' ') << (checar->parte_no.empty( ) ? "" : "}");
+
+
    }else if(auto checar = dynamic_cast<const sentencia_for*>(&s); checar != nullptr){
       os << std::string(indentacion, ' ') << "for(" << *checar->inicializacion << ";" << *checar->condicion << ";" << *checar->actualizacion << "){\n";
       indentacion += 3;
-      for(auto& se : checar->aEjecutar){
+      for(auto& se : checar->sentencias){
          os << *se << "\n";
       }
       indentacion -= 3;
-      os << std::string(indentacion, ' ') << "\n}";
+      os << std::string(indentacion, ' ') << "}";
    }else if(auto checar = dynamic_cast<const sentencia_break*>(&s); checar != nullptr){
       os << std::string(indentacion, ' ') << "break";
    }else if(auto checar = dynamic_cast<const sentencia_continue*>(&s); checar != nullptr){
       os << std::string(indentacion, ' ') << "continue";
+   }else if(auto checar = dynamic_cast<const sentencia_while*>(&s); checar != nullptr){
+      os << std::string(indentacion, ' ') << "while(" << *checar->condicion << "){\n";
+      indentacion += 3;
+      for(auto& se : checar->sentencias){
+         os << *se << "\n";
+      }
+      indentacion -= 3;
+      os << std::string(indentacion, ' ') << "}";
+   }else if(auto checar = dynamic_cast<const sentencia_do*>(&s); checar != nullptr){
+      os << std::string(indentacion, ' ') << "do{\n";
+      indentacion += 3;
+      for(auto& se : checar->sentencias){
+         os << *se << "\n";
+      }
+      indentacion -= 3;
+      os << std::string(indentacion, ' ') << "}while(" << *checar->condicion << ");\n";
    }
 
    return os;

@@ -112,7 +112,7 @@ std::unique_ptr<expresion> parsea_expresion_unaria(const token_anotada*& iter){
          std::vector<std::unique_ptr<expresion>> parametros;
          while(iter->tipo != PARENTESIS_D){
             parametros.push_back(parsea_expresion(iter));
-            if(iter->tipo != PARENTESIS_D){ // si es parentesis no es una funcion, por lo tanto es parametro y esperamos una coma
+            if(iter->tipo != PARENTESIS_D){
                espera(iter, COMA, "Se esperaba ,");
             }
          }
