@@ -70,74 +70,103 @@ std::ostream& operator<<(std::ostream& os, const expresion& e) {
    return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const sentencia& s) {
-   static int indentacion = 0;
-   if (auto checar = dynamic_cast<const sentencia_expresiones*>(&s); checar != nullptr) {
-      os << std::string(indentacion, ' ');
-      for (int i = 0; i < checar->ex.size( ); ++i) {
-         os << *checar->ex[i];
-         if (i < checar->ex.size( ) - 1) {
-            os << ", ";
-         }
+static int indentacion = 0;
+std::ostream& operator<<(std::ostream& os, const sentencia& s);
+std::ostream& operator<<(std::ostream& os, const sentencia_expresiones& s) {
+   os << std::string(indentacion, ' ');
+   for (int i = 0; i < s.ex.size( ); ++i) {
+      os << *s.ex[i];
+      if (i < s.ex.size( ) - 1) {
+         os << ", ";
       }
-   }else if(auto checar = dynamic_cast<const sentencia_declaraciones*>(&s); checar != nullptr){
-      os << std::string(indentacion, ' ') << *checar->tipo << " ";
-      for(int i = 0; i < checar->subdeclaraciones.size( ); ++i){
-         os << *checar->subdeclaraciones[i].nombre;
-         for (const auto& actual : checar->subdeclaraciones[i].tamanios) {
-            os << "[" << *actual << "]";
-         }
-         if(checar->subdeclaraciones[i].inicializador != nullptr){
-            os << " = " << *checar->subdeclaraciones[i].inicializador;
-         }
-         os << (i + 1 == checar->subdeclaraciones.size( ) ? "" : ", ");
-      }
-   }else if (auto checar = dynamic_cast<const sentencia_if*>(&s); checar != nullptr){
-      os << std::string(indentacion, ' ') << "if(" << *checar->condicion << "){\n";
-      indentacion += 3;
-      for (const auto& p : checar->parte_si){
-         os << *p << "\n";
-      }
-      indentacion -= 3;
-      os << std::string(indentacion, ' ') << "}" << (checar->parte_no.empty( ) ? "" : "else{\n");
-      indentacion += 3;
-      for (const auto& p : checar->parte_no){
-         os << *p << "\n";
-      }
-      indentacion -= 3;
-      os << std::string(indentacion, ' ') << (checar->parte_no.empty( ) ? "" : "}");
-
-
-   }else if(auto checar = dynamic_cast<const sentencia_for*>(&s); checar != nullptr){
-      os << std::string(indentacion, ' ') << "for(" << *checar->inicializacion << ";" << *checar->condicion << ";" << *checar->actualizacion << "){\n";
-      indentacion += 3;
-      for(auto& se : checar->sentencias){
-         os << *se << "\n";
-      }
-      indentacion -= 3;
-      os << std::string(indentacion, ' ') << "}";
-   }else if(auto checar = dynamic_cast<const sentencia_break*>(&s); checar != nullptr){
-      os << std::string(indentacion, ' ') << "break";
-   }else if(auto checar = dynamic_cast<const sentencia_continue*>(&s); checar != nullptr){
-      os << std::string(indentacion, ' ') << "continue";
-   }else if(auto checar = dynamic_cast<const sentencia_while*>(&s); checar != nullptr){
-      os << std::string(indentacion, ' ') << "while(" << *checar->condicion << "){\n";
-      indentacion += 3;
-      for(auto& se : checar->sentencias){
-         os << *se << "\n";
-      }
-      indentacion -= 3;
-      os << std::string(indentacion, ' ') << "}";
-   }else if(auto checar = dynamic_cast<const sentencia_do*>(&s); checar != nullptr){
-      os << std::string(indentacion, ' ') << "do{\n";
-      indentacion += 3;
-      for(auto& se : checar->sentencias){
-         os << *se << "\n";
-      }
-      indentacion -= 3;
-      os << std::string(indentacion, ' ') << "}while(" << *checar->condicion << ");\n";
    }
+   return os;
+}
+std::ostream& operator<<(std::ostream& os, const sentencia_declaraciones& s) {
+   os << std::string(indentacion, ' ') << *s.tipo << " ";
+   for(int i = 0; i < s.subdeclaraciones.size( ); ++i){
+      os << *s.subdeclaraciones[i].nombre;
+      for (const auto& actual : s.subdeclaraciones[i].tamanios) {
+         os << "[" << *actual << "]";
+      }
+      if(s.subdeclaraciones[i].inicializador != nullptr){
+         os << " = " << *s.subdeclaraciones[i].inicializador;
+      }
+      os << (i + 1 == s.subdeclaraciones.size( ) ? "" : ", ");
+   }
+   return os;
+}
+std::ostream& operator<<(std::ostream& os, const sentencia_if& s) {
+   os << std::string(indentacion, ' ') << "if(" << *s.condicion << "){\n";
+   indentacion += 3;
+   for (const auto& p : s.parte_si){
+      os << *p << "\n";
+   }
+   indentacion -= 3;
+   os << std::string(indentacion, ' ') << "}" << (s.parte_no.empty( ) ? "" : "else{\n");
+   indentacion += 3;
+   for (const auto& p : s.parte_no){
+      os << *p << "\n";
+   }
+   indentacion -= 3;
+   os << std::string(indentacion, ' ') << (s.parte_no.empty( ) ? "" : "}");
+   return os;
+}
+std::ostream& operator<<(std::ostream& os, const sentencia_for& s) {
+   os << std::string(indentacion, ' ') << "for(" << *s.inicializacion << ";" << *s.condicion << ";" << *s.actualizacion << "){\n";
+   indentacion += 3;
+   for(auto& se : s.sentencias){
+      os << *se << "\n";
+   }
+   indentacion -= 3;
+   os << std::string(indentacion, ' ') << "}";
+   return os;
+}
+std::ostream& operator<<(std::ostream& os, const sentencia_do& s) {
+   os << std::string(indentacion, ' ') << "do{\n";
+   indentacion += 3;
+   for(auto& se : s.sentencias){
+      os << *se << "\n";
+   }
+   indentacion -= 3;
+   os << std::string(indentacion, ' ') << "}while(" << *s.condicion << ");\n";
+   return os;
+}
+std::ostream& operator<<(std::ostream& os, const sentencia_while& s) {
+   os << std::string(indentacion, ' ') << "while(" << *s.condicion << "){\n";
+   indentacion += 3;
+   for(auto& se : s.sentencias){
+      os << *se << "\n";
+   }
+   indentacion -= 3;
+   os << std::string(indentacion, ' ') << "}";
+   return os;
+}
+std::ostream& operator<<(std::ostream& os, const sentencia_break& s) {
+   return os << std::string(indentacion, ' ') << "break";
+}
+std::ostream& operator<<(std::ostream& os, const sentencia_continue& s) {
+   return os << std::string(indentacion, ' ') << "continue";
+}
 
+std::ostream& operator<<(std::ostream& os, const sentencia& s) {
+   if (auto checar = dynamic_cast<const sentencia_expresiones*>(&s); checar != nullptr) {
+      os << *checar;
+   }else if(auto checar = dynamic_cast<const sentencia_declaraciones*>(&s); checar != nullptr){
+      os << *checar;
+   }else if (auto checar = dynamic_cast<const sentencia_if*>(&s); checar != nullptr){
+      os << *checar;
+   }else if(auto checar = dynamic_cast<const sentencia_for*>(&s); checar != nullptr){
+      os << *checar;
+   }else if(auto checar = dynamic_cast<const sentencia_break*>(&s); checar != nullptr){
+      os << *checar;
+   }else if(auto checar = dynamic_cast<const sentencia_continue*>(&s); checar != nullptr){
+      os << *checar;
+   }else if(auto checar = dynamic_cast<const sentencia_while*>(&s); checar != nullptr){
+      os << *checar;
+   }else if(auto checar = dynamic_cast<const sentencia_do*>(&s); checar != nullptr){
+      os << *checar;
+   }
    return os;
 }
 
