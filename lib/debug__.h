@@ -13,60 +13,31 @@ std::ostream& operator<<(std::ostream& os, const token_anotada& t) {
    return os << (t.tipo == LITERAL_CADENA ? "\"" : "") << t.location << (t.tipo == LITERAL_CADENA ? "\"" : "");
 }
 
-std::ostream& operator<<(std::ostream& os, const expresion&);
-
-std::ostream& operator<<(std::ostream& os, const expresion_terminal& e) {
-   return os << *e.tk;
-}
-
-std::ostream& operator<<(std::ostream& os, const expresion_op_prefijo& e) {
-   return os << "(" << *e.operador << *e.sobre << ")";
-}
-
-std::ostream& operator<<(std::ostream& os, const expresion_op_posfijo& e) {
-   return os << "(" << *e.sobre << *e.operador << ")";
-}
-
-std::ostream& operator<<(std::ostream& os, const expresion_op_binario& e) {
-   return os << "(" << *e.izq << ' ' << *e.operador << ' ' << *e.der << ")";
-}
-
-std::ostream& operator<<(std::ostream& os, const expresion_llamada& e) {
-   os << *e.func << "(";
-   for (const auto& actual : e.parametros) {
-      os << *actual << (e.parametros.back( ) == actual ? "" : ", ");
-   }
-   return os << ")";
-}
-
-std::ostream& operator<<(std::ostream& os, const expresion_corchetes& e) {
-   return os << *e.ex << "[" << *e.dentro << "]";
-}
-
-std::ostream& operator<<(std::ostream& os, const expresion_arreglo& e) {
-   os << "{";
-   for (const auto& actual : e.elementos) {
-      os << *actual << (e.elementos.back( ) == actual ? "" : ", ");
-   }
-   return os << "}";
-}
-
 std::ostream& operator<<(std::ostream& os, const expresion& e) {
    if (auto checar = dynamic_cast<const expresion_terminal*>(&e); checar != nullptr) {
-      os << *checar;
+      os << *checar->t;
    } else if (auto checar = dynamic_cast<const expresion_op_prefijo*>(&e); checar != nullptr) {
-      os << *checar;
+      os << "(" << *checar->operador << *checar->sobre << ")";
    } else if (auto checar = dynamic_cast<const expresion_op_posfijo*>(&e); checar != nullptr) {
-      os << *checar;
+      os << "(" << *checar->sobre << *checar->operador << ")";
    } else if (auto checar = dynamic_cast<const expresion_op_binario*>(&e); checar != nullptr) {
-      os << *checar;
+      os << "(" << *checar->izq << ' ' << *checar->operador << ' ' << *checar->der << ")";
    } else if (auto checar = dynamic_cast<const expresion_llamada*>(&e); checar != nullptr) {
-      os << *checar;
+      os << *checar->func << "(";
+      for (const auto& p : checar->parametros) {
+         os << *p << (checar->parametros.back( ) == p ? "" : ", ");
+      }
+      os << ")";
    } else if (auto checar = dynamic_cast<const expresion_corchetes*>(&e); checar != nullptr) {
-      os << *checar;
+      os << *checar->ex << "[" << *checar->dentro << "]";
    } else if (auto checar = dynamic_cast<const expresion_arreglo*>(&e); checar != nullptr) {
-      os << *checar;
+      os << "{";
+      for (const auto& e : checar->elementos) {
+         os << *e << (checar->elementos.back( ) == e ? "" : ", ");
+      }
+      os << "}";
    }
+
    return os;
 }
 

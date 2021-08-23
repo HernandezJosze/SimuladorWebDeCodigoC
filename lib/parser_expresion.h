@@ -15,10 +15,10 @@ struct expresion {
 expresion::~expresion(){}
 
 struct expresion_terminal : expresion {
-   const token_anotada* t;
+   const token_anotada* tk;
 
    expresion_terminal(const token_anotada* tp)
-   : t(tp) {
+   : tk(tp) {
    }
 };
 

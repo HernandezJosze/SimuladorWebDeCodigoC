@@ -16,7 +16,7 @@ if(f(hola), g(h())){
 	}
 	float fdsfsd = 3;
 }
-
+(1 && i -= 2);
 if(algo){
 
 }else if(verdad){
