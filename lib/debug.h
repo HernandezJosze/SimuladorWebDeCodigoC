@@ -13,24 +13,21 @@ std::ostream& operator<<(std::ostream& os, const token_anotada& t) {
    return os << (t.tipo == LITERAL_CADENA ? "\"" : "") << t.location << (t.tipo == LITERAL_CADENA ? "\"" : "");
 }
 
-std::ostream& operator<<(std::ostream& os, const expresion&);
+// expresiones
 
+std::ostream& operator<<(std::ostream& os, const expresion&);
 std::ostream& operator<<(std::ostream& os, const expresion_terminal& e) {
    return os << *e.tk;
 }
-
 std::ostream& operator<<(std::ostream& os, const expresion_op_prefijo& e) {
    return os << "(" << *e.operador << *e.sobre << ")";
 }
-
 std::ostream& operator<<(std::ostream& os, const expresion_op_posfijo& e) {
    return os << "(" << *e.sobre << *e.operador << ")";
 }
-
 std::ostream& operator<<(std::ostream& os, const expresion_op_binario& e) {
    return os << "(" << *e.izq << ' ' << *e.operador << ' ' << *e.der << ")";
 }
-
 std::ostream& operator<<(std::ostream& os, const expresion_llamada& e) {
    os << *e.func << "(";
    for (const auto& actual : e.parametros) {
@@ -38,11 +35,9 @@ std::ostream& operator<<(std::ostream& os, const expresion_llamada& e) {
    }
    return os << ")";
 }
-
 std::ostream& operator<<(std::ostream& os, const expresion_corchetes& e) {
    return os << *e.ex << "[" << *e.dentro << "]";
 }
-
 std::ostream& operator<<(std::ostream& os, const expresion_arreglo& e) {
    os << "{";
    for (const auto& actual : e.elementos) {
@@ -70,17 +65,24 @@ std::ostream& operator<<(std::ostream& os, const expresion& e) {
    return os;
 }
 
+// sentencias
+
 static int indentacion = 0;
-std::ostream& operator<<(std::ostream& os, const sentencia& s);
-std::ostream& operator<<(std::ostream& os, const sentencia_expresiones& s) {
+
+std::ostream& operator<<(std::ostream& os, const std::vector<std::unique_ptr<expresion>>& ex) {
    os << std::string(indentacion, ' ');
-   for (int i = 0; i < s.ex.size( ); ++i) {
-      os << *s.ex[i];
-      if (i < s.ex.size( ) - 1) {
+   for (int i = 0; i < ex.size( ); ++i) {
+      os << *ex[i];
+      if (i < ex.size( ) - 1) {
          os << ", ";
       }
    }
    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const sentencia& s);
+std::ostream& operator<<(std::ostream& os, const sentencia_expresiones& s) {
+   return os << s.ex;
 }
 std::ostream& operator<<(std::ostream& os, const sentencia_declaraciones& s) {
    os << std::string(indentacion, ' ') << *s.tipo << " ";
@@ -97,7 +99,7 @@ std::ostream& operator<<(std::ostream& os, const sentencia_declaraciones& s) {
    return os;
 }
 std::ostream& operator<<(std::ostream& os, const sentencia_if& s) {
-   os << std::string(indentacion, ' ') << "if(" << *s.condicion << "){\n";
+   os << std::string(indentacion, ' ') << "if(" << s.condicion << "){\n";
    indentacion += 3;
    for (const auto& p : s.parte_si){
       os << *p << "\n";
@@ -113,7 +115,7 @@ std::ostream& operator<<(std::ostream& os, const sentencia_if& s) {
    return os;
 }
 std::ostream& operator<<(std::ostream& os, const sentencia_for& s) {
-   os << std::string(indentacion, ' ') << "for(" << *s.inicializacion << ";" << *s.condicion << ";" << *s.actualizacion << "){\n";
+   os << std::string(indentacion, ' ') << "for(" << *s.inicializacion << ";" << s.condicion << ";" << s.actualizacion << "){\n";
    indentacion += 3;
    for(auto& se : s.sentencias){
       os << *se << "\n";
@@ -129,11 +131,11 @@ std::ostream& operator<<(std::ostream& os, const sentencia_do& s) {
       os << *se << "\n";
    }
    indentacion -= 3;
-   os << std::string(indentacion, ' ') << "}while(" << *s.condicion << ");\n";
+   os << std::string(indentacion, ' ') << "}while(" << s.condicion << ");\n";
    return os;
 }
 std::ostream& operator<<(std::ostream& os, const sentencia_while& s) {
-   os << std::string(indentacion, ' ') << "while(" << *s.condicion << "){\n";
+   os << std::string(indentacion, ' ') << "while(" << s.condicion << "){\n";
    indentacion += 3;
    for(auto& se : s.sentencias){
       os << *se << "\n";
