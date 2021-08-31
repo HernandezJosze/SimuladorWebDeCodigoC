@@ -1,5 +1,6 @@
-//int n = 5;
+int n = 5;
 n <= 10;
+int cq;
 cq;
 "hola";
 "hola\n";

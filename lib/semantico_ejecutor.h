@@ -149,7 +149,31 @@ variable_ejecucion* evalua(const expresion_op_prefijo& e, tabla_simbolos& ts, ta
    }
 }
 variable_ejecucion* evalua(const expresion_op_posfijo& e, tabla_simbolos& ts, tabla_temporales& tt) {
-   //...
+   auto sobre = evalua(*e.sobre, ts, tt);
+   if (tt.es_temporal(sobre)) {
+         throw std::pair(*e.operador, "No se puede realizar un decremento/incremento a un temporal");
+      }
+
+   if (e.operador->tipo == INCREMENTO) {
+      variable_ejecucion* res;
+      if (valida_ejecuta<variable_escalar<int>*, variable_escalar<float>*>(sobre, [&](auto checado) {
+         res = tt.crea<variable_escalar<typename std::decay_t<decltype(*checado)>::type>>(checado->valor++);
+      })) {
+         return sobre;
+      } else {
+         throw std::pair(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
+      }
+
+   } else if (e.operador->tipo == DECREMENTO) {
+      variable_ejecucion* res;
+      if (valida_ejecuta<variable_escalar<int>*, variable_escalar<float>*>(sobre, [&](auto checado) {
+         res = tt.crea<variable_escalar<typename std::decay_t<decltype(*checado)>::type>>(checado->valor--);
+      })) {
+         return sobre;
+      } else {
+         throw std::pair(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
+      }
+   }
 }
 variable_ejecucion* evalua(const expresion_op_binario& e, tabla_simbolos& ts, tabla_temporales& tt) {    // algo más difícil que las demás
    //...

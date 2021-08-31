@@ -43,16 +43,16 @@ const char* interpreta(const char* codigo) {
          std::cout << *actual << "\n";
       }
 // prueba
-std::cout << "QUIERES PROBAR EL SEMANTICO? ";
-int res;
-std::cin >> res;
-if (res == 1) {
-tabla_simbolos ts;
-for (const auto& actual : w) {
-evalua(*actual, ts);
-}
-std::cout << "FIN PRUEBA\n";
-}
+      std::cout << "QUIERES PROBAR EL SEMANTICO? ";
+      int res;
+      std::cin >> res;
+      if (res == 1) {
+      tabla_simbolos ts;
+      for (const auto& actual : w) {
+      evalua(*actual, ts);
+      }
+      std::cout << "FIN PRUEBA\n";
+      }
 // fin prueba
    } catch (const std::pair<token_anotada, const char*>& e) {
       auto ini = codigo, fin = codigo + strlen(codigo);

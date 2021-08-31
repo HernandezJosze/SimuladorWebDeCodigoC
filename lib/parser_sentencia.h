@@ -146,9 +146,9 @@ std::unique_ptr<sentencia> parsea_for(const token_anotada*& iter){
    espera(iter, PARENTESIS_I, "Se esperaba un (");
 
    std::unique_ptr<sentencia> ini = (es_tipo(iter->tipo) ? std::unique_ptr<sentencia>(parsea_declaraciones(iter)) : std::unique_ptr<sentencia>(parsea_expresiones(iter)));
-   espera(iter, PUNTO_Y_COMA, "Se esperaba un ;for");
+   espera(iter, PUNTO_Y_COMA, "Se esperaba un ;");
    std::vector<std::unique_ptr<expresion>> cond = parsea_lista_expresiones(iter);
-   espera(iter, PUNTO_Y_COMA, "Se esperaba un ;for");
+   espera(iter, PUNTO_Y_COMA, "Se esperaba un ;");
    std::vector<std::unique_ptr<expresion>> act = parsea_lista_expresiones(iter);
 
    espera(iter, PARENTESIS_D, "Se esperaba un )");
@@ -190,12 +190,12 @@ std::unique_ptr<sentencia> parsea_while(const token_anotada*& iter){
 }
 std::unique_ptr<sentencia> parsea_break(const token_anotada*& iter){
     espera(iter, BREAK, "Se esperaba break");
-    espera(iter, PUNTO_Y_COMA, "Se esperaba un ;break");
+    espera(iter, PUNTO_Y_COMA, "Se esperaba un ;");
     return std::make_unique<sentencia_break>( );
 }
 std::unique_ptr<sentencia> parsea_continue(const token_anotada*& iter){
     espera(iter, CONTINUE, "Se esperaba continue");
-    espera(iter, PUNTO_Y_COMA, "Se esperaba un ;continue");
+    espera(iter, PUNTO_Y_COMA, "Se esperaba un ;");
     return std::make_unique<sentencia_continue>( );
 }
 
