@@ -10,6 +10,7 @@
 #include "semantico_ejecutor_aux.h"
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <set>
 
 struct variable_ejecucion {
@@ -213,11 +214,11 @@ variable_ejecucion* evalua(const std::vector<std::unique_ptr<expresion>>& ex, ta
    for (const auto& actual : ex) {
       res = evalua(*actual, ts, tt);
 
-// prueba
-valida_ejecuta<variable_escalar<int>*, variable_escalar<float>*>(res, [&](auto checado) {
-std::cerr << checado->valor << "\n";
-});
-// fin prueba
+
+      valida_ejecuta<variable_escalar<int>*, variable_escalar<float>*>(res, [&](auto checado) {
+      std::cerr << checado->valor << "\n";
+      });
+      // fin prueba
    }
    return res;
 }
@@ -228,45 +229,51 @@ void evalua(const sentencia_expresiones& s, tabla_simbolos& ts) {
    evalua(s.ex, ts, tt);
 }
 void evalua(const sentencia_declaraciones& s, tabla_simbolos& ts) {
-   tabla_temporales tt;
+   static tabla_temporales tt;
    if(s.tipo->tipo == INT){
       for(const auto& declaracion : s.subdeclaraciones){
-         if(ts.busca(declaracion.nombre->location)){
-            throw std::pair(*declaracion.nombre, "Ya existe una variable declarada con este nombre");
-         }
-
-         auto ptr = evalua(*declaracion.inicializador, ts, tt);
-         if (!valida_ejecuta<variable_escalar<int>*>(ptr, [&](auto checado){
-            })){
-            throw std::pair(*declaracion.nombre, "El inicializador no es del mismo tipo que la declaración");
-         }
          if(declaracion.tamanios.empty( )){
+            variable_ejecucion* ptr;
+            if(declaracion.inicializador){
+               ptr = evalua(*declaracion.inicializador, ts, tt);
+            }else{
+               ///ptr con basura;
+            }
+
+            if (auto checar = dynamic_cast<const variable_escalar<int>*>(ptr); checar == nullptr){
+               throw std::pair(*s.tipo, "El inicializador no es del mismo tipo que la declaracion");
+            }
+            if(ts.busca(declaracion.nombre->location)){
+               throw std::pair(*s.tipo, "La variable ya ha sido declarada");
+            }
             ts.agrega(declaracion.nombre->location, std::unique_ptr<variable_ejecucion>(ptr));
          }else{
-
-            for(const auto& tam : declaracion.tamanios){
-
+            int tam = 0;
+            for(const auto& t : declaracion.tamanios){
+               auto checar = dynamic_cast<const variable_escalar<int>*>(evalua(*t, ts, tt));
+               tam += checar->valor;
             }
-         }
-      }
-   }else if(s.tipo->tipo == FLOAT){
-      for(const auto& declaracion : s.subdeclaraciones){
-         if(ts.busca(declaracion.nombre->location)){
-            throw std::pair(*declaracion.nombre, "Ya existe una variable declarada con este nombre");
-         }
+            variable_ejecucion* ptr;
+            if(declaracion.inicializador){
+               ptr = evalua(*declaracion.inicializador, ts, tt); // expresion_arreglo
+               auto checar = dynamic_cast<const variable_arreglo*>(ptr);
+               if(checar->valores.size( ) > tam){
+                  throw std::pair(*s.tipo, "El tamaño de la inicialización es mayor al vector");
+               }
+               if(checar->valores.size( ) < tam){
+                  //rellenamos el resto con basura
+               }
+            }else{
+               //ptr con basura;
+            }
 
-         auto ptr = evalua(*declaracion.inicializador, ts, tt);
-         if (!valida_ejecuta<variable_escalar<float>*>(ptr, [&](auto checado){
-            })){
-            throw std::pair(*declaracion.nombre, "El inicializador no es del mismo tipo que la declaración");
-         }
-         if(declaracion.tamanios.empty( )){
-
+            if (auto checar = dynamic_cast<const variable_arreglo*>(ptr); checar != nullptr){
+               throw std::pair(*s.tipo, "El inicializador no es del mismo tipo que la declaracion");
+            }
+            if(ts.busca(declaracion.nombre->location)){
+               throw std::pair(*s.tipo, "La variable ya ha sido declarada");
+            }
             ts.agrega(declaracion.nombre->location, std::unique_ptr<variable_ejecucion>(ptr));
-         }else{
-            for(const auto& tam : declaracion.tamanios){
-
-            }
          }
       }
    }
