@@ -74,17 +74,17 @@ struct tabla_temporales {
 // expresiones
 
 variable_ejecucion* evalua(const expresion& e, tabla_simbolos& ts, tabla_temporales& tt);
-variable_ejecucion* evalua(const expresion_terminal& e, tabla_simbolos& ts, tabla_temporales& tt) {
-   if (e.tk->tipo == LITERAL_ENTERA) {
+variable_ejecucion* evalua(const expresion_terminal& e, tabla_simbolos& ts, tabla_temporales& tt){
+   if (e.tk->tipo == LITERAL_ENTERA){
       return tt.crea<variable_escalar<int>>(std::stoi(std::string(e.tk->location)));        // hay mejores formas que stoi, pero nos bastará
-   } else if (e.tk->tipo == LITERAL_FLOTANTE) {
+   }else if (e.tk->tipo == LITERAL_FLOTANTE) {
       return tt.crea<variable_escalar<float>>(std::stof(std::string(e.tk->location)));
-   } else if (e.tk->tipo == LITERAL_CADENA) {
+   }else if (e.tk->tipo == LITERAL_CADENA) {
       return tt.crea<variable_escalar<std::string_view>>(std::string(e.tk->location));      // técnicamente una cadena no es un escalar, pero nosotros sólo permitiremos cadenas para cosas como scanf o printf
-   } else if (e.tk->tipo == IDENTIFICADOR) {
+   }else if (e.tk->tipo == IDENTIFICADOR) {
       if (auto p = ts.busca(e.tk->location); p != nullptr) {
          return p;
-      } else {
+      }else{
          throw std::pair(*e.tk, "La variable no esta declarada");
       }
    }
@@ -212,6 +212,7 @@ variable_ejecucion* evalua(const std::vector<std::unique_ptr<expresion>>& ex, ta
    variable_ejecucion* res = nullptr;
    for (const auto& actual : ex) {
       res = evalua(*actual, ts, tt);
+
 // prueba
 valida_ejecuta<variable_escalar<int>*, variable_escalar<float>*>(res, [&](auto checado) {
 std::cerr << checado->valor << "\n";
@@ -227,7 +228,48 @@ void evalua(const sentencia_expresiones& s, tabla_simbolos& ts) {
    evalua(s.ex, ts, tt);
 }
 void evalua(const sentencia_declaraciones& s, tabla_simbolos& ts) {
-   //...
+   tabla_temporales tt;
+   if(s.tipo->tipo == INT){
+      for(const auto& declaracion : s.subdeclaraciones){
+         if(ts.busca(declaracion.nombre->location)){
+            throw std::pair(*declaracion.nombre, "Ya existe una variable declarada con este nombre");
+         }
+
+         auto ptr = evalua(*declaracion.inicializador, ts, tt);
+         if (!valida_ejecuta<variable_escalar<int>*>(ptr, [&](auto checado){
+            })){
+            throw std::pair(*declaracion.nombre, "El inicializador no es del mismo tipo que la declaración");
+         }
+         if(declaracion.tamanios.empty( )){
+            ts.agrega(declaracion.nombre->location, std::unique_ptr<variable_ejecucion>(ptr));
+         }else{
+
+            for(const auto& tam : declaracion.tamanios){
+
+            }
+         }
+      }
+   }else if(s.tipo->tipo == FLOAT){
+      for(const auto& declaracion : s.subdeclaraciones){
+         if(ts.busca(declaracion.nombre->location)){
+            throw std::pair(*declaracion.nombre, "Ya existe una variable declarada con este nombre");
+         }
+
+         auto ptr = evalua(*declaracion.inicializador, ts, tt);
+         if (!valida_ejecuta<variable_escalar<float>*>(ptr, [&](auto checado){
+            })){
+            throw std::pair(*declaracion.nombre, "El inicializador no es del mismo tipo que la declaración");
+         }
+         if(declaracion.tamanios.empty( )){
+
+            ts.agrega(declaracion.nombre->location, std::unique_ptr<variable_ejecucion>(ptr));
+         }else{
+            for(const auto& tam : declaracion.tamanios){
+
+            }
+         }
+      }
+   }
 }
 void evalua(const sentencia_if& s, tabla_simbolos& ts) {
    //...
