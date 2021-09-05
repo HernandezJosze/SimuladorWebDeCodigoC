@@ -237,45 +237,35 @@ void evalua(const sentencia_declaraciones& s, tabla_simbolos& ts) {
          if (actual.inicializador == nullptr) {
             valor = std::unique_ptr<valor_ejecucion>(s.tipo->tipo == INT ? std::unique_ptr<valor_ejecucion>(std::make_unique<valor_escalar<int>>( )) : std::make_unique<valor_escalar<float>>( ));    // valor indefinido
          } else if (!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(*actual.inicializador, ts, tt), [&](auto checado) {
-            valor = std::unique_ptr<valor_ejecucion>(s.tipo->tipo == INT ? std::unique_ptr<valor_ejecucion>(std::make_unique<valor_escalar<int>>(checado->valor)) : std::make_unique<valor_escalar<float>>(checado->valor));  // valor que es una copia del del inicializador
-         })) {
+            valor = std::unique_ptr<valor_ejecucion>(s.tipo->tipo == INT ? std::unique_ptr<valor_ejecucion>(std::make_unique<valor_escalar<int>>(checado->valor)) : std::make_unique<valor_escalar<float>>(checado->valor));  //valor que es una copia del del inicializador
+         })){
             throw std::pair(*s.tipo, "El inicializador no es compatible con la declaracion");
          }
          if (!ts.agrega(actual.nombre->location, std::move(valor))) {
             throw std::pair(*s.tipo, "La variable ya ha sido declarada");
          }
       }else{
-         /*int tam = 0;
-         for(const auto& t : declaracion.tamanios){
-            auto checar = dynamic_cast<const valor_escalar<int>*>(evalua(*t, ts, tt));
-            tam += checar->valor;
-         }
-         valor_ejecucion* ptr;
-         if(declaracion.inicializador){
-            ptr = evalua(*declaracion.inicializador, ts, tt); // expresion_arreglo
-            auto checar = dynamic_cast<const valor_arreglo*>(ptr);
-            if(checar->valores.size( ) > tam){
-               throw std::pair(*s.tipo, "El tamaño de la inicialización es mayor al vector");
-            }
-            if(checar->valores.size( ) < tam){
-               //rellenamos el resto con basura
-            }
-         }else{
-            //ptr con basura;
-         }
 
-         if (auto checar = dynamic_cast<const valor_arreglo*>(ptr); checar != nullptr){
-            throw std::pair(*s.tipo, "El inicializador no es del mismo tipo que la declaracion");
-         }
-         if(ts.busca(declaracion.nombre->location)){
-            throw std::pair(*s.tipo, "La variable ya ha sido declarada");
-         }
-         ts.agrega(declaracion.nombre->location, std::unique_ptr<valor_ejecucion>(ptr));*/
       }
    }
 }
 void evalua(const sentencia_if& s, tabla_simbolos& ts) {
-   //...
+   tabla_temporales tt;
+   std::unique_ptr<valor_ejecucion> condicion;
+   for(auto const& exp : s.condicion)
+      if(valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(*exp, ts, tt), [&](auto checado) {
+               condicion = (std::make_unique<valor_escalar<int>>(checado->valor));
+         }));
+   auto checar = dynamic_cast<const valor_escalar<int>*>(condicion.get( ));
+   if(checar != nullptr && checar->valor){
+      for(auto const& si : s.parte_si){
+         evalua(*si, ts);
+      }
+   }else{
+      for(auto const& no : s.parte_no){
+         evalua(*no, ts);
+      }
+   }
 }
 void evalua(const sentencia_for& s, tabla_simbolos& ts) {
    //...
