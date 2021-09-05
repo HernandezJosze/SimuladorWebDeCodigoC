@@ -9,6 +9,11 @@
 #include "parser_expresion.h"
 
 struct sentencia{
+   const token_anotada* pos;
+
+   sentencia(const token_anotada* p)
+   : pos(p){
+   }
    virtual ~sentencia() = 0;
 };
 sentencia::~sentencia(){}
@@ -16,8 +21,8 @@ sentencia::~sentencia(){}
 struct sentencia_expresiones : sentencia{
    std::vector<std::unique_ptr<expresion>> ex;
 
-   sentencia_expresiones(std::vector<std::unique_ptr<expresion>>&& e)
-   : ex(std::move(e)) {
+   sentencia_expresiones(const token_anotada* p, std::vector<std::unique_ptr<expresion>>&& e)
+   : sentencia(p), ex(std::move(e)) {
    }
 };
 struct sentencia_declaraciones : sentencia{
@@ -29,8 +34,8 @@ struct sentencia_declaraciones : sentencia{
    const token_anotada* tipo;
    std::vector<subdeclaracion> subdeclaraciones;
 
-   sentencia_declaraciones(const token_anotada* t, std::vector<subdeclaracion>&& d)
-   : tipo(t), subdeclaraciones(std::move(d)) {
+   sentencia_declaraciones(const token_anotada* p, const token_anotada* t, std::vector<subdeclaracion>&& d)
+   : sentencia(p), tipo(t), subdeclaraciones(std::move(d)) {
    }
 };
 struct sentencia_if : sentencia{
@@ -38,8 +43,8 @@ struct sentencia_if : sentencia{
    std::vector<std::unique_ptr<sentencia>> parte_si;
    std::vector<std::unique_ptr<sentencia>> parte_no;
 
-   sentencia_if(std::vector<std::unique_ptr<expresion>>&& cond, std::vector<std::unique_ptr<sentencia>>&& si, std::vector<std::unique_ptr<sentencia>>&& no)
-   : condicion(std::move(cond)), parte_si(std::move(si)), parte_no(std::move(no)) {
+   sentencia_if(const token_anotada* p, std::vector<std::unique_ptr<expresion>>&& cond, std::vector<std::unique_ptr<sentencia>>&& si, std::vector<std::unique_ptr<sentencia>>&& no)
+   : sentencia(p), condicion(std::move(cond)), parte_si(std::move(si)), parte_no(std::move(no)) {
    }
 };
 struct sentencia_for : sentencia{
@@ -48,47 +53,48 @@ struct sentencia_for : sentencia{
    std::vector<std::unique_ptr<expresion>> actualizacion;
    std::vector<std::unique_ptr<sentencia>> sentencias;
 
-   sentencia_for(std::unique_ptr<sentencia>&& ini, std::vector<std::unique_ptr<expresion>>&& cond, std::vector<std::unique_ptr<expresion>>&& act, std::vector<std::unique_ptr<sentencia>>&& ejecutar)
-   : inicializacion(std::move(ini)), condicion(std::move(cond)), actualizacion(std::move(act)), sentencias(std::move(ejecutar)) {
+   sentencia_for(const token_anotada* p, std::unique_ptr<sentencia>&& ini, std::vector<std::unique_ptr<expresion>>&& cond, std::vector<std::unique_ptr<expresion>>&& act, std::vector<std::unique_ptr<sentencia>>&& ejecutar)
+   : sentencia(p), inicializacion(std::move(ini)), condicion(std::move(cond)), actualizacion(std::move(act)), sentencias(std::move(ejecutar)) {
    }
 };
 struct sentencia_do : sentencia{
    std::vector<std::unique_ptr<expresion>> condicion;
    std::vector<std::unique_ptr<sentencia>> sentencias;
 
-   sentencia_do(std::vector<std::unique_ptr<expresion>>&& cond, std::vector<std::unique_ptr<sentencia>>&& s)
-   : condicion(std::move(cond)), sentencias(std::move(s)) {
+   sentencia_do(const token_anotada* p, std::vector<std::unique_ptr<expresion>>&& cond, std::vector<std::unique_ptr<sentencia>>&& s)
+   : sentencia(p), condicion(std::move(cond)), sentencias(std::move(s)) {
    }
 };
 struct sentencia_while : sentencia{
    std::vector<std::unique_ptr<expresion>> condicion;
    std::vector<std::unique_ptr<sentencia>> sentencias;
 
-   sentencia_while(std::vector<std::unique_ptr<expresion>>&& cond, std::vector<std::unique_ptr<sentencia>>&& s)
-   : condicion(std::move(cond)), sentencias(std::move(s)) {
+   sentencia_while(const token_anotada* p, std::vector<std::unique_ptr<expresion>>&& cond, std::vector<std::unique_ptr<sentencia>>&& s)
+   : sentencia(p), condicion(std::move(cond)), sentencias(std::move(s)) {
    }
 };
-struct sentencia_break : sentencia{ };
-struct sentencia_continue : sentencia{ };
+struct sentencia_break : sentencia{
+   const token_anotada* pos;
+
+   sentencia_break(const token_anotada* p)
+   : sentencia(p){
+   }
+};
+struct sentencia_continue : sentencia{
+   const token_anotada* pos;
+
+   sentencia_continue(const token_anotada* p)
+   : sentencia(p){
+   }
+};
 
 
 std::unique_ptr<sentencia> parsea_sentencia(const token_anotada*&);
 
-std::vector<std::unique_ptr<expresion>> parsea_lista_expresiones(const token_anotada*& iter) {
-   std::vector<std::unique_ptr<expresion>> ex;
-   if (es_inicio_expresion(iter->tipo)) {
-      ex.push_back(parsea_expresion(iter));
-      while (iter->tipo == COMA) {
-         ex.push_back(parsea_expresion(++iter));
-      }
-   }
-   return ex;
-}
-
 std::unique_ptr<sentencia> parsea_expresiones(const token_anotada*& iter) {
-   return std::make_unique<sentencia_expresiones>(parsea_lista_expresiones(iter));
+   auto pos = iter;
+   return std::make_unique<sentencia_expresiones>(pos, parsea_lista_expresiones(iter, true));
 }
-
 std::unique_ptr<sentencia> parsea_declaraciones(const token_anotada*& iter) {
    auto parsea_subdeclaracion = [&]{
       auto nombre = espera(iter, IDENTIFICADOR, "Se esperaba un identificador");
@@ -106,19 +112,20 @@ std::unique_ptr<sentencia> parsea_declaraciones(const token_anotada*& iter) {
       return sentencia_declaraciones::subdeclaracion(nombre, std::move(tamanios), std::move(ex));
    };
 
-   auto tipo = espera(iter, es_tipo, "Se esperaba un tipo");
+   auto pos = iter, tipo = espera(iter, es_tipo, "Se esperaba un tipo");
    std::vector<sentencia_declaraciones::subdeclaracion> d;
    d.push_back(parsea_subdeclaracion( ));    // desafortunadamente no se puede declarar arriba con d = { cosa( ) } por un detalle HORRIBLE de C++
    while (iter->tipo == COMA) {
       ++iter, d.push_back(parsea_subdeclaracion( ));
    }
-   return std::make_unique<sentencia_declaraciones>(tipo, std::move(d));
+   return std::make_unique<sentencia_declaraciones>(pos, tipo, std::move(d));
 }
 
 std::unique_ptr<sentencia> parsea_if(const token_anotada*& iter){
+   auto pos = iter;
    espera(iter, IF, "Se esperaba un if");
    espera(iter, PARENTESIS_I, "Se esperaba un (");
-   std::vector<std::unique_ptr<expresion>> cond = parsea_lista_expresiones(iter);
+   std::vector<std::unique_ptr<expresion>> cond = parsea_lista_expresiones(iter, false);
    espera(iter, PARENTESIS_D, "Se esperaba un )");
    espera(iter, LLAVE_I, "Se esperaba un {");
    std::vector<std::unique_ptr<sentencia>> si;
@@ -139,17 +146,18 @@ std::unique_ptr<sentencia> parsea_if(const token_anotada*& iter){
          espera(iter, LLAVE_D, "Se esperaba un }");
       }
    }
-   return std::make_unique<sentencia_if>(std::move(cond), std::move(si), std::move(no));
+   return std::make_unique<sentencia_if>(pos, std::move(cond), std::move(si), std::move(no));
 }
 std::unique_ptr<sentencia> parsea_for(const token_anotada*& iter){
+   auto pos = iter;
    espera(iter, FOR, "Se esperaba un for");
    espera(iter, PARENTESIS_I, "Se esperaba un (");
 
    std::unique_ptr<sentencia> ini = (es_tipo(iter->tipo) ? std::unique_ptr<sentencia>(parsea_declaraciones(iter)) : std::unique_ptr<sentencia>(parsea_expresiones(iter)));
    espera(iter, PUNTO_Y_COMA, "Se esperaba un ;");
-   std::vector<std::unique_ptr<expresion>> cond = parsea_lista_expresiones(iter);
+   std::vector<std::unique_ptr<expresion>> cond = parsea_lista_expresiones(iter, true);
    espera(iter, PUNTO_Y_COMA, "Se esperaba un ;");
-   std::vector<std::unique_ptr<expresion>> act = parsea_lista_expresiones(iter);
+   std::vector<std::unique_ptr<expresion>> act = parsea_lista_expresiones(iter, true);
 
    espera(iter, PARENTESIS_D, "Se esperaba un )");
    espera(iter, LLAVE_I, "Se esperaba un {");
@@ -158,9 +166,10 @@ std::unique_ptr<sentencia> parsea_for(const token_anotada*& iter){
       ejecutar.push_back(parsea_sentencia(iter));
    }
    espera(iter, LLAVE_D, "Se esperaba un }");
-   return std::make_unique<sentencia_for>(std::move(ini), std::move(cond), std::move(act), std::move(ejecutar));
+   return std::make_unique<sentencia_for>(pos, std::move(ini), std::move(cond), std::move(act), std::move(ejecutar));
 }
 std::unique_ptr<sentencia> parsea_do(const token_anotada*& iter){
+   auto pos = iter;
    espera(iter, DO, "Se esperaba un do");
    espera(iter, LLAVE_I, "Se esperaba un {");
    std::vector<std::unique_ptr<sentencia>> sentencias;
@@ -170,15 +179,16 @@ std::unique_ptr<sentencia> parsea_do(const token_anotada*& iter){
    espera(iter, LLAVE_D, "Se esperaba una }");
    espera(iter, WHILE, "Se esperaba un while");
    espera(iter, PARENTESIS_I, "Se esperaba un (");
-   std::vector<std::unique_ptr<expresion>> cond = parsea_lista_expresiones(iter);
+   std::vector<std::unique_ptr<expresion>> cond = parsea_lista_expresiones(iter, false);
    espera(iter, PARENTESIS_D, "Se esperaba un )");
    espera(iter, PUNTO_Y_COMA, "Se esperaba ;");
-   return std::make_unique<sentencia_do>(std::move(cond), std::move(sentencias));
+   return std::make_unique<sentencia_do>(pos, std::move(cond), std::move(sentencias));
 }
 std::unique_ptr<sentencia> parsea_while(const token_anotada*& iter){
+   auto pos = iter;
    espera(iter, WHILE, "Se esperaba un while");
    espera(iter, PARENTESIS_I, "Se esperaba un (");
-   std::vector<std::unique_ptr<expresion>> cond = parsea_lista_expresiones(iter);
+   std::vector<std::unique_ptr<expresion>> cond = parsea_lista_expresiones(iter, false);
    espera(iter, PARENTESIS_D, "Se esperaba un )");
    espera(iter, LLAVE_I, "Se esperaba un {");
    std::vector<std::unique_ptr<sentencia>> sentencias;
@@ -186,17 +196,19 @@ std::unique_ptr<sentencia> parsea_while(const token_anotada*& iter){
       sentencias.push_back(parsea_sentencia(iter));
    }
    espera(iter, LLAVE_D, "Se esperaba una }");
-   return std::make_unique<sentencia_while>(std::move(cond), std::move(sentencias));
+   return std::make_unique<sentencia_while>(pos, std::move(cond), std::move(sentencias));
 }
 std::unique_ptr<sentencia> parsea_break(const token_anotada*& iter){
-    espera(iter, BREAK, "Se esperaba break");
-    espera(iter, PUNTO_Y_COMA, "Se esperaba un ;");
-    return std::make_unique<sentencia_break>( );
+   auto pos = iter;
+   espera(iter, BREAK, "Se esperaba break");
+   espera(iter, PUNTO_Y_COMA, "Se esperaba un ;");
+   return std::make_unique<sentencia_break>(pos);
 }
 std::unique_ptr<sentencia> parsea_continue(const token_anotada*& iter){
-    espera(iter, CONTINUE, "Se esperaba continue");
-    espera(iter, PUNTO_Y_COMA, "Se esperaba un ;");
-    return std::make_unique<sentencia_continue>( );
+   auto pos = iter;
+   espera(iter, CONTINUE, "Se esperaba continue");
+   espera(iter, PUNTO_Y_COMA, "Se esperaba un ;");
+   return std::make_unique<sentencia_continue>(pos);
 }
 
 std::unique_ptr<sentencia> parsea_sentencia(const token_anotada*& iter){

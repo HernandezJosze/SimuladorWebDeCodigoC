@@ -78,21 +78,27 @@ struct expresion_arreglo : expresion{
 
 std::unique_ptr<expresion> parsea_expresion(const token_anotada*& iter);
 
+std::vector<std::unique_ptr<expresion>> parsea_lista_expresiones(const token_anotada*& iter, bool permitir_vacio) {
+   std::vector<std::unique_ptr<expresion>> ex;
+   if (es_inicio_expresion(iter->tipo)) {
+      ex.push_back(parsea_expresion(iter));
+      while (iter->tipo == COMA) {
+         ex.push_back(parsea_expresion(++iter));
+      }
+   }
+   if (ex.empty( ) && !permitir_vacio) {
+      throw error(*iter, "Se esperaba una expresión");
+   }
+   return ex;
+}
 std::unique_ptr<expresion> parsea_expresion_primaria(const token_anotada*& iter){
    if(iter->tipo == PARENTESIS_I){
       std::unique_ptr<expresion> ex = parsea_expresion(++iter);
       espera(iter, PARENTESIS_D, "Se esperaba )");
       return ex;
    }else if(iter->tipo == LLAVE_I){
-      /* reconocer inicializadores de arreglo       { a, b, c, d }       donde los elementos podr�an estar tambi�n dentro de llaves */
-      std::vector<std::unique_ptr<expresion>> elem;
       espera(iter, LLAVE_I, "Se esperaba {");
-      while(iter->tipo != LLAVE_D){
-          elem.push_back(parsea_expresion(iter));
-          if(iter->tipo != LLAVE_D){
-              espera(iter, COMA, "Se esperaba ,");
-          }
-      }
+      std::vector<std::unique_ptr<expresion>> elem = parsea_lista_expresiones(iter, true);
       espera(iter, LLAVE_D, "Se esperaba }");
       return std::make_unique<expresion_arreglo>(std::move(elem));
    } else {
@@ -108,14 +114,8 @@ std::unique_ptr<expresion> parsea_expresion_unaria(const token_anotada*& iter){
    auto ex = parsea_expresion_primaria(iter); //si no es un prefijo ya comienza una expresión
    while(es_operador_posfijo(iter->tipo)){
       if(iter->tipo == PARENTESIS_I){
-         ++iter;
-         std::vector<std::unique_ptr<expresion>> parametros;
-         while(iter->tipo != PARENTESIS_D){
-            parametros.push_back(parsea_expresion(iter));
-            if(iter->tipo != PARENTESIS_D){
-               espera(iter, COMA, "Se esperaba ,");
-            }
-         }
+         espera(iter, PARENTESIS_I, "Se esperaba (");
+         std::vector<std::unique_ptr<expresion>> parametros = parsea_lista_expresiones(iter, true);
          espera(iter, PARENTESIS_D, "Se esperaba )");
          ex = std::make_unique<expresion_llamada>(std::move(ex), std::move(parametros));
       }else if(iter->tipo == CORCHETE_I){

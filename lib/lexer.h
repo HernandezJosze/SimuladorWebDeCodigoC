@@ -63,6 +63,14 @@ struct token_anotada{
    token tipo;
    std::string_view location;
 };
+struct error{
+   token_anotada tk;
+   std::string message;
+
+   error(const token_anotada& t, std::string&& s)
+   : tk(t), message(std::move(s)) {
+   }
+};
 
 std::map<std::string_view, token> AlphaMp{
         {"if", IF},
@@ -217,7 +225,7 @@ std::vector<token_anotada> lexer(const char* ptr){
          std::advance(ptr, vectorLexer.back().location.size( ));
 
       }else{
-         throw std::pair(token_anotada{WRONG_TOKEN, std::string_view(ptr, ptr + 1)}, "Lexer error");
+         throw error(token_anotada{WRONG_TOKEN, std::string(ptr, ptr + 1)}, "Lexer error");
       }
    }
    vectorLexer.push_back({END_FILE, std::string_view(ptr, ptr + 1)});

@@ -86,7 +86,7 @@ valor_ejecucion* evalua(const expresion_terminal& e, tabla_simbolos& ts, tabla_t
       if (auto p = ts.busca(e.tk->location); p != nullptr) {
          return p;
       }else{
-         throw std::pair(*e.tk, "La variable no esta declarada");
+         throw error(*e.tk, "La variable no esta declarada");
       }
    }
 }
@@ -94,31 +94,31 @@ valor_ejecucion* evalua(const expresion_op_prefijo& e, tabla_simbolos& ts, tabla
    auto sobre = evalua(*e.sobre, ts, tt);
    if (e.operador->tipo == INCREMENTO) {
       if (tt.es_temporal(sobre)) {
-         throw std::pair(*e.operador, "No se puede incrementar un temporal");
+         throw error(*e.operador, "No se puede incrementar un temporal");
       }
       if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
          ++checado->valor;
       })) {
          return sobre;    // nos regresamos nosotros mismos porque ++++i se vale
       } else {
-         throw std::pair(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
       }
    } else if (e.operador->tipo == DECREMENTO) {
       if (tt.es_temporal(sobre)) {
-         throw std::pair(*e.operador, "No se puede decrementar un temporal");
+         throw error(*e.operador, "No se puede decrementar un temporal");
       }
       if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
          --checado->valor;
       })) {
          return sobre;    // nos regresamos nosotros mismos porque ----i se vale
       } else {
-         throw std::pair(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
       }
    } else if (e.operador->tipo == MAS) {
       if (valida<valor_escalar<int>*, valor_escalar<float>*>(sobre)) {
          return sobre;    // el operador realmente no hace nada, aunque tenemos que verificar que no quieran hacer +"hola"
       } else {
-         throw std::pair(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
       }
    } else if (e.operador->tipo == MENOS) {
       valor_ejecucion* res;
@@ -127,7 +127,7 @@ valor_ejecucion* evalua(const expresion_op_prefijo& e, tabla_simbolos& ts, tabla
       })) {
          return res;
       } else {
-         throw std::pair(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
       }
    } else if (e.operador->tipo == NOT) {
       valor_ejecucion* res;
@@ -136,7 +136,7 @@ valor_ejecucion* evalua(const expresion_op_prefijo& e, tabla_simbolos& ts, tabla
       })) {
          return res;
       } else {
-         throw std::pair(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
       }
    } else if (e.operador->tipo == DIRECCION) {
       valor_ejecucion* res;
@@ -145,7 +145,7 @@ valor_ejecucion* evalua(const expresion_op_prefijo& e, tabla_simbolos& ts, tabla
       })) {
          return res;
       } else {
-         throw std::pair(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
       }
    }
 }
@@ -153,7 +153,7 @@ valor_ejecucion* evalua(const expresion_op_posfijo& e, tabla_simbolos& ts, tabla
    auto sobre = evalua(*e.sobre, ts, tt);
    if (e.operador->tipo == INCREMENTO) {
       if (tt.es_temporal(sobre)) {
-         throw std::pair(*e.operador, "No se puede incrementar un temporal");
+         throw error(*e.operador, "No se puede incrementar un temporal");
       }
       valor_ejecucion* res;
       if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
@@ -161,11 +161,11 @@ valor_ejecucion* evalua(const expresion_op_posfijo& e, tabla_simbolos& ts, tabla
       })) {
          return res;
       } else {
-         throw std::pair(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
       }
    } else if (e.operador->tipo == DECREMENTO) {
       if (tt.es_temporal(sobre)) {
-         throw std::pair(*e.operador, "No se puede decrementar un temporal");
+         throw error(*e.operador, "No se puede decrementar un temporal");
       }
       valor_ejecucion* res;
       if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
@@ -173,7 +173,7 @@ valor_ejecucion* evalua(const expresion_op_posfijo& e, tabla_simbolos& ts, tabla
       })) {
          return res;
       } else {
-         throw std::pair(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
       }
    }
 }
@@ -214,12 +214,11 @@ valor_ejecucion* evalua(const std::vector<std::unique_ptr<expresion>>& ex, tabla
    valor_ejecucion* res = nullptr;
    for (const auto& actual : ex) {
       res = evalua(*actual, ts, tt);
-
-
-      valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(res, [&](auto checado) {
-      std::cerr << checado->valor << "\n";
-      });
-      // fin prueba
+// inicio prueba
+valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(res, [&](auto checado) {
+std::cerr << checado->valor << "\n";
+});
+// fin prueba
    }
    return res;
 }
@@ -239,10 +238,10 @@ void evalua(const sentencia_declaraciones& s, tabla_simbolos& ts) {
          } else if (!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(*actual.inicializador, ts, tt), [&](auto checado) {
             valor = std::unique_ptr<valor_ejecucion>(s.tipo->tipo == INT ? std::unique_ptr<valor_ejecucion>(std::make_unique<valor_escalar<int>>(checado->valor)) : std::make_unique<valor_escalar<float>>(checado->valor));  //valor que es una copia del del inicializador
          })){
-            throw std::pair(*s.tipo, "El inicializador no es compatible con la declaracion");
+            throw error(*s.tipo, "El inicializador no es compatible con la declaracion");
          }
          if (!ts.agrega(actual.nombre->location, std::move(valor))) {
-            throw std::pair(*s.tipo, "La variable ya ha sido declarada");
+            throw error(*s.tipo, "La variable ya ha sido declarada");
          }
       }else{
 
@@ -250,21 +249,20 @@ void evalua(const sentencia_declaraciones& s, tabla_simbolos& ts) {
    }
 }
 void evalua(const sentencia_if& s, tabla_simbolos& ts) {
-   tabla_temporales tt;
-   std::unique_ptr<valor_ejecucion> condicion;
-   for(auto const& exp : s.condicion)
-      if(valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(*exp, ts, tt), [&](auto checado) {
-               condicion = (std::make_unique<valor_escalar<int>>(checado->valor));
-         }));
-   auto checar = dynamic_cast<const valor_escalar<int>*>(condicion.get( ));
-   if(checar != nullptr && checar->valor){
-      for(auto const& si : s.parte_si){
-         evalua(*si, ts);
+   tabla_temporales tt;                            // creamos la tabla de temporales
+   auto condicion = evalua(s.condicion, ts, tt);   // cualquier temporal creado aquí seguirá vivo mientras la tabla viva (y la tabla durará todo el if)
+   if (!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(condicion, [&](auto checado) {
+      if (checado->valor) {
+         for(const auto& si : s.parte_si){
+            evalua(*si, ts);
+         }
+      } else {
+         for(const auto& no : s.parte_no){
+            evalua(*no, ts);
+         }
       }
-   }else{
-      for(auto const& no : s.parte_no){
-         evalua(*no, ts);
-      }
+   })){
+      throw error(*s.pos, "Tipo inválido en condición");
    }
 }
 void evalua(const sentencia_for& s, tabla_simbolos& ts) {
