@@ -253,7 +253,7 @@ void evalua(const sentencia_if& s, tabla_simbolos& ts) {
    tabla_temporales tt;
    std::unique_ptr<valor_ejecucion> condicion;
    for(auto const& exp : s.condicion)
-      if(valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(*exp, ts, tt), [&](auto checado) {
+      if(valida_ejecuta<valor_escalar<int>*>(evalua(*exp, ts, tt), [&](auto checado) {
                condicion = (std::make_unique<valor_escalar<int>>(checado->valor));
          }));
    auto checar = dynamic_cast<const valor_escalar<int>*>(condicion.get( ));
