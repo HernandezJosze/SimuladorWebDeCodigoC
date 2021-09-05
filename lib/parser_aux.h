@@ -10,6 +10,7 @@
 
 const token_anotada* espera(const token_anotada*& iter, auto pred, const char* mensaje){
    if(!pred(iter->tipo)){
+      std::cerr << "D:";
       throw error(*iter, mensaje);
    }
    return iter++;
