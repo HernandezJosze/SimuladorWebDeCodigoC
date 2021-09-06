@@ -43,10 +43,10 @@ if (a) {
    }
 }
 -10;
+while(--a){
+	b++;
+}
+
 do{
-	while(a){
-		b++;
-		--a;
-	}
-	--b;
-}while(b);
+	
+}while(b-- < 3);

@@ -270,28 +270,39 @@ void evalua(const sentencia_for& s, tabla_simbolos& ts) {
 }
 void evalua(const sentencia_do& s, tabla_simbolos& ts) {
    tabla_temporales tt;
-   auto condicion = evalua(s.condicion, ts, tt);
-   if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(condicion, [&](auto checado) {
-      do{
-         for(const auto& sentencia : s.sentencias){
-            evalua(*sentencia, ts);
-         }
-      }while(checado->valor);
-   })){
-      throw error(*s.pos, "Tipo invalido de condicion");
+   for(;;){
+      for(const auto& sentencia : s.sentencias){
+             evalua(*sentencia, ts);
+      }
+      bool ejecutar = false;
+      auto condicion = evalua(s.condicion, ts, tt);
+      if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(condicion, [&](auto checado){
+         ejecutar = checado->valor;
+      })){
+         throw error(*s.pos, "Tipo invalido de condicion");
+      }
+      if(!ejecutar){
+         break;
+      }
    }
 }
 void evalua(const sentencia_while& s, tabla_simbolos& ts) {
    tabla_temporales tt;
-   auto condicion = evalua(s.condicion, ts, tt);
-   if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(condicion, [&](auto checado) {
-      while(checado->valor){
-         for(const auto& sentencia : s.sentencias){
-            evalua(*sentencia, ts);
-         }
+
+   for(;;){
+      bool ejecutar = false;
+      auto condicion = evalua(s.condicion, ts, tt);
+      if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(condicion, [&](auto checado){
+         ejecutar = checado->valor;
+      })){
+         throw error(*s.pos, "Tipo invalido de condicion");
       }
-   })){
-      throw error(*s.pos, "Tipo invalido de condicion");
+      if(!ejecutar){
+         break;
+      }
+      for(const auto& sentencia : s.sentencias){
+             evalua(*sentencia, ts);
+      }
    }
 }
 void evalua(const sentencia_break& s, tabla_simbolos& ts) {

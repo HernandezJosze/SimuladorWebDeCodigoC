@@ -54,12 +54,12 @@ const char* interpreta(const char* codigo) {
          std::cout << "FIN PRUEBA\n";
       }
 // fin prueba
-   } catch (const std::pair<token_anotada, const char*>& e) {
+   } catch (const error& e) {
       auto ini = codigo, fin = codigo + strlen(codigo);
-      std::cout << "Error en linea " << linea_de(ini, e.first) << ", columna " << columna_de(ini, e.first) << ":\n"
-                << "\t" << vista_de(e.first, 10, fin) << "\n"
+      std::cout << "Error en linea " << linea_de(ini, e.tk) << ", columna " << columna_de(ini, e.tk) << ":\n"
+                << "\t" << vista_de(e.tk, 10, fin) << "\n"
                 << "\t^\n"
-                << e.second << "\n";
+                << e.message << "\n";
    } catch (const std::exception& e) {
       std::cout << e.what( ) << "\n";
    }
