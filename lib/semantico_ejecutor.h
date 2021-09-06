@@ -265,7 +265,24 @@ void evalua(const sentencia_if& s, tabla_simbolos& ts) {
    }
 }
 void evalua(const sentencia_for& s, tabla_simbolos& ts) {
-   //...
+   tabla_simbolos ts_incializador(&ts);
+   evalua(*s.inicializacion, ts_incializador);
+
+   for(;;){
+      tabla_temporales tt; bool b;              // la tabla de temporales debería morir en cada iteración
+      if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(s.condicion, ts_incializador, tt), [&](auto checado){
+         b = checado->valor;
+      })){
+         throw error(*s.pos, "Tipo invalido de condicion");
+      }
+      if(!b){
+         break;
+      }
+      for(const auto& sentencia : s.sentencias){
+         evalua(*sentencia, ts_incializador);
+      }
+      evalua(s.actualizacion, ts_incializador, tt);
+   }
 }
 void evalua(const sentencia_do& s, tabla_simbolos& ts) {
    for(;;){
