@@ -47,10 +47,7 @@ const char* interpreta(const char* codigo) {
       int res;
       std::cin >> res;
       if (res == 1) {
-         tabla_simbolos ts;
-         for (const auto& actual : w) {
-            evalua(*actual, ts);
-         }
+         evalua(w);
          std::cerr << "FIN PRUEBA\n";
       }
 // fin prueba

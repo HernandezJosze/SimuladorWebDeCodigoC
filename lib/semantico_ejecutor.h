@@ -224,6 +224,18 @@ std::cerr << checado->valor << "\n";
 }
 
 void evalua(const sentencia& s, tabla_simbolos& ts);
+void evalua(const std::vector<std::unique_ptr<sentencia>>& sentencias){
+   tabla_simbolos ts;
+   try{
+      for (const auto& sentencia : sentencias) {
+         evalua(*sentencia, ts);
+      }
+   }catch(const sentencia_break &e){
+      throw error(*e.pos, "No se permite hacer un break fuera de un ciclo");
+   }catch(const sentencia_continue & c){
+      throw error(*c.pos, "No se permite hacer un continue fuera de un ciclo");
+   }
+}
 void evalua(const sentencia_expresiones& s, tabla_simbolos& ts) {
    tabla_temporales tt;
    evalua(s.ex, ts, tt);
@@ -278,16 +290,28 @@ void evalua(const sentencia_for& s, tabla_simbolos& ts) {
       if(!b){
          break;
       }
-      for(const auto& sentencia : s.sentencias){
-         evalua(*sentencia, ts_incializador);
+      try{
+         for(const auto& sentencia : s.sentencias){
+            evalua(*sentencia, ts_incializador);
+         }
+      }catch(const sentencia_break &e){
+         break;
+      }catch(const sentencia_continue & c){
+
       }
       evalua(s.actualizacion, ts_incializador, tt);
    }
 }
 void evalua(const sentencia_do& s, tabla_simbolos& ts) {
    for(;;){
-      for(const auto& sentencia : s.sentencias){
-         evalua(*sentencia, ts);
+      try{
+         for(const auto& sentencia : s.sentencias){
+            evalua(*sentencia, ts);
+         }
+      }catch(const sentencia_break &e){
+         break;
+      }catch(const sentencia_continue & c){
+
       }
       tabla_temporales tt; bool b;              // la tabla de temporales debería morir en cada iteración
       if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(s.condicion, ts, tt), [&](auto checado){
@@ -311,16 +335,22 @@ void evalua(const sentencia_while& s, tabla_simbolos& ts) {
       if(!b){
          break;
       }
-      for(const auto& sentencia : s.sentencias){
-         evalua(*sentencia, ts);
+      try{
+         for(const auto& sentencia : s.sentencias){
+            evalua(*sentencia, ts);
+         }
+      }catch(const sentencia_break &e){
+         break;
+      }catch(const sentencia_continue &c){
+
       }
    }
 }
 void evalua(const sentencia_break& s, tabla_simbolos& ts) {
-   //...
+   throw s;
 }
 void evalua(const sentencia_continue& s, tabla_simbolos& ts) {
-   //...
+   throw s;
 }
 
 void evalua(const sentencia& s, tabla_simbolos& ts) {

@@ -74,14 +74,12 @@ struct sentencia_while : sentencia{
    }
 };
 struct sentencia_break : sentencia{
-   const token_anotada* pos;
 
    sentencia_break(const token_anotada* p)
    : sentencia(p){
    }
 };
 struct sentencia_continue : sentencia{
-   const token_anotada* pos;
 
    sentencia_continue(const token_anotada* p)
    : sentencia(p){
