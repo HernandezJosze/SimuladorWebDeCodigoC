@@ -7,10 +7,13 @@
 #include <map>
 #include <cctype>
 #include <cstdlib>
+#include <initializer_list>
 #include <vector>
 #include <string_view>
 #include <cmath>
 #include <cctype>
+#include <memory>
+
 enum token{
    IF,
    ELSE,
@@ -63,6 +66,39 @@ struct token_anotada{
    token tipo;
    std::string_view location;
 };
+struct trie {
+   token tipo = WRONG_TOKEN;
+   std::map<char, std::unique_ptr<trie>> hijos;
+
+   trie( ) = default;
+   trie(std::initializer_list<std::pair<std::string_view, token>> tokens) {
+      for (auto [simbolo, tipo] : tokens) {
+         auto actual = this;
+         for (int i = 0; i < simbolo.size( ); ++i) {
+            auto& siguiente = actual->hijos[simbolo[i]];
+            if (siguiente == nullptr) {
+               siguiente = std::make_unique<trie>( );
+            }
+            actual = siguiente.get( );
+         }
+         actual->tipo = tipo;
+      }
+   }
+   bool find(const char* ptr, int& advance, token& tipo) const {
+      auto actual = this;
+      advance = 0, tipo = actual->tipo;
+      for (int i = 0; ; ++i) {
+         auto iter = actual->hijos.find(ptr[i]);
+         if (iter == actual->hijos.end( )) {
+            return (tipo != WRONG_TOKEN);
+         }
+         actual = iter->second.get( );
+         if (actual->tipo != WRONG_TOKEN) {
+            advance = i + 1, tipo = actual->tipo;
+         }
+      }
+   }
+};
 struct error{
    token_anotada tk;
    std::string message;
@@ -72,160 +108,125 @@ struct error{
    }
 };
 
-std::map<std::string_view, token> AlphaMp{
-        {"if", IF},
-        {"else", ELSE},
-        {"for", FOR},
-        {"do", DO},
-        {"while", WHILE},
-        {"int", INT},
-        {"float", FLOAT},
-        {"break", BREAK},
-        {"continue", CONTINUE}
+const trie keywords = {
+   {"if", IF},
+   {"else", ELSE},
+   {"for", FOR},
+   {"do", DO},
+   {"while", WHILE},
+   {"int", INT},
+   {"float", FLOAT},
+   {"break", BREAK},
+   {"continue", CONTINUE}
 };
-std::map<std::string_view, token> SymbolsMp{
-        {"+", MAS},
-        {"-", MENOS},
-        {"!", NOT},
-        {"*", MULTIPLICACION},
-        {"%", MODULO},
-        {"/", DIVISION},
-        {"&", DIRECCION},
-        {"<", MENOR},
-        {">", MAYOR},
-        {"<=", MENOR_IGUAL},
-        {">=", MAYOR_IGUAL},
-        {"!=", DIFERENTE},
-        {"==", IGUAL},
-        {"++", INCREMENTO},
-        {"--", DECREMENTO},
-        {"+=", MAS_IGUAL},
-        {"-=", MENOS_IGUAL},
-        {"*=", MULTIPLICA_IGUAL},
-        {"/=", DIVIDE_IGUAL},
-        {"%=", MODULO_IGUAL},
-        {"=", ASIGNACION},
-        {"[", CORCHETE_I},
-        {"]", CORCHETE_D},
-        {"{", LLAVE_I},
-        {"}", LLAVE_D},
-        {"(", PARENTESIS_I},
-        {")", PARENTESIS_D},
-        {",", COMA},
-        {";", PUNTO_Y_COMA},
-        {"&&", AND},
-        {"||", OR}
+const trie symbols = {
+   {"+", MAS},
+   {"-", MENOS},
+   {"!", NOT},
+   {"*", MULTIPLICACION},
+   {"%", MODULO},
+   {"/", DIVISION},
+   {"&", DIRECCION},
+   {"<", MENOR},
+   {">", MAYOR},
+   {"<=", MENOR_IGUAL},
+   {">=", MAYOR_IGUAL},
+   {"!=", DIFERENTE},
+   {"==", IGUAL},
+   {"++", INCREMENTO},
+   {"--", DECREMENTO},
+   {"+=", MAS_IGUAL},
+   {"-=", MENOS_IGUAL},
+   {"*=", MULTIPLICA_IGUAL},
+   {"/=", DIVIDE_IGUAL},
+   {"%=", MODULO_IGUAL},
+   {"=", ASIGNACION},
+   {"[", CORCHETE_I},
+   {"]", CORCHETE_D},
+   {"{", LLAVE_I},
+   {"}", LLAVE_D},
+   {"(", PARENTESIS_I},
+   {")", PARENTESIS_D},
+   {",", COMA},
+   {";", PUNTO_Y_COMA},
+   {"&&", AND},
+   {"||", OR}
 };
-bool isYetId(const char& c){
-   return std::isalnum(c) || c == '_';
-}
-bool isAStartId(const char& c){
-    return std::isalpha(c) || c == '_';
-}
-bool isIntoAlphaMp(std::vector<token_anotada>& v, const char *ptr){
-   std::string s;
+
+bool isComment(const char* ptr, int& advance){
    auto ptr_end = ptr;
-   while(std::isalpha(*ptr_end)) {
-      s.push_back(*ptr_end++);
-      if(auto fnd = AlphaMp.find(s); fnd != AlphaMp.end( )) {
-         if (!isYetId(*(ptr_end))) {
-            v.push_back({fnd->second, std::string_view(ptr, ptr_end)});
-            return true;
-         }
-         return false;
-      }
+   while(*ptr_end == '/'){
+      ++ptr_end;
    }
-   return false;
+   if(ptr_end - ptr < 2) {
+      return false;
+   }
+   while(*ptr_end != '\0' && *ptr_end != '\n'){
+      ++ptr_end;
+   }
+   advance = ptr_end - ptr;
+   return true;
 }
-bool isIntoSymbolsMp(std::vector<token_anotada>& v, const char *ptr){
-   std::string s;
+bool isString(const char *ptr, int& advance, token& tipo){
    auto ptr_end = ptr;
-   while(!std::isalnum(*ptr_end)){
-      s.push_back(*ptr_end++);
-      auto fnd = SymbolsMp.find(s);
-      if(fnd != SymbolsMp.end( ) && SymbolsMp.find(s + *ptr_end) == SymbolsMp.end( )){
-         if(s == "//"){
-            return false;
-         }
-         v.push_back({fnd->second, std::string_view(ptr, ptr_end)});
-         return true;
-      }
+   if (*ptr_end++ != '"') {
+      return false;
    }
-   return false;
-}
-bool isLiteralCad(std::vector<token_anotada>& v, const char *ptr, char type) {
-   auto ptr_end = ++ptr;
-   while(*ptr_end != type || (*(ptr_end - 1) == '\\' && *(ptr_end - 2) != '\\')) {
+   while(*ptr_end != '"') {
+      if(*ptr_end == '\\') {
+         ++ptr_end;
+      }
       if(*ptr_end == '\0'){
          return false;
       }
       ++ptr_end;
    }
-   if(ptr_end - ptr >= 2 && type == '\'' && *ptr != '\\'){
-      return false;
-   }
-   v.push_back({LITERAL_CADENA, std::string_view(ptr, ptr_end)});
+   advance = ++ptr_end - ptr, tipo = LITERAL_CADENA;
    return true;
 }
-bool isNumeric(std::vector<token_anotada>& v, const char *ptr){
+bool isNumeric(const char *ptr, int& advance, token& tipo){
    auto ptr_endi = const_cast<char*>(ptr), ptr_endf = ptr_endi;
    auto resi = strtol(ptr, &ptr_endi, 0);
    auto resf = strtod(ptr, &ptr_endf);
    if (ptr_endi == ptr && ptr_endf == ptr) {
       return false;
    }
-   v.push_back({(ptr_endf > ptr_endi ? LITERAL_FLOTANTE : LITERAL_ENTERA), std::string_view(ptr, std::max(ptr_endi, ptr_endf))});
+   advance = std::max(ptr_endi, ptr_endf) - ptr, tipo = (ptr_endf > ptr_endi ? LITERAL_FLOTANTE : LITERAL_ENTERA);
    return true;
 }
-bool id(std::vector<token_anotada>& v,const char *ptr){
-   const char *ptr_end = ptr;
-   while(isYetId(*ptr_end)){
-      ++ptr_end;
-   }
-   std::string s = {*ptr_end};
-   if(std::isspace(*ptr_end) || (SymbolsMp.find(s) != SymbolsMp.end( ))){
-      v.push_back({IDENTIFICADOR, std::string_view(ptr, ptr_end)});
-      return true;
-   }
-   return false;
+bool isSymbol(const char *ptr, int& advance, token& tipo){
+   return symbols.find(ptr, advance, tipo);
 }
-int isComment(const char* ptr){
-    const char *ptr_end = ptr;
-    std::string s;
-    while(*ptr_end == '/'){
-        s.push_back(*ptr_end);
-        ++ptr_end;
-    }
-    if(s.size( ) >= 2){
-        while(*ptr_end != '\0' && *ptr_end != '\n'){
-            ++ptr_end;
-        }
-        return std::distance(ptr, ptr_end) + 1;
-    }
-    return 0;
+bool isAlphaNumeric(const char *ptr, int& advance, token& tipo){
+   auto ptr_end = ptr;
+   if (*ptr_end != '_' && !std::isalpha(*ptr_end)) {
+      return false;
+   }
+   do {
+      ++ptr_end;
+   } while (*ptr_end == '_' || std::isalnum(*ptr_end));
+
+   if (!keywords.find(ptr, advance, tipo) || advance != ptr_end - ptr) {
+      advance = ptr_end - ptr, tipo = IDENTIFICADOR;
+   }
+   return true;
 }
 std::vector<token_anotada> lexer(const char* ptr){
    std::vector<token_anotada> vectorLexer;
    while(*ptr != '\0'){
-       if(std::isspace(*ptr)){
-         ++ptr;
-      }else if(int advance = isComment(ptr); advance != 0) {
-         std::advance(ptr, advance);
-
-      }else if((*ptr == '\"' || *ptr == '\'') && isLiteralCad(vectorLexer, ptr, *ptr)) {
-         std::advance(ptr, vectorLexer.back( ).location.size( ) + 2);
-
-      }else if(isNumeric(vectorLexer, ptr)){
-         std::advance(ptr, vectorLexer.back( ).location.size( ));
-
-      }else if(isIntoAlphaMp(vectorLexer, ptr) || isIntoSymbolsMp(vectorLexer, ptr)){
-         std::advance(ptr, vectorLexer.back( ).location.size( ));
-
-      }else if(isAStartId(*ptr) && id(vectorLexer, ptr)){
-         std::advance(ptr, vectorLexer.back().location.size( ));
-
+      int advance; token tipo;
+      if(std::isspace(*ptr)){
+         ptr += 1;
+      }else if(isComment(ptr, advance)) {
+         ptr += advance;
+      }else if(isString(ptr, advance, tipo) ||
+               isNumeric(ptr, advance, tipo) ||
+               isSymbol(ptr, advance, tipo) ||
+               isAlphaNumeric(ptr, advance, tipo)) {
+         vectorLexer.push_back(token_anotada{tipo, std::string_view(ptr, ptr + advance)});
+         ptr += advance;
       }else{
-         throw error(token_anotada{WRONG_TOKEN, std::string(ptr, ptr + 1)}, "Lexer error");
+         throw error(token_anotada{WRONG_TOKEN, std::string_view(ptr, ptr + 1)}, "Lexer error");
       }
    }
    vectorLexer.push_back({END_FILE, std::string_view(ptr, ptr + 1)});

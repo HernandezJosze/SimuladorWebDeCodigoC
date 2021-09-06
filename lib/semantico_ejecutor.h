@@ -249,9 +249,8 @@ void evalua(const sentencia_declaraciones& s, tabla_simbolos& ts) {
    }
 }
 void evalua(const sentencia_if& s, tabla_simbolos& ts) {
-   tabla_temporales tt;                            // creamos la tabla de temporales
-   auto condicion = evalua(s.condicion, ts, tt);   // cualquier temporal creado aquí seguirá vivo mientras la tabla viva (y la tabla durará todo el if)
-   if (!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(condicion, [&](auto checado) {
+   tabla_temporales tt;
+   if (!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(s.condicion, ts, tt), [&](auto checado) {
       if (checado->valor) {
          for(const auto& si : s.parte_si){
             evalua(*si, ts);
@@ -269,39 +268,34 @@ void evalua(const sentencia_for& s, tabla_simbolos& ts) {
    //...
 }
 void evalua(const sentencia_do& s, tabla_simbolos& ts) {
-   tabla_temporales tt;
    for(;;){
       for(const auto& sentencia : s.sentencias){
-             evalua(*sentencia, ts);
+         evalua(*sentencia, ts);
       }
-      bool ejecutar = false;
-      auto condicion = evalua(s.condicion, ts, tt);
-      if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(condicion, [&](auto checado){
-         ejecutar = checado->valor;
+      tabla_temporales tt; bool b;              // la tabla de temporales debería morir en cada iteración
+      if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(s.condicion, ts, tt), [&](auto checado){
+         b = checado->valor;
       })){
          throw error(*s.pos, "Tipo invalido de condicion");
       }
-      if(!ejecutar){
+      if(!b){
          break;
       }
    }
 }
 void evalua(const sentencia_while& s, tabla_simbolos& ts) {
-   tabla_temporales tt;
-
    for(;;){
-      bool ejecutar = false;
-      auto condicion = evalua(s.condicion, ts, tt);
-      if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(condicion, [&](auto checado){
-         ejecutar = checado->valor;
+      tabla_temporales tt; bool b;              // la tabla de temporales debería morir en cada iteración
+      if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(s.condicion, ts, tt), [&](auto checado){
+         b = checado->valor;
       })){
          throw error(*s.pos, "Tipo invalido de condicion");
       }
-      if(!ejecutar){
+      if(!b){
          break;
       }
       for(const auto& sentencia : s.sentencias){
-             evalua(*sentencia, ts);
+         evalua(*sentencia, ts);
       }
    }
 }

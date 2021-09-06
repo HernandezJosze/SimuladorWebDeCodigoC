@@ -10,7 +10,7 @@
 #include <iostream>
 
 std::ostream& operator<<(std::ostream& os, const token_anotada& t) {
-   return os << (t.tipo == LITERAL_CADENA ? "\"" : "") << t.location << (t.tipo == LITERAL_CADENA ? "\"" : "");
+   return os << t.location;
 }
 
 // expresiones

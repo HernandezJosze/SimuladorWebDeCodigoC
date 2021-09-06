@@ -32,18 +32,18 @@ const char* interpreta(const char* codigo) {
    static std::string res = "";
 
    try {
-      std::cout << "TOKENS:\n";
+      std::cerr << "TOKENS:\n";
       std::vector<token_anotada> v = lexer(codigo);
       for (const auto& actual : v) {
-         std::cout << actual.tipo << " " << actual << "\n";
+         std::cerr << actual.tipo << " " << actual << "\n";
       }
-      std::cout << "SENTENCIAS:\n";
+      std::cerr << "SENTENCIAS:\n";
       std::vector<std::unique_ptr<sentencia>> w = parser(v.data( ));
       for (const auto& actual : w) {
-         std::cout << *actual << "\n";
+         std::cerr << *actual << "\n";
       }
 // prueba
-      std::cout << "QUIERES PROBAR EL SEMANTICO? ";
+      std::cerr << "QUIERES PROBAR EL SEMANTICO? ";
       int res;
       std::cin >> res;
       if (res == 1) {
@@ -51,7 +51,7 @@ const char* interpreta(const char* codigo) {
          for (const auto& actual : w) {
             evalua(*actual, ts);
          }
-         std::cout << "FIN PRUEBA\n";
+         std::cerr << "FIN PRUEBA\n";
       }
 // fin prueba
    } catch (const error& e) {
