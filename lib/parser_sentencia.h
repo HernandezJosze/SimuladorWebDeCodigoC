@@ -99,7 +99,7 @@ std::unique_ptr<sentencia> parsea_declaraciones(const token_anotada*& iter) {
       std::vector<std::unique_ptr<expresion>> tamanios;
       while (iter->tipo == CORCHETE_I) {
          espera(iter, CORCHETE_I, "Se espera un [");
-         tamanios.push_back(parsea_expresion(iter));
+         tamanios.push_back(iter->tipo != CORCHETE_D ? parsea_expresion(iter) : nullptr);
          espera(iter, CORCHETE_D, "Se espera un ]");
       }
       std::unique_ptr<expresion> ex;

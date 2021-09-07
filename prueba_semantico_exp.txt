@@ -1,12 +1,6 @@
-arr[-3];
-555555555;
-for(int i = 5; i; --i){
-
-	c;
-	i;
-	if(b){
-		c;
-	}else{
-		a;
-	}
-}
+int arr4[1];
+int a;
+a;
+int arr1[] = {3, 5};
+int arr2[2] = {3, 5};
+int arr5[] = { };
