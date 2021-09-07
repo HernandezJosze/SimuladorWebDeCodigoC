@@ -112,7 +112,7 @@ std::unique_ptr<sentencia> parsea_declaraciones(const token_anotada*& iter) {
 
    auto pos = iter, tipo = espera(iter, es_tipo, "Se esperaba un tipo");
    std::vector<sentencia_declaraciones::subdeclaracion> d;
-   d.push_back(parsea_subdeclaracion( ));    // desafortunadamente no se puede declarar arriba con d = { cosa( ) } por un detalle HORRIBLE de C++
+   d.push_back(parsea_subdeclaracion( ));
    while (iter->tipo == COMA) {
       ++iter, d.push_back(parsea_subdeclaracion( ));
    }

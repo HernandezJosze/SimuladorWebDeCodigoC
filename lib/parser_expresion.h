@@ -22,8 +22,8 @@ expresion::~expresion(){}
 struct expresion_terminal : expresion {
    const token_anotada* tk;
 
-   expresion_terminal(const token_anotada* tp, const token_anotada* tipo = nullptr)
-   : tk(tp), expresion(tipo){
+   expresion_terminal(const token_anotada* p, const token_anotada* t)
+   : expresion(p), tk(t){
    }
 };
 
@@ -31,8 +31,8 @@ struct expresion_op_prefijo: expresion {
    const token_anotada* operador;
    std::unique_ptr<expresion> sobre;
 
-   expresion_op_prefijo(const token_anotada* op, std::unique_ptr<expresion>&& s, const token_anotada* tipo)
-   : operador(op), sobre(std::move(s)), expresion(tipo) {
+   expresion_op_prefijo(const token_anotada* p, const token_anotada* op, std::unique_ptr<expresion>&& s)
+   : expresion(p), operador(op), sobre(std::move(s)) {
    }
 };
 
@@ -40,8 +40,8 @@ struct expresion_op_posfijo: expresion {
    std::unique_ptr<expresion> sobre;
    const token_anotada* operador;
 
-   expresion_op_posfijo(std::unique_ptr<expresion>&& s, const token_anotada* op, const token_anotada* tipo)
-   : sobre(std::move(s)), operador(op), expresion(tipo) {
+   expresion_op_posfijo(const token_anotada* p, std::unique_ptr<expresion>&& s, const token_anotada* op)
+   : expresion(p), sobre(std::move(s)), operador(op) {
    }
 };
 
@@ -50,8 +50,8 @@ struct expresion_op_binario : expresion {
    const token_anotada* operador;
    std::unique_ptr<expresion> der;
 
-   expresion_op_binario(std::unique_ptr<expresion>&& i, const token_anotada* op, std::unique_ptr<expresion>&& d, const token_anotada* tipo)
-   : izq(std::move(i)), operador(op), der(std::move(d)), expresion(tipo) {
+   expresion_op_binario(const token_anotada* p, std::unique_ptr<expresion>&& i, const token_anotada* op, std::unique_ptr<expresion>&& d)
+   : expresion(p), izq(std::move(i)), operador(op), der(std::move(d)){
    }
 };
 
@@ -59,24 +59,24 @@ struct expresion_llamada : expresion {
    std::unique_ptr<expresion> func;
    std::vector<std::unique_ptr<expresion>> parametros;
 
-   expresion_llamada(std::unique_ptr<expresion>&& f, std::vector<std::unique_ptr<expresion>>&& p, const token_anotada* tipo)
-   : func(std::move(f)), parametros(std::move(p)), expresion(tipo) {
+   expresion_llamada(const token_anotada* pos, std::unique_ptr<expresion>&& f, std::vector<std::unique_ptr<expresion>>&& p)
+   : expresion(pos), func(std::move(f)), parametros(std::move(p)){
    }
 };
 
 struct expresion_corchetes : expresion{
    std::unique_ptr<expresion> ex, dentro;
 
-   expresion_corchetes(std::unique_ptr<expresion>&& e, std::unique_ptr<expresion>&& d, const token_anotada* tipo)
-   : ex(std::move(e)), dentro(std::move(d)), expresion(tipo) {
+   expresion_corchetes(const token_anotada* p, std::unique_ptr<expresion>&& e, std::unique_ptr<expresion>&& d)
+   : expresion(p), ex(std::move(e)), dentro(std::move(d)) {
    }
 };
 
 struct expresion_arreglo : expresion{
    std::vector<std::unique_ptr<expresion>> elementos;
 
-   expresion_arreglo(std::vector<std::unique_ptr<expresion>>&& e, const token_anotada* tp)
-   : elementos(std::move(e)), expresion(tp) {
+   expresion_arreglo(const token_anotada* p, std::vector<std::unique_ptr<expresion>>&& e)
+   : expresion(p), elementos(std::move(e)) {
    }
 };
 
@@ -102,37 +102,37 @@ std::unique_ptr<expresion> parsea_expresion_primaria(const token_anotada*& iter)
       espera(iter, PARENTESIS_D, "Se esperaba )");
       return ex;
    }else if(iter->tipo == LLAVE_I){
-      auto tipo = iter;
+      auto pos = iter;
       espera(iter, LLAVE_I, "Se esperaba {");
       std::vector<std::unique_ptr<expresion>> elem = parsea_lista_expresiones(iter, true);
       espera(iter, LLAVE_D, "Se esperaba }");
-      return std::make_unique<expresion_arreglo>(std::move(elem), tipo);
+      return std::make_unique<expresion_arreglo>(pos, std::move(elem));
    } else {
-      auto tipo = iter;
-      return std::make_unique<expresion_terminal>(espera(iter, es_terminal, "Se esperaba identificador o literal"), tipo);
+      auto pos = iter;
+      return std::make_unique<expresion_terminal>(pos, espera(iter, es_terminal, "Se esperaba identificador o literal"));
    }
 }
 
 std::unique_ptr<expresion> parsea_expresion_unaria(const token_anotada*& iter){
    if(es_operador_prefijo(iter->tipo)){
-      auto operador = iter++;
-      return std::make_unique<expresion_op_prefijo>(operador, parsea_expresion_unaria(iter), operador);
+      auto pos = iter, operador = iter++;
+      return std::make_unique<expresion_op_prefijo>(pos, operador, parsea_expresion_unaria(iter));
    }
-   auto tipo = iter;
+   auto pos = iter;
    auto ex = parsea_expresion_primaria(iter); //si no es un prefijo ya comienza una expresión
    while(es_operador_posfijo(iter->tipo)){
       if(iter->tipo == PARENTESIS_I){
          espera(iter, PARENTESIS_I, "Se esperaba (");
          std::vector<std::unique_ptr<expresion>> parametros = parsea_lista_expresiones(iter, true);
          espera(iter, PARENTESIS_D, "Se esperaba )");
-         ex = std::make_unique<expresion_llamada>(std::move(ex), std::move(parametros), tipo);
+         ex = std::make_unique<expresion_llamada>(pos, std::move(ex), std::move(parametros));
       }else if(iter->tipo == CORCHETE_I){
          ++iter;
          auto dentro = parsea_expresion(iter);
          espera(iter, CORCHETE_D, "Se esperaba ]");
-         ex = std::make_unique<expresion_corchetes>(std::move(ex), std::move(dentro), tipo);
+         ex = std::make_unique<expresion_corchetes>(pos, std::move(ex), std::move(dentro));
       } else {
-         ex = std::make_unique<expresion_op_posfijo>(std::move(ex), iter++, tipo);
+         ex = std::make_unique<expresion_op_posfijo>(pos, std::move(ex), iter++);
       }
    }
    return ex;
@@ -141,8 +141,8 @@ std::unique_ptr<expresion> parsea_expresion_unaria(const token_anotada*& iter){
 std::unique_ptr<expresion> parsea_expresion_n_aria(const token_anotada*& iter, int prec){
    std::unique_ptr<expresion> ex = parsea_expresion_unaria(iter);
    while(es_operador_binario(iter->tipo) && precedencia(iter->tipo) >= prec){
-      auto op = iter++;
-      ex = std::make_unique<expresion_op_binario>(std::move(ex), op, parsea_expresion_n_aria(iter, precedencia(op->tipo) + asociatividad(op->tipo)), op);
+      auto pos = iter, op = iter++;
+      ex = std::make_unique<expresion_op_binario>(pos, std::move(ex), op, parsea_expresion_n_aria(iter, precedencia(op->tipo) + asociatividad(op->tipo)));
    }
    return ex;
 }
