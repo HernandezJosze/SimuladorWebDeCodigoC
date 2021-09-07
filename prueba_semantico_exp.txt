@@ -1,6 +1,9 @@
 int arr4[1];
 int a;
 a;
-int arr1[] = {3, 5};
-int arr2[2] = {3, 5};
-int arr5[] = { };
+arr4;
+float arr5[5];
+arr5;
+//int arr1[] = {3, 5};
+//int arr2[2] = {3, 5};
+//int arr5[] = { };
