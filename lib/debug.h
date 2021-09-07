@@ -20,13 +20,13 @@ std::ostream& operator<<(std::ostream& os, const expresion_terminal& e) {
    return os << *e.tk;
 }
 std::ostream& operator<<(std::ostream& os, const expresion_op_prefijo& e) {
-   return os << "(" << *e.tk << *e.sobre << ")";
+   return os << "(" << *e.operador << *e.sobre << ")";
 }
 std::ostream& operator<<(std::ostream& os, const expresion_op_posfijo& e) {
-   return os << "(" << *e.sobre << *e.tk << ")";
+   return os << "(" << *e.sobre << *e.operador << ")";
 }
 std::ostream& operator<<(std::ostream& os, const expresion_op_binario& e) {
-   return os << "(" << *e.izq << ' ' << *e.tk << ' ' << *e.der << ")";
+   return os << "(" << *e.izq << ' ' << *e.operador << ' ' << *e.der << ")";
 }
 std::ostream& operator<<(std::ostream& os, const expresion_llamada& e) {
    os << *e.func << "(";

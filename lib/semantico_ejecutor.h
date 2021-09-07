@@ -92,68 +92,68 @@ valor_ejecucion* evalua(const expresion_terminal& e, tabla_simbolos& ts, tabla_t
 }
 valor_ejecucion* evalua(const expresion_op_prefijo& e, tabla_simbolos& ts, tabla_temporales& tt) {
    auto sobre = evalua(*e.sobre, ts, tt);
-   if (e.tk->tipo == INCREMENTO) {
+   if (e.operador->tipo == INCREMENTO) {
       if (tt.es_temporal(sobre)) {
-         throw error(*e.tk, "No se puede incrementar un temporal");
+         throw error(*e.operador, "No se puede incrementar un temporal");
       }
       if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
          ++checado->valor;
       })) {
          return sobre;    // nos regresamos nosotros mismos porque ++++i se vale
       } else {
-         throw error(*e.tk, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
       }
-   } else if (e.tk->tipo == DECREMENTO) {
+   } else if (e.operador->tipo == DECREMENTO) {
       if (tt.es_temporal(sobre)) {
-         throw error(*e.tk, "No se puede decrementar un temporal");
+         throw error(*e.operador, "No se puede decrementar un temporal");
       }
       if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
          --checado->valor;
       })) {
          return sobre;    // nos regresamos nosotros mismos porque ----i se vale
       } else {
-         throw error(*e.tk, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
       }
-   } else if (e.tk->tipo == MAS) {
+   } else if (e.operador->tipo == MAS) {
       if (valida<valor_escalar<int>*, valor_escalar<float>*>(sobre)) {
          return sobre;    // el operador realmente no hace nada, aunque tenemos que verificar que no quieran hacer +"hola"
       } else {
-         throw error(*e.tk, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
       }
-   } else if (e.tk->tipo == MENOS) {
+   } else if (e.operador->tipo == MENOS) {
       valor_ejecucion* res;
       if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
          res = tt.crea<valor_escalar<typename std::decay_t<decltype(*checado)>::type>>(-checado->valor);    // crear un temporal con el mismo tipo que el operando pero con el signo opuesto (-(5) crea un int, -(3.14) crea un float)
       })) {
          return res;
       } else {
-         throw error(*e.tk, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
       }
-   } else if (e.tk->tipo == NOT) {
+   } else if (e.operador->tipo == NOT) {
       valor_ejecucion* res;
       if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
          res = tt.crea<valor_escalar<int>>(!checado->valor);    // crear un temporal entero con el resultado del !
       })) {
          return res;
       } else {
-         throw error(*e.tk, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
       }
-   } else if (e.tk->tipo == DIRECCION) {
+   } else if (e.operador->tipo == DIRECCION) {
       valor_ejecucion* res;
       if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
          res = tt.crea<valor_escalar<typename std::decay_t<decltype(*checado)>::type*>>(&checado->valor);
       })) {
          return res;
       } else {
-         throw error(*e.tk, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
       }
    }
 }
 valor_ejecucion* evalua(const expresion_op_posfijo& e, tabla_simbolos& ts, tabla_temporales& tt) {
    auto sobre = evalua(*e.sobre, ts, tt);
-   if (e.tk->tipo == INCREMENTO) {
+   if (e.operador->tipo == INCREMENTO) {
       if (tt.es_temporal(sobre)) {
-         throw error(*e.tk, "No se puede incrementar un temporal");
+         throw error(*e.operador, "No se puede incrementar un temporal");
       }
       valor_ejecucion* res;
       if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
@@ -161,11 +161,11 @@ valor_ejecucion* evalua(const expresion_op_posfijo& e, tabla_simbolos& ts, tabla
       })) {
          return res;
       } else {
-         throw error(*e.tk, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
       }
-   } else if (e.tk->tipo == DECREMENTO) {
+   } else if (e.operador->tipo == DECREMENTO) {
       if (tt.es_temporal(sobre)) {
-         throw error(*e.tk, "No se puede decrementar un temporal");
+         throw error(*e.operador, "No se puede decrementar un temporal");
       }
       valor_ejecucion* res;
       if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
@@ -173,7 +173,7 @@ valor_ejecucion* evalua(const expresion_op_posfijo& e, tabla_simbolos& ts, tabla
       })) {
          return res;
       } else {
-         throw error(*e.tk, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
       }
    }
 }
@@ -190,13 +190,13 @@ valor_ejecucion* evalua(const expresion_corchetes& e, tabla_simbolos& ts, tabla_
          if(checado->valor >= 0 && checado->valor < arr->elementos.size( )){
             return res = evalua(*arr->elementos[checado->valor], ts, tt);
          }else{
-            throw error(*e.tk, "El valor esta fuera de rango");
+            throw error(*e.pos, "El valor esta fuera de rango");
          }
       })){
-         throw error(*e.tk, "El valor no es un entero");
+         throw error(*e.pos, "El valor no es un entero");
       }
    }else{
-      throw error(*e.tk, "No es identificador de un arreglo");
+      throw error(*e.pos, "No es un arreglo");
    }
 }
 valor_ejecucion* evalua(const expresion_arreglo& e, tabla_simbolos& ts, tabla_temporales& tt) {       // algo más difícil que las demás
