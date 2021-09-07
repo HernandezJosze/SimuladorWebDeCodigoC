@@ -13,13 +13,13 @@
 #include <string_view>
 #include <set>
 
-struct valor_ejecucion {
-   virtual ~valor_ejecucion( ) = 0;
+struct valor_expresion {
+   virtual ~valor_expresion( ) = 0;
 };
-valor_ejecucion::~valor_ejecucion( ) { };
+valor_expresion::~valor_expresion( ) { };
 
 template<typename T>
-struct valor_escalar : valor_ejecucion {
+struct valor_escalar : valor_expresion {
    T valor;
 
    using type = T;
@@ -28,26 +28,27 @@ struct valor_escalar : valor_ejecucion {
    : valor(v) {
    }
 };
-struct valor_arreglo : valor_ejecucion {
-   std::vector<std::unique_ptr<valor_ejecucion>> valores;
+template<typename T>
+struct valor_arreglo : valor_expresion {
+   std::vector<T> valores;
 
    valor_arreglo( ) = default;
-   valor_arreglo(std::vector<std::unique_ptr<valor_ejecucion>>&& v)
+   valor_arreglo(std::vector<T>&& v)
    : valores(std::move(v)) {
    }
 };
 
 struct tabla_simbolos {
-   std::map<std::string_view, std::unique_ptr<valor_ejecucion>> ambito;
+   std::map<std::string_view, std::unique_ptr<valor_expresion>> ambito;
    tabla_simbolos* padre;
 
    tabla_simbolos(tabla_simbolos* p = nullptr)
    : padre(p) {
    }
-   bool agrega(const std::string_view& s, std::unique_ptr<valor_ejecucion>&& p) {
+   bool agrega(const std::string_view& s, std::unique_ptr<valor_expresion>&& p) {
       return ambito.emplace(s, std::move(p)).second;
    }
-   valor_ejecucion* busca(const std::string_view& s) const {
+   valor_expresion* busca(const std::string_view& s) const {
       if (auto iter = ambito.find(s); iter != ambito.end( )) {
          return iter->second.get( );
       } else if (padre != nullptr) {
@@ -59,23 +60,23 @@ struct tabla_simbolos {
 };
 
 struct tabla_temporales {
-   std::vector<std::unique_ptr<valor_ejecucion>> valores;
-   std::set<valor_ejecucion*> busqueda;
+   std::vector<std::unique_ptr<valor_expresion>> valores;
+   std::set<valor_expresion*> busqueda;
 
    template<typename T, typename... P>
-   valor_ejecucion* crea(P&&... p) {
+   valor_expresion* crea(P&&... p) {
       valores.emplace_back(std::make_unique<T>(std::forward<P>(p)...));
       return *busqueda.insert(valores.back( ).get( )).first;
    }
-   bool es_temporal(valor_ejecucion* p) {
+   bool es_temporal(valor_expresion* p) {
       return busqueda.contains(p);
    }
 };
 
 // expresiones
 
-valor_ejecucion* evalua(const expresion& e, tabla_simbolos& ts, tabla_temporales& tt);
-valor_ejecucion* evalua(const expresion_terminal& e, tabla_simbolos& ts, tabla_temporales& tt){
+valor_expresion* evalua(const expresion& e, tabla_simbolos& ts, tabla_temporales& tt);
+valor_expresion* evalua(const expresion_terminal& e, tabla_simbolos& ts, tabla_temporales& tt){
    if (e.tk->tipo == LITERAL_ENTERA){
       return tt.crea<valor_escalar<int>>(std::stoi(std::string(e.tk->location)));        // hay mejores formas que stoi, pero nos bastará
    }else if (e.tk->tipo == LITERAL_FLOTANTE) {
@@ -90,7 +91,7 @@ valor_ejecucion* evalua(const expresion_terminal& e, tabla_simbolos& ts, tabla_t
       }
    }
 }
-valor_ejecucion* evalua(const expresion_op_prefijo& e, tabla_simbolos& ts, tabla_temporales& tt) {
+valor_expresion* evalua(const expresion_op_prefijo& e, tabla_simbolos& ts, tabla_temporales& tt) {
    auto sobre = evalua(*e.sobre, ts, tt);
    if (e.operador->tipo == INCREMENTO) {
       if (tt.es_temporal(sobre)) {
@@ -121,7 +122,7 @@ valor_ejecucion* evalua(const expresion_op_prefijo& e, tabla_simbolos& ts, tabla
          throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
       }
    } else if (e.operador->tipo == MENOS) {
-      valor_ejecucion* res;
+      valor_expresion* res;
       if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
          res = tt.crea<valor_escalar<typename std::decay_t<decltype(*checado)>::type>>(-checado->valor);    // crear un temporal con el mismo tipo que el operando pero con el signo opuesto (-(5) crea un int, -(3.14) crea un float)
       })) {
@@ -130,7 +131,7 @@ valor_ejecucion* evalua(const expresion_op_prefijo& e, tabla_simbolos& ts, tabla
          throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
       }
    } else if (e.operador->tipo == NOT) {
-      valor_ejecucion* res;
+      valor_expresion* res;
       if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
          res = tt.crea<valor_escalar<int>>(!checado->valor);    // crear un temporal entero con el resultado del !
       })) {
@@ -139,7 +140,7 @@ valor_ejecucion* evalua(const expresion_op_prefijo& e, tabla_simbolos& ts, tabla
          throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
       }
    } else if (e.operador->tipo == DIRECCION) {
-      valor_ejecucion* res;
+      valor_expresion* res;
       if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
          res = tt.crea<valor_escalar<typename std::decay_t<decltype(*checado)>::type*>>(&checado->valor);
       })) {
@@ -149,13 +150,13 @@ valor_ejecucion* evalua(const expresion_op_prefijo& e, tabla_simbolos& ts, tabla
       }
    }
 }
-valor_ejecucion* evalua(const expresion_op_posfijo& e, tabla_simbolos& ts, tabla_temporales& tt) {
+valor_expresion* evalua(const expresion_op_posfijo& e, tabla_simbolos& ts, tabla_temporales& tt) {
    auto sobre = evalua(*e.sobre, ts, tt);
    if (e.operador->tipo == INCREMENTO) {
       if (tt.es_temporal(sobre)) {
          throw error(*e.operador, "No se puede incrementar un temporal");
       }
-      valor_ejecucion* res;
+      valor_expresion* res;
       if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
          res = tt.crea<valor_escalar<typename std::decay_t<decltype(*checado)>::type>>(checado->valor++);
       })) {
@@ -167,7 +168,7 @@ valor_ejecucion* evalua(const expresion_op_posfijo& e, tabla_simbolos& ts, tabla
       if (tt.es_temporal(sobre)) {
          throw error(*e.operador, "No se puede decrementar un temporal");
       }
-      valor_ejecucion* res;
+      valor_expresion* res;
       if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
          res = tt.crea<valor_escalar<typename std::decay_t<decltype(*checado)>::type>>(checado->valor--);
       })) {
@@ -177,14 +178,14 @@ valor_ejecucion* evalua(const expresion_op_posfijo& e, tabla_simbolos& ts, tabla
       }
    }
 }
-valor_ejecucion* evalua(const expresion_op_binario& e, tabla_simbolos& ts, tabla_temporales& tt) {    // algo más difícil que las demás
+valor_expresion* evalua(const expresion_op_binario& e, tabla_simbolos& ts, tabla_temporales& tt) {    // algo más difícil que las demás
    //...
 }
-valor_ejecucion* evalua(const expresion_llamada& e, tabla_simbolos& ts, tabla_temporales& tt) {       // algo más difícil que las demás
+valor_expresion* evalua(const expresion_llamada& e, tabla_simbolos& ts, tabla_temporales& tt) {
    //...
 }
-valor_ejecucion* evalua(const expresion_corchetes& e, tabla_simbolos& ts, tabla_temporales& tt) {
-   if (auto arr = dynamic_cast<valor_arreglo*>(evalua(*e.ex, ts, tt)); arr != nullptr) {
+valor_expresion* evalua(const expresion_corchetes& e, tabla_simbolos& ts, tabla_temporales& tt) {
+   if (auto arr = dynamic_cast<valor_arreglo<std::unique_ptr<valor_expresion>>*>(evalua(*e.ex, ts, tt)); arr != nullptr) {
       if (auto indice = dynamic_cast<valor_escalar<int>*>(evalua(*e.dentro, ts, tt)); indice != nullptr) {
          if (indice->valor >= 0 && indice->valor < arr->valores.size( )){
             return arr->valores[indice->valor].get( );
@@ -198,11 +199,15 @@ valor_ejecucion* evalua(const expresion_corchetes& e, tabla_simbolos& ts, tabla_
       throw error(*e.pos, "Solo se puede aplicar este operador a un arreglo");
    }
 }
-valor_ejecucion* evalua(const expresion_arreglo& e, tabla_simbolos& ts, tabla_temporales& tt) {       // algo más difícil que las demás
-
+valor_expresion* evalua(const expresion_arreglo& e, tabla_simbolos& ts, tabla_temporales& tt) {
+   std::vector<valor_expresion*> v;
+   for (const auto& actual : e.elementos) {
+      v.push_back(evalua(*actual, ts, tt));
+   }
+   return tt.crea<valor_arreglo<valor_expresion*>>(std::move(v));
 }
 
-valor_ejecucion* evalua(const expresion& e, tabla_simbolos& ts, tabla_temporales& tt) {
+valor_expresion* evalua(const expresion& e, tabla_simbolos& ts, tabla_temporales& tt) {
    if (auto checar = dynamic_cast<const expresion_terminal*>(&e); checar != nullptr) {
       return evalua(*checar, ts, tt);
    } else if (auto checar = dynamic_cast<const expresion_op_prefijo*>(&e); checar != nullptr) {
@@ -222,8 +227,8 @@ valor_ejecucion* evalua(const expresion& e, tabla_simbolos& ts, tabla_temporales
 
 // sentencias
 
-valor_ejecucion* evalua(const std::vector<std::unique_ptr<expresion>>& ex, tabla_simbolos& ts, tabla_temporales& tt) {
-   valor_ejecucion* res = nullptr;
+valor_expresion* evalua(const std::vector<std::unique_ptr<expresion>>& ex, tabla_simbolos& ts, tabla_temporales& tt) {
+   valor_expresion* res = nullptr;
    for (const auto& actual : ex) {
       res = evalua(*actual, ts, tt);
 // inicio prueba
@@ -256,11 +261,11 @@ void evalua(const sentencia_declaraciones& s, tabla_simbolos& ts) {
    tabla_temporales tt;
    for(const auto& actual : s.subdeclaraciones) {
       if(actual.tamanios.empty( )){
-         std::unique_ptr<valor_ejecucion> valor;         // cada variable debe tener su propio valor_ejecucion que no es temporal, porque la variable debe sobrevivir (y en consecuencia, su valor también)
+         std::unique_ptr<valor_expresion> valor;         // cada variable debe tener su propio valor_expresion que no es temporal, porque la variable debe sobrevivir (y en consecuencia, su valor también)
          if (actual.inicializador == nullptr) {
-            valor = std::unique_ptr<valor_ejecucion>(s.tipo->tipo == INT ? std::unique_ptr<valor_ejecucion>(std::make_unique<valor_escalar<int>>( )) : std::make_unique<valor_escalar<float>>( ));    // valor indefinido
+            valor = std::unique_ptr<valor_expresion>(s.tipo->tipo == INT ? std::unique_ptr<valor_expresion>(std::make_unique<valor_escalar<int>>( )) : std::make_unique<valor_escalar<float>>( ));    // valor indefinido
          } else if (!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(*actual.inicializador, ts, tt), [&](auto checado) {
-            valor = std::unique_ptr<valor_ejecucion>(s.tipo->tipo == INT ? std::unique_ptr<valor_ejecucion>(std::make_unique<valor_escalar<int>>(checado->valor)) : std::make_unique<valor_escalar<float>>(checado->valor));  //valor que es una copia del del inicializador
+            valor = std::unique_ptr<valor_expresion>(s.tipo->tipo == INT ? std::unique_ptr<valor_expresion>(std::make_unique<valor_escalar<int>>(checado->valor)) : std::make_unique<valor_escalar<float>>(checado->valor));  //valor que es una copia del del inicializador
          })){
             throw error(*s.tipo, "El inicializador no es compatible con la declaracion");
          }
