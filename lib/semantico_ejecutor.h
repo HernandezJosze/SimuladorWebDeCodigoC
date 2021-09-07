@@ -183,20 +183,19 @@ valor_ejecucion* evalua(const expresion_op_binario& e, tabla_simbolos& ts, tabla
 valor_ejecucion* evalua(const expresion_llamada& e, tabla_simbolos& ts, tabla_temporales& tt) {       // algo más difícil que las demás
    //...
 }
-valor_ejecucion* evalua(const expresion_corchetes& e, tabla_simbolos& ts, tabla_temporales& tt) {     // algo más difícil que las demás
-   if(auto arr = dynamic_cast<const expresion_arreglo*>(&*e.ex); arr != nullptr){
-      if(!valida_ejecuta<valor_escalar<int>*>(evalua(*e.dentro, ts, tt), [&](auto checado) {
-         valor_ejecucion* res;
-         if(checado->valor >= 0 && checado->valor < arr->elementos.size( )){
-            return res = evalua(*arr->elementos[checado->valor], ts, tt);
-         }else{
+valor_ejecucion* evalua(const expresion_corchetes& e, tabla_simbolos& ts, tabla_temporales& tt) {
+   if (auto arr = dynamic_cast<valor_arreglo*>(evalua(*e.ex, ts, tt)); arr != nullptr) {
+      if (auto indice = dynamic_cast<valor_escalar<int>*>(evalua(*e.dentro, ts, tt)); indice != nullptr) {
+         if (indice->valor >= 0 && indice->valor < arr->valores.size( )){
+            return arr->valores[indice->valor].get( );
+         } else {
             throw error(*e.pos, "El valor esta fuera de rango");
          }
-      })){
-         throw error(*e.pos, "El valor no es un entero");
+      } else {
+         throw error(*e.pos, "El indice dado se sale del arreglo");
       }
-   }else{
-      throw error(*e.pos, "No es un arreglo");
+   } else {
+      throw error(*e.pos, "Solo se puede aplicar este operador a un arreglo");
    }
 }
 valor_ejecucion* evalua(const expresion_arreglo& e, tabla_simbolos& ts, tabla_temporales& tt) {       // algo más difícil que las demás
