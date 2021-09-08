@@ -8,6 +8,5 @@ int arr1[] = {3, 5, 7, 9, 11};
 arr1;
 float arr2[2] = {7.2, 9.2};
 arr2;
-float arr3[10] = {3.0, 3.14} ;
+float arr3[10] = {3.0, "3.14"} ;
 arr3;
-float arr9[]  ;
