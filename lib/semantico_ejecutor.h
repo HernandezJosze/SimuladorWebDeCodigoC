@@ -276,11 +276,11 @@ void evalua(const sentencia_declaraciones& s, tabla_simbolos& ts) {
          } else if (!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(*actual.inicializador, ts, tt), [&](auto checado) {
             valor = (s.tipo->tipo == INT ? (std::unique_ptr<valor_expresion>)std::make_unique<valor_escalar<int>>(checado->valor) : std::make_unique<valor_escalar<float>>(checado->valor));  //valor que es una copia del del inicializador
          })){
-            throw error(*s.tipo, "El inicializador no es compatible con la declaracion");
+            throw error(*actual.inicializador->pos, "El inicializador no es compatible con la declaracion");
          }
       }else{
          if (actual.inicializador == nullptr && actual.arreglo.first == nullptr) {
-            throw error(*s.pos, "No se puede deducir el tamaño del arreglo.");
+            throw error(*actual.nombre, "No se puede deducir el tamanio del arreglo.");
          }
 
          std::vector<std::unique_ptr<valor_expresion>> elementos;
@@ -290,29 +290,29 @@ void evalua(const sentencia_declaraciones& s, tabla_simbolos& ts) {
                   if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(el, [&](auto checado) {
                      elementos.push_back((s.tipo->tipo == INT ? (std::unique_ptr<valor_expresion>)std::make_unique<valor_escalar<int>>(checado->valor) : std::make_unique<valor_escalar<float>>(checado->valor)));  //valor que es una copia del del inicializador
                   })){
-                     throw error(*s.pos, "El tipo del elemento no es válido al inicializar el arreglo");
+                     throw error(*actual.inicializador->pos, "El tipo del elemento no es válido al inicializar el arreglo");
                   }
                }
             } else {
-               throw error(*s.tipo, "El inicializador no es compatible con la declaracion");
+               throw error(*actual.inicializador->pos, "El inicializador no es compatible con la declaracion");
             }
          }
          if (actual.arreglo.first != nullptr) {
             if (auto tam = dynamic_cast<valor_escalar<int>*>(evalua(*actual.arreglo.first, ts, tt)); tam != nullptr){
                if(elementos.size( ) > tam->valor){
-                  throw error(*s.pos, "El el inicializador tiene elementos en exceso");
+                  throw error(*actual.inicializador->pos, "El el inicializador tiene elementos en exceso");
                }
                while(elementos.size( ) < tam->valor) {
                   elementos.push_back(s.tipo->tipo == INT ? std::unique_ptr<valor_expresion>(std::make_unique<valor_escalar<int>>( )) : std::make_unique<valor_escalar<float>>( ));
                }
             } else {
-               throw error(*s.pos, "El tamanio debe de ser un valor entero");
+               throw error(*actual.arreglo.first->pos, "El tamanio debe de ser un valor entero");
             }
          }
          valor = std::make_unique<valor_arreglo<std::unique_ptr<valor_expresion>>>(std::move(elementos));
       }
       if(!ts.agrega(actual.nombre->location, std::move(valor))){
-         throw error(*s.tipo, "La variable ya ha sido declarada");
+         throw error(*actual.nombre, "La variable ya ha sido declarada");
       }
    }
 }
