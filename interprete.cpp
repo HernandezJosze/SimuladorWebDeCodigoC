@@ -53,12 +53,12 @@ const char* interpreta(const char* codigo) {
 // fin prueba
    } catch (const error& e) {
       auto ini = codigo, fin = codigo + strlen(codigo);
-      std::cout << "Error en linea " << linea_de(ini, e.tk) << ", columna " << columna_de(ini, e.tk) << ":\n"
+      std::cout << "\nError en linea " << linea_de(ini, e.tk) << ", columna " << columna_de(ini, e.tk) << ":\n"
                 << "\t" << vista_de(e.tk, 10, fin) << "\n"
                 << "\t^\n"
                 << e.message << "\n";
    } catch (const std::exception& e) {
-      std::cout << e.what( ) << "\n";
+      std::cout << "lo mataste :o " << e.what( ) << "\n";
    }
    return res.c_str( );
 }

@@ -1,12 +1,5 @@
-int arr4[1];
-int a;
-a;
-arr4;
-float arr5[5];
-arr5;
-int arr1[] = {3, 5, 7, 9, 11};
-arr1;
-float arr2[2] = {7.2, 9.2};
-arr2;
-float arr3[10] = {3.0, "3.14"} ;
-arr3;
+int i = 5;
+printf("valor de i : %d ", i);
+printf("\n ingrese el valor de i");
+scanf("%d %d", &i);
+printf("valor de i : %d ", i);

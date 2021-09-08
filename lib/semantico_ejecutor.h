@@ -61,7 +61,6 @@ struct tabla_simbolos {
       }
    }
 };
-
 struct tabla_temporales {
    std::vector<std::unique_ptr<valor_expresion>> valores;
    std::set<valor_expresion*> busqueda;
@@ -81,11 +80,11 @@ struct tabla_temporales {
 valor_expresion* evalua(const expresion& e, tabla_simbolos& ts, tabla_temporales& tt);
 valor_expresion* evalua(const expresion_terminal& e, tabla_simbolos& ts, tabla_temporales& tt){
    if (e.tk->tipo == LITERAL_ENTERA){
-      return tt.crea<valor_escalar<int>>(std::stoi(std::string(e.tk->location)));        // hay mejores formas que stoi, pero nos bastará
+      return tt.crea<valor_escalar<int>>(std::stoi(std::string(e.tk->location)));
    }else if (e.tk->tipo == LITERAL_FLOTANTE) {
       return tt.crea<valor_escalar<float>>(std::stof(std::string(e.tk->location)));
    }else if (e.tk->tipo == LITERAL_CADENA) {
-      return tt.crea<valor_escalar<std::string_view>>(std::string(e.tk->location));      // técnicamente una cadena no es un escalar, pero nosotros sólo permitiremos cadenas para cosas como scanf o printf
+      return tt.crea<valor_escalar<std::string_view>>(e.tk->location);
    }else if (e.tk->tipo == IDENTIFICADOR) {
       if (auto p = ts.busca(e.tk->location); p != nullptr) {
          return p;
@@ -185,7 +184,76 @@ valor_expresion* evalua(const expresion_op_binario& e, tabla_simbolos& ts, tabla
    //...
 }
 valor_expresion* evalua(const expresion_llamada& e, tabla_simbolos& ts, tabla_temporales& tt) {
-   //...
+   auto f = evalua(*e.func, ts, tt);
+   if(!valida_ejecuta<valor_funcion<scanf>*, valor_funcion<printf>*>(f, [&](auto checado){ })){
+      throw error(*e.pos, "Solo se puede llamar a las funcones scanf y printf");
+   }
+
+   std::vector<valor_expresion*> params;
+   for(const auto& p : e.parametros){
+      params.push_back(evalua(*p, ts, tt));
+   }
+
+   if(params.empty( )){
+      throw error(*e.func->pos, "No hay ningun parametro en la funcion");
+   }
+   auto cad = dynamic_cast<valor_escalar<std::string_view>*>(params[0]);
+   if(cad == nullptr){
+      throw error(*e.func->pos, "El primer parametro debe de ser una cadena");
+   }
+   auto Scanf = dynamic_cast<const valor_funcion<scanf>*>(f);
+   auto Printf= dynamic_cast<const valor_funcion<printf>*>(f);
+   int actual = 1;
+   for(int i = 1; i < cad->valor.size( ) - 1; ++i){
+      if(cad->valor[i] != '%' || cad->valor[i + 1] == '%'){ // si no es != '%' es igual y solo checamos si el siguiente es tambien '%'
+         if(Printf){
+            if(cad->valor[i] == '\\' && cad->valor[i + 1] == 'n'){
+               std::cout << '\n';
+            }else{
+               std::cout << cad->valor[i];
+            }
+         }else if(Scanf){
+            getchar();
+         }
+         i += (cad->valor[i] == '%' && cad->valor[i + 1] == '%');
+      }else if(cad->valor[i] == '%' && (cad->valor[i + 1] == 'd' || cad->valor[i + 1] == 'f') && actual < params.size( )){ //ya sabemos que i == '%' AND innecesario
+         if(Printf){
+            if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(params[actual], [&](auto checado){
+               if(cad->valor[i + 1] == 'd' && typeid(checado->valor) == typeid(int)){
+                  std::cout << checado->valor;
+               }else if(cad->valor[i + 1] == 'f' && typeid(checado->valor) == typeid(float)){
+                  std::cout << checado->valor;
+               }else{
+                  throw error(*e.pos, "No concuerda el tipo a imprimir");
+               }
+            })){
+               throw error(*e.pos, "No concuerda el tipo a imprimir");
+            }
+         }else if(Scanf){
+            if(!valida_ejecuta<valor_escalar<int*>*, valor_escalar<float*>*>(params[actual], [&](auto checado){
+               if(cad->valor[i + 1] == 'd' && typeid(*checado->valor) == typeid(int)){
+                  std::cin >> *checado->valor;
+               }else if(cad->valor[i + 1] == 'f' && typeid(*checado->valor) == typeid(float)){
+                  std::cin >> *checado->valor;
+               }else{
+                  throw error(*e.pos, "No concuerda el tipo a imprimir");
+               }
+            })){
+               throw error(*e.pos, "El parametro para guardar el valor esta mal");
+            }
+         }
+         ++i, ++actual;
+      }else{
+         if(actual == params.size( )){
+            throw error(*e.pos, "No existen parametros suficientes");
+         }else{
+            throw error(*e.pos, "Solo es valido %d y %f");
+         }
+
+      }
+   }
+
+   return nullptr;
 }
 valor_expresion* evalua(const expresion_corchetes& e, tabla_simbolos& ts, tabla_temporales& tt) {
    if (auto arr = dynamic_cast<valor_arreglo<std::unique_ptr<valor_expresion>>*>(evalua(*e.ex, ts, tt)); arr != nullptr) {
