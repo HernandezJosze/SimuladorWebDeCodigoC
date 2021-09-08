@@ -22,7 +22,6 @@ template<typename T>
 struct valor_escalar : valor_expresion {
    T valor;
 
-   using type = T;
    valor_escalar( ) = default;
    valor_escalar(T v)
    : valor(v) {
@@ -36,6 +35,10 @@ struct valor_arreglo : valor_expresion {
    valor_arreglo(std::vector<T>&& v)
    : valores(std::move(v)) {
    }
+};
+template<int(*T)(const char*, ...)>
+struct valor_funcion : valor_expresion {
+   valor_funcion( ) = default;
 };
 
 struct tabla_simbolos {
@@ -123,8 +126,8 @@ valor_expresion* evalua(const expresion_op_prefijo& e, tabla_simbolos& ts, tabla
       }
    } else if (e.operador->tipo == MENOS) {
       valor_expresion* res;
-      if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
-         res = tt.crea<valor_escalar<typename std::decay_t<decltype(*checado)>::type>>(-checado->valor);    // crear un temporal con el mismo tipo que el operando pero con el signo opuesto (-(5) crea un int, -(3.14) crea un float)
+      if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&]<typename T>(valor_escalar<T>* checado) {
+         res = tt.crea<valor_escalar<T>>(-checado->valor);    // crear un temporal con el mismo tipo que el operando pero con el signo opuesto (-(5) crea un int, -(3.14) crea un float)
       })) {
          return res;
       } else {
@@ -141,8 +144,8 @@ valor_expresion* evalua(const expresion_op_prefijo& e, tabla_simbolos& ts, tabla
       }
    } else if (e.operador->tipo == DIRECCION) {
       valor_expresion* res;
-      if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
-         res = tt.crea<valor_escalar<typename std::decay_t<decltype(*checado)>::type*>>(&checado->valor);
+      if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&]<typename T>(valor_escalar<T>* checado) {
+         res = tt.crea<valor_escalar<T*>>(&checado->valor);
       })) {
          return res;
       } else {
@@ -157,8 +160,8 @@ valor_expresion* evalua(const expresion_op_posfijo& e, tabla_simbolos& ts, tabla
          throw error(*e.operador, "No se puede incrementar un temporal");
       }
       valor_expresion* res;
-      if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
-         res = tt.crea<valor_escalar<typename std::decay_t<decltype(*checado)>::type>>(checado->valor++);
+      if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&]<typename T>(valor_escalar<T>* checado) {
+         res = tt.crea<valor_escalar<T>>(checado->valor++);
       })) {
          return res;
       } else {
@@ -169,8 +172,8 @@ valor_expresion* evalua(const expresion_op_posfijo& e, tabla_simbolos& ts, tabla
          throw error(*e.operador, "No se puede decrementar un temporal");
       }
       valor_expresion* res;
-      if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
-         res = tt.crea<valor_escalar<typename std::decay_t<decltype(*checado)>::type>>(checado->valor--);
+      if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&]<typename T>(valor_escalar<T>* checado) {
+         res = tt.crea<valor_escalar<T>>(checado->valor--);
       })) {
          return res;
       } else {
@@ -252,6 +255,8 @@ valida_ejecuta<valor_arreglo<std::unique_ptr<valor_expresion>>*>(res, [&](auto c
 void evalua(const sentencia& s, tabla_simbolos& ts);
 void evalua(const std::vector<std::unique_ptr<sentencia>>& sentencias){
    tabla_simbolos ts;
+   ts.agrega("scanf", std::make_unique<valor_funcion<scanf>>( ));
+   ts.agrega("printf", std::make_unique<valor_funcion<printf>>( ));
    try{
       for (const auto& sentencia : sentencias) {
          evalua(*sentencia, ts);
