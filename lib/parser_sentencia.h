@@ -28,7 +28,7 @@ struct sentencia_expresiones : sentencia{
 struct sentencia_declaraciones : sentencia{
    struct subdeclaracion {
       const token_anotada* nombre;
-      std::vector<std::unique_ptr<expresion>> tamanios;
+      std::pair<std::unique_ptr<expresion>, bool> tamanio;
       std::unique_ptr<expresion> inicializador;
    };
    const token_anotada* tipo;
@@ -96,18 +96,21 @@ std::unique_ptr<sentencia> parsea_expresiones(const token_anotada*& iter) {
 std::unique_ptr<sentencia> parsea_declaraciones(const token_anotada*& iter) {
    auto parsea_subdeclaracion = [&]{
       auto nombre = espera(iter, IDENTIFICADOR, "Se esperaba un identificador");
-      std::vector<std::unique_ptr<expresion>> tamanios;
-      while (iter->tipo == CORCHETE_I) {
+      std::pair<std::unique_ptr<expresion>, bool> tamanio;
+      if(iter->tipo == CORCHETE_I) {
          espera(iter, CORCHETE_I, "Se espera un [");
-         tamanios.push_back(iter->tipo != CORCHETE_D ? parsea_expresion(iter) : nullptr);
+         tamanio = {(iter->tipo != CORCHETE_D ? parsea_expresion(iter) : nullptr), true};
          espera(iter, CORCHETE_D, "Se espera un ]");
+      }
+      if(iter->tipo == CORCHETE_I){
+         espera(iter, WRONG_TOKEN, "Se esperaba una = o un ;");
       }
       std::unique_ptr<expresion> ex;
       if(iter->tipo == ASIGNACION){
          espera(iter, ASIGNACION, "Se esperaba una asignacion");
          ex = parsea_expresion(iter);
       }
-      return sentencia_declaraciones::subdeclaracion(nombre, std::move(tamanios), std::move(ex));
+      return sentencia_declaraciones::subdeclaracion(nombre, std::move(tamanio), std::move(ex));
    };
 
    auto pos = iter, tipo = espera(iter, es_tipo, "Se esperaba un tipo");

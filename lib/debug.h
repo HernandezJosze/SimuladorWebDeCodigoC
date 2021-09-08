@@ -88,8 +88,8 @@ std::ostream& operator<<(std::ostream& os, const sentencia_declaraciones& s) {
    os << std::string(indentacion, ' ') << *s.tipo << " ";
    for(int i = 0; i < s.subdeclaraciones.size( ); ++i){
       os << *s.subdeclaraciones[i].nombre;
-      for (const auto& actual : s.subdeclaraciones[i].tamanios) {
-         os << "[" << *actual << "]";
+      if(s.subdeclaraciones[i].tamanio.second) {
+      os << "[" << *s.subdeclaraciones[i].tamanio.first << "]";
       }
       if(s.subdeclaraciones[i].inicializador != nullptr){
          os << " = " << *s.subdeclaraciones[i].inicializador;

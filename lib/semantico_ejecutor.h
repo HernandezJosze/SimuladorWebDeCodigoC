@@ -270,7 +270,7 @@ void evalua(const sentencia_declaraciones& s, tabla_simbolos& ts) {
    tabla_temporales tt;
    for(const auto& actual : s.subdeclaraciones) {
       std::unique_ptr<valor_expresion> valor;     // cada variable debe tener su propio valor_expresion que no es temporal, porque la variable debe sobrevivir (y en consecuencia, su valor también)
-      if(actual.tamanios.empty( )){
+      if(actual.tamanio.second == false){
          if (actual.inicializador == nullptr) {
             valor = (s.tipo->tipo == INT ? (std::unique_ptr<valor_expresion>)std::make_unique<valor_escalar<int>>( ) : std::make_unique<valor_escalar<float>>( ));    // valor indefinido
          } else if (!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(*actual.inicializador, ts, tt), [&](auto checado) {
@@ -280,10 +280,10 @@ void evalua(const sentencia_declaraciones& s, tabla_simbolos& ts) {
          }
       }else{
          if (actual.inicializador == nullptr) {
-            if (actual.tamanios[0] == nullptr) {
+            if (actual.tamanio.first == nullptr) {
                throw error(*s.pos, "No se puede deducir el tamaño del arreglo.");
             }
-            if (auto tam = dynamic_cast<valor_escalar<int>*>(evalua(*actual.tamanios[0], ts, tt)); tam != nullptr){
+            if (auto tam = dynamic_cast<valor_escalar<int>*>(evalua(*actual.tamanio.first, ts, tt)); tam != nullptr){
                std::vector<std::unique_ptr<valor_expresion>> elementos;
                for (int i = 0; i < tam->valor; ++i) {
                   elementos.push_back((s.tipo->tipo == INT ? (std::unique_ptr<valor_expresion>)std::make_unique<valor_escalar<int>>( ) : std::make_unique<valor_escalar<float>>( )));
