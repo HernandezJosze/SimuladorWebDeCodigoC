@@ -102,9 +102,6 @@ std::unique_ptr<sentencia> parsea_declaraciones(const token_anotada*& iter) {
          tamanio = {(iter->tipo != CORCHETE_D ? parsea_expresion(iter) : nullptr), true};
          espera(iter, CORCHETE_D, "Se espera un ]");
       }
-      if(iter->tipo == CORCHETE_I){
-         espera(iter, WRONG_TOKEN, "Se esperaba una = o un ;");
-      }
       std::unique_ptr<expresion> ex;
       if(iter->tipo == ASIGNACION){
          espera(iter, ASIGNACION, "Se esperaba una asignacion");

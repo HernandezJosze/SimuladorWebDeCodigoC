@@ -293,6 +293,8 @@ void evalua(const sentencia_declaraciones& s, tabla_simbolos& ts) {
                throw error(*s.pos, "El tamanio debe de ser un valor entero");
             }
          } else {
+
+
             /*if(actual.inicializador != nullptr){ // si no es nulo creamos el arreglo con los elementos del inicializador
                if(!valida_ejecuta<valor_arreglo<int>*, valor_arreglo<float>*>(evalua(*actual.inicializador, ts, tt), [&](auto checado) {
                   if(s.tipo->tipo == INT){
