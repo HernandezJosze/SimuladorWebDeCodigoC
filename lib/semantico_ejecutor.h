@@ -278,7 +278,7 @@ void evalua(const sentencia_declaraciones& s, tabla_simbolos& ts) {
          })){
             throw error(*s.tipo, "El inicializador no es compatible con la declaracion");
          }
-      }else{
+      }else if(actual.tamanio.second == true){
          if (actual.inicializador == nullptr) {
             if (actual.tamanio.first == nullptr) {
                throw error(*s.pos, "No se puede deducir el tamaño del arreglo.");
@@ -292,57 +292,43 @@ void evalua(const sentencia_declaraciones& s, tabla_simbolos& ts) {
             } else {
                throw error(*s.pos, "El tamanio debe de ser un valor entero");
             }
-         } else {
+         } else if(actual.inicializador) {
+
+
             std::vector<std::unique_ptr<valor_expresion>> elementos;
             if(auto checar = dynamic_cast<valor_arreglo<valor_expresion*>*>(evalua(*actual.inicializador, ts, tt)); checar != nullptr){
-               if (auto tam = dynamic_cast<valor_escalar<int>*>(evalua(*actual.tamanio.first, ts, tt)); tam != nullptr){
-                  if(s.tipo->tipo == INT){
+               if(actual.tamanio.first){
+                  if (auto tam = dynamic_cast<valor_escalar<int>*>(evalua(*actual.tamanio.first, ts, tt)); tam != nullptr){
                      for(auto& el : checar->valores){
-                        if(auto val = dynamic_cast<valor_escalar<int>*>(el); val != nullptr){
-                           elementos.push_back((std::unique_ptr<valor_expresion>)std::make_unique<valor_escalar<int>>((val->valor)));
-                        }else{
+                        if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(el, [&](auto checado) {
+                           elementos.push_back((s.tipo->tipo == INT ? (std::unique_ptr<valor_expresion>)std::make_unique<valor_escalar<int>>(checado->valor) : std::make_unique<valor_escalar<float>>(checado->valor)));  //valor que es una copia del del inicializador
+                        })){
                            throw error(*s.pos, "El tipo no concuerda");
                         }
                      }
-                  }else if(s.tipo->tipo == FLOAT){
+                     if(tam->valor < elementos.size( )){
+                        throw error(*s.pos, "El tamanio del vector es menor que el inicializador");
+                     }
+                     while (tam->valor > elementos.size( )) {
+                        elementos.push_back(std::unique_ptr<valor_expresion>(s.tipo->tipo == INT ? std::unique_ptr<valor_expresion>(std::make_unique<valor_escalar<int>>( )) :
+                                                                                                   std::make_unique<valor_escalar<float>>( )));
+                     }
+                  }
+               }else if(actual.tamanio.first == nullptr){
                      for(auto& el : checar->valores){
-                        if(auto val = dynamic_cast<valor_escalar<float>*>(el); val != nullptr){
-                           elementos.push_back((std::unique_ptr<valor_expresion>)std::make_unique<valor_escalar<float>>((val->valor)));
-                        }else{
+                        if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(el, [&](auto checado) {
+                           elementos.push_back((s.tipo->tipo == INT ? (std::unique_ptr<valor_expresion>)std::make_unique<valor_escalar<int>>(checado->valor) : std::make_unique<valor_escalar<float>>(checado->valor)));  //valor que es una copia del del inicializador
+                        })){
                            throw error(*s.pos, "El tipo no concuerda");
                         }
                      }
-                  }
-                  if(tam->valor < elementos.size( )){
-                     throw error(*s.pos, "El tamanio del vector es menor que el inicializador");
-                  }
-                  while (tam->valor > elementos.size( )) {
-                     elementos.push_back(std::unique_ptr<valor_expresion>(s.tipo->tipo == INT ? std::unique_ptr<valor_expresion>(std::make_unique<valor_escalar<int>>( )) :
-                                                                                                std::make_unique<valor_escalar<float>>( )));
-                  }
-               }else{
-                  if(s.tipo->tipo == INT){
-                     for(auto& el : checar->valores){
-                        if(auto val = dynamic_cast<valor_escalar<int>*>(el); val != nullptr){
-                           elementos.push_back((std::unique_ptr<valor_expresion>)std::make_unique<valor_escalar<int>>((val->valor)));
-                        }else{
-                           throw error(*s.pos, "El tipo no concuerda");
-                        }
-                     }
-                  }else if(s.tipo->tipo == FLOAT){
-                     for(auto& el : checar->valores){
-                        if(auto val = dynamic_cast<valor_escalar<float>*>(el); val != nullptr){
-                           elementos.push_back((std::unique_ptr<valor_expresion>)std::make_unique<valor_escalar<float>>((val->valor)));
-                        }else{
-                           throw error(*s.pos, "El tipo no concuerda");
-                        }
-                     }
-                  }
                }
                valor = std::make_unique<valor_arreglo<std::unique_ptr<valor_expresion>>>(std::move(elementos));
             }else{
                throw error(*s.tipo, "El inicializador no es compatible con la declaracion");
             }
+
+
          }
       }
       if(!ts.agrega(actual.nombre->location, std::move(valor))){
