@@ -8,11 +8,13 @@
 #include "lexer.h"
 #include "parser.h"
 #include "semantico_ejecutor_aux.h"
+#include <array>
 #include <cstdio>
 #include <iostream>
 #include <string>
 #include <string_view>
 #include <set>
+#include <type_traits>
 
 struct valor_expresion {
    virtual ~valor_expresion( ) = 0;
@@ -39,7 +41,7 @@ struct valor_arreglo : valor_expresion {
 };
 template<int(*T)(const char*, ...)>
 struct valor_funcion : valor_expresion {
-   valor_funcion( ) = default;
+   static constexpr auto funcion = T;
 };
 
 struct tabla_simbolos {
@@ -182,19 +184,20 @@ valor_expresion* evalua(const expresion_op_posfijo& e, tabla_simbolos& ts, tabla
    }
 }
 valor_expresion* evalua(const expresion_op_binario& e, tabla_simbolos& ts, tabla_temporales& tt) {    // algo más difícil que las demás
-   //...
+   return nullptr;
 }
 valor_expresion* evalua(const expresion_llamada& e, tabla_simbolos& ts, tabla_temporales& tt) {
-   auto f = evalua(*e.func, ts, tt);
-   if(!valida<valor_funcion<scanf>*, valor_funcion<printf>*>(f)){
-      throw error(*e.pos, "Solo se puede llamar a las funcones scanf y printf");
+   int(*funcion)(const char*, ...);
+   if(!valida_ejecuta<valor_funcion<printf>*, valor_funcion<scanf>*>(evalua(*e.func, ts, tt), [&](auto checado) {
+      funcion = checado->funcion;
+   })) {
+      throw error(*e.pos, "Solo se puede llamar a una funcion que ademas sea printf o scanf");
    }
 
    std::vector<valor_expresion*> params;
    for(const auto& p : e.parametros){
       params.push_back(evalua(*p, ts, tt));
    }
-
    if(params.empty( )){
       throw error(*e.func->pos, "No hay ningun parametro en la funcion");
    }
@@ -203,62 +206,42 @@ valor_expresion* evalua(const expresion_llamada& e, tabla_simbolos& ts, tabla_te
    if(cad == nullptr){
       throw error(*e.func->pos, "El primer parametro debe de ser una cadena");
    }
-
-   auto Scanf = dynamic_cast<const valor_funcion<scanf>*>(f);
-   auto Printf= dynamic_cast<const valor_funcion<printf>*>(f);
-   int actual = 1; int res = 0; std::string s = "";
-   std::map<char, char> scapeSecuense = {
-      {'n', '\n'},
-      {'t', '\t'},
-      {'a', '\a'},
-      {'f', '\f'},
-      {'r', '\r'},
-      {'?', '\?'},
-      {'b', '\b'},
-      {'\"', '\"'},
-      {'\'', '\''},
-      {'%', '%'}
+   static const std::map<char, const char*> escapeSequence = {                      // static para no reconstruirlo (hubiera preferido una función auxiliar)
+      {'n', "\n"}, {'t', "\t"}, {'a', "\a"}, {'f', "\f"}, {'r', "\r"}, {'?', "\?"}, {'b', "\b"}, {'\"', "\""}, {'\'', "'"}      // mejor cadenas (ver abajo)
    };
-   for(int i = 1; i < cad->valor.size( ) - 1; ++i){
-      if(cad->valor[i] != '%' || cad->valor[i + 1] == '%'){ // si no es != '%' es igual y solo checamos si el siguiente es tambien '%'
-         if(cad->valor[i] == '\\' || cad->valor[i] == '%'){
-            s.push_back(scapeSecuense[cad->valor[++i]]);
-         }else{
-            s.push_back(cad->valor[i]);
-         }
-      }else if(cad->valor[i] == '%' && (cad->valor[i + 1] == 'd' || cad->valor[i + 1] == 'f') && actual < params.size( )){ //ya sabemos que i == '%' AND innecesario
-         if(Printf){
-            res += std::printf("%s", s.c_str( ));
-            if(auto checar = dynamic_cast<valor_escalar<int>*>(params[actual]); checar != nullptr && cad->valor[i + 1] == 'd'){
-               res += std::printf("%d", checar->valor);
-            }else if(auto checar = dynamic_cast<valor_escalar<float>*>(params[actual]); checar != nullptr && cad->valor[i + 1] == 'f'){
-               res += std::printf("%f", checar->valor);
-            }else{
-               throw error(*e.pos, "No concuerda el tipo a imprimir");
+
+   int res = 0;
+   for(int i = 1, actual = 1; i < cad->valor.size( ) - 1; ++i){
+      if (cad->valor[i] == '%') {
+         if (cad->valor[++i] == '%') {
+            res += funcion("%%");
+         } else {
+            if (actual >= params.size( )) {
+               throw error(*e.func->pos, "No hay suficientes parametros");
             }
-         }else if(Scanf){
-            if(auto checar = dynamic_cast<valor_escalar<int*>*>(params[actual]); checar != nullptr && cad->valor[i + 1] == 'd'){
-               res += std::scanf(std::string(s + "%d").c_str( ), &*checar->valor);
-            }else if(auto checar = dynamic_cast<valor_escalar<float*>*>(params[actual]); checar != nullptr && cad->valor[i + 1] == 'f'){
-               res += std::scanf(std::string(s + "%f").c_str( ), &*checar->valor);
-            }else{
-               throw error(*e.pos, "No concuerda el tipo a leer");
+            if (!valida_ejecuta<valor_escalar<int>*, valor_escalar<int*>*, valor_escalar<float>*, valor_escalar<float*>*>(params[actual++], [&]<typename T>(valor_escalar<T>* checado) {
+               if (cad->valor[i] == 'd' && (funcion == printf && std::is_same_v<T, int> || funcion == scanf && std::is_same_v<T, int*>) ||
+                   cad->valor[i] == 'f' && (funcion == printf && std::is_same_v<T, float> || funcion == scanf && std::is_same_v<T, float*>)) {
+                  res += funcion(std::to_array({ '%', cad->valor[i], '\0' }).data( ), checado->valor);
+               } else {
+                  throw error(*e.func->pos, "El especificador no coincide con el tipo");
+               }
+            })) {
+               throw error(*e.func->pos, "Parametro no soportado");
             }
          }
-         ++i, ++actual; s.clear( );
-      }else{
-         if(actual == params.size( )){
-            throw error(*e.pos, "No existen parametros suficientes");
-         }else{
-            throw error(*e.pos, "Solo es valido %d y %f");
+      } else if (cad->valor[i] == '\\') {
+         if (auto iter = escapeSequence.find(cad->valor[++i]); iter != escapeSequence.end( )) {     // necesario revisar si sí lo encontró
+            res += funcion(iter->second);
+         } else {
+            throw error(*e.func->pos, "Secuencia de escape desconocida");
          }
+      } else {
+         res += funcion(std::to_array({ cad->valor[i], '\0' }).data( ));
       }
    }
 
-   if(Printf){
-      res += std::printf("%s", s.c_str( ));
-   }
-   return tt.crea<valor_escalar<int>>(res);// cambiar por # de cosas
+   return tt.crea<valor_escalar<int>>(res);
 }
 valor_expresion* evalua(const expresion_corchetes& e, tabla_simbolos& ts, tabla_temporales& tt) {
    if (auto arr = dynamic_cast<valor_arreglo<std::unique_ptr<valor_expresion>>*>(evalua(*e.ex, ts, tt)); arr != nullptr) {
