@@ -207,11 +207,25 @@ valor_expresion* evalua(const expresion_llamada& e, tabla_simbolos& ts, tabla_te
    auto Scanf = dynamic_cast<const valor_funcion<scanf>*>(f);
    auto Printf= dynamic_cast<const valor_funcion<printf>*>(f);
    int actual = 1; int res = 0; std::string s = "";
-
+   std::map<char, char> scapeSecuense = {
+      {'n', '\n'},
+      {'t', '\t'},
+      {'a', '\a'},
+      {'f', '\f'},
+      {'r', '\r'},
+      {'?', '\?'},
+      {'b', '\b'},
+      {'\"', '\"'},
+      {'\'', '\''},
+      {'%', '%'}
+   };
    for(int i = 1; i < cad->valor.size( ) - 1; ++i){
       if(cad->valor[i] != '%' || cad->valor[i + 1] == '%'){ // si no es != '%' es igual y solo checamos si el siguiente es tambien '%'
-         s.push_back(cad->valor[i]);
-         i += (cad->valor[i] == '%' && cad->valor[i + 1] == '%');
+         if(cad->valor[i] == '\\' || cad->valor[i] == '%'){
+            s.push_back(scapeSecuense[cad->valor[++i]]);
+         }else{
+            s.push_back(cad->valor[i]);
+         }
       }else if(cad->valor[i] == '%' && (cad->valor[i + 1] == 'd' || cad->valor[i + 1] == 'f') && actual < params.size( )){ //ya sabemos que i == '%' AND innecesario
          if(Printf){
             res += std::printf("%s", s.c_str( ));
@@ -231,8 +245,7 @@ valor_expresion* evalua(const expresion_llamada& e, tabla_simbolos& ts, tabla_te
                throw error(*e.pos, "No concuerda el tipo a leer");
             }
          }
-         s.clear( );
-         ++i, ++actual;
+         ++i, ++actual; s.clear( );
       }else{
          if(actual == params.size( )){
             throw error(*e.pos, "No existen parametros suficientes");

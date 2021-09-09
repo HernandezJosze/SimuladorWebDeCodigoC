@@ -1,6 +1,6 @@
 float i = 1.0;
-int res[4] = {printf("comenzando pruebas\n"), 
-			  printf("\t"),
+int res[4] = {printf("comenzando\" h\" pruebas\n"), 
+			  printf("%%%%%%%d", 5),
 			  scanf("21df_%f", &i),
 			  printf("%f,\n %f ", i, 4.5)
 			 };
