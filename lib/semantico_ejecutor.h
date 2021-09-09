@@ -8,6 +8,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "semantico_ejecutor_aux.h"
+#include <cstdio>
 #include <iostream>
 #include <string>
 #include <string_view>
@@ -185,7 +186,7 @@ valor_expresion* evalua(const expresion_op_binario& e, tabla_simbolos& ts, tabla
 }
 valor_expresion* evalua(const expresion_llamada& e, tabla_simbolos& ts, tabla_temporales& tt) {
    auto f = evalua(*e.func, ts, tt);
-   if(!valida_ejecuta<valor_funcion<scanf>*, valor_funcion<printf>*>(f, [&](auto checado){ })){
+   if(!valida<valor_funcion<scanf>*, valor_funcion<printf>*>(f)){
       throw error(*e.pos, "Solo se puede llamar a las funcones scanf y printf");
    }
 
@@ -197,51 +198,40 @@ valor_expresion* evalua(const expresion_llamada& e, tabla_simbolos& ts, tabla_te
    if(params.empty( )){
       throw error(*e.func->pos, "No hay ningun parametro en la funcion");
    }
+
    auto cad = dynamic_cast<valor_escalar<std::string_view>*>(params[0]);
    if(cad == nullptr){
       throw error(*e.func->pos, "El primer parametro debe de ser una cadena");
    }
+
    auto Scanf = dynamic_cast<const valor_funcion<scanf>*>(f);
    auto Printf= dynamic_cast<const valor_funcion<printf>*>(f);
-   int actual = 1;
+   int actual = 1; int res = 0; std::string s = "";
+
    for(int i = 1; i < cad->valor.size( ) - 1; ++i){
       if(cad->valor[i] != '%' || cad->valor[i + 1] == '%'){ // si no es != '%' es igual y solo checamos si el siguiente es tambien '%'
-         if(Printf){
-            if(cad->valor[i] == '\\' && cad->valor[i + 1] == 'n'){
-               std::cout << '\n';
-            }else{
-               std::cout << cad->valor[i];
-            }
-         }else if(Scanf){
-            getchar();
-         }
+         s.push_back(cad->valor[i]);
          i += (cad->valor[i] == '%' && cad->valor[i + 1] == '%');
       }else if(cad->valor[i] == '%' && (cad->valor[i + 1] == 'd' || cad->valor[i + 1] == 'f') && actual < params.size( )){ //ya sabemos que i == '%' AND innecesario
          if(Printf){
-            if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(params[actual], [&](auto checado){
-               if(cad->valor[i + 1] == 'd' && typeid(checado->valor) == typeid(int)){
-                  std::cout << checado->valor;
-               }else if(cad->valor[i + 1] == 'f' && typeid(checado->valor) == typeid(float)){
-                  std::cout << checado->valor;
-               }else{
-                  throw error(*e.pos, "No concuerda el tipo a imprimir");
-               }
-            })){
+            res += std::printf("%s", s.c_str( ));
+            if(auto checar = dynamic_cast<valor_escalar<int>*>(params[actual]); checar != nullptr && cad->valor[i + 1] == 'd'){
+               res += std::printf("%d", checar->valor);
+            }else if(auto checar = dynamic_cast<valor_escalar<float>*>(params[actual]); checar != nullptr && cad->valor[i + 1] == 'f'){
+               res += std::printf("%f", checar->valor);
+            }else{
                throw error(*e.pos, "No concuerda el tipo a imprimir");
             }
          }else if(Scanf){
-            if(!valida_ejecuta<valor_escalar<int*>*, valor_escalar<float*>*>(params[actual], [&](auto checado){
-               if(cad->valor[i + 1] == 'd' && typeid(*checado->valor) == typeid(int)){
-                  std::cin >> *checado->valor;
-               }else if(cad->valor[i + 1] == 'f' && typeid(*checado->valor) == typeid(float)){
-                  std::cin >> *checado->valor;
-               }else{
-                  throw error(*e.pos, "No concuerda el tipo a imprimir");
-               }
-            })){
-               throw error(*e.pos, "El parametro para guardar el valor esta mal");
+            if(auto checar = dynamic_cast<valor_escalar<int*>*>(params[actual]); checar != nullptr && cad->valor[i + 1] == 'd'){
+               res += std::scanf(std::string(s + "%d").c_str( ), &*checar->valor);
+            }else if(auto checar = dynamic_cast<valor_escalar<float*>*>(params[actual]); checar != nullptr && cad->valor[i + 1] == 'f'){
+               res += std::scanf(std::string(s + "%f").c_str( ), &*checar->valor);
+            }else{
+               throw error(*e.pos, "No concuerda el tipo a leer");
             }
          }
+         s.clear( );
          ++i, ++actual;
       }else{
          if(actual == params.size( )){
@@ -249,11 +239,13 @@ valor_expresion* evalua(const expresion_llamada& e, tabla_simbolos& ts, tabla_te
          }else{
             throw error(*e.pos, "Solo es valido %d y %f");
          }
-
       }
    }
 
-   return nullptr;
+   if(Printf){
+      res += std::printf("%s", s.c_str( ));
+   }
+   return tt.crea<valor_escalar<int>>(res);// cambiar por # de cosas
 }
 valor_expresion* evalua(const expresion_corchetes& e, tabla_simbolos& ts, tabla_temporales& tt) {
    if (auto arr = dynamic_cast<valor_arreglo<std::unique_ptr<valor_expresion>>*>(evalua(*e.ex, ts, tt)); arr != nullptr) {
@@ -410,11 +402,13 @@ void evalua(const sentencia_for& s, tabla_simbolos& ts) {
    evalua(*s.inicializacion, ts_incializador);
 
    for(;;){
-      tabla_temporales tt; bool b;              // la tabla de temporales debería morir en cada iteración
-      if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(s.condicion, ts_incializador, tt), [&](auto checado){
-         b = checado->valor;
-      })){
-         throw error(*s.pos, "Tipo invalido de condicion");
+      tabla_temporales tt; bool b = true;              // la tabla de temporales debería morir en cada iteración
+      if(!s.condicion.empty( )){
+         if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(s.condicion, ts_incializador, tt), [&](auto checado){
+            b = checado->valor;
+         })){
+            throw error(*s.pos, "Tipo invalido de condicion");
+         }
       }
       if(!b){
          break;
@@ -443,7 +437,7 @@ void evalua(const sentencia_do& s, tabla_simbolos& ts) {
 
       }
       tabla_temporales tt; bool b;              // la tabla de temporales debería morir en cada iteración
-      if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(s.condicion, ts, tt), [&](auto checado){
+      if(!s.condicion.empty( ) && !valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(s.condicion, ts, tt), [&](auto checado){
          b = checado->valor;
       })){
          throw error(*s.pos, "Tipo invalido de condicion");
@@ -456,7 +450,7 @@ void evalua(const sentencia_do& s, tabla_simbolos& ts) {
 void evalua(const sentencia_while& s, tabla_simbolos& ts) {
    for(;;){
       tabla_temporales tt; bool b;              // la tabla de temporales debería morir en cada iteración
-      if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(s.condicion, ts, tt), [&](auto checado){
+      if(!s.condicion.empty( ) && !valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(s.condicion, ts, tt), [&](auto checado){
          b = checado->valor;
       })){
          throw error(*s.pos, "Tipo invalido de condicion");

@@ -1,5 +1,6 @@
-int i = 5;
-printf("valor de i : %d ", i);
-printf("\n ingrese el valor de i");
-scanf("%d %d", &i);
-printf("valor de i : %d ", i);
+float i = 1.0;
+int res[4] = {printf("comenzando pruebas\n"), 
+			  printf("\t"),
+			  scanf("21df_%f", &i),
+			  printf("%f,\n %f ", i, 4.5)
+			 };

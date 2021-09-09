@@ -45,7 +45,7 @@ const char* interpreta(const char* codigo) {
 // prueba
       std::cerr << "QUIERES PROBAR EL SEMANTICO? ";
       int res;
-      std::cin >> res;
+      std::cin >> res; getchar( );
       if (res == 1) {
          evalua(w);
          std::cerr << "FIN PRUEBA\n";
@@ -58,7 +58,7 @@ const char* interpreta(const char* codigo) {
                 << "\t^\n"
                 << e.message << "\n";
    } catch (const std::exception& e) {
-      std::cout << "lo mataste :o " << e.what( ) << "\n";
+      std::cout << e.what( ) << "\n";
    }
    return res.c_str( );
 }
