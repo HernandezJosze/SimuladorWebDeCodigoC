@@ -69,9 +69,9 @@ struct tabla_temporales {
    std::set<valor_expresion*> busqueda;
 
    template<typename T, typename... P>
-   valor_expresion* crea(P&&... p) {
+   T* crea(P&&... p) {
       valores.emplace_back(std::make_unique<T>(std::forward<P>(p)...));
-      return *busqueda.insert(valores.back( ).get( )).first;
+      return dynamic_cast<T*>(*busqueda.insert(valores.back( ).get( )).first);
    }
    bool es_temporal(valor_expresion* p) {
       return busqueda.contains(p);
@@ -193,20 +193,38 @@ valor_escalar<T>* castea(valor_expresion* v, tabla_temporales& tt) {
 }
 valor_expresion* evalua(const expresion_op_binario& e, tabla_simbolos& ts, tabla_temporales& tt) {
    auto izq = evalua(*e.izq, ts, tt); auto der = evalua(*e.der, ts, tt);
-   auto izq_v = castea(izq, tt);
-   auto der_v = castea(der, tt);
+   auto izq_v = castea<int>(izq, tt);
+   auto der_v = castea<int>(der, tt);
    if(!izq_v || !der_v){
       throw error(*e.pos, "Solo se puede aplicar el operador a int o float");
    }
-   /*
+
    if (e.operador->tipo == ASIGNACION) {
       if (tt.es_temporal(izq)) {
          throw error(*e.operador, "No se puede realizar una asignación un temporal");
       }
-      izq_v->valor = tt.crea<valor_escalar<typeid(izq_c->valor)>>(der_v->valor);
+      valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(izq, [&](auto checado) {
+         checado->valor = der_v->valor;
+      });
+      return izq;
+   }else if (e.operador->tipo == MAS_IGUAL) {
+      if (tt.es_temporal(izq)) {
+         throw error(*e.operador, "No se puede realizar una asignación un temporal");
+      }
+      valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(izq, [&](auto checado) {
+         checado->valor += der_v->valor;
+      });
+      return izq;
+   }else if (e.operador->tipo == MENOS_IGUAL) {
+      if (tt.es_temporal(izq)) {
+         throw error(*e.operador, "No se puede realizar una asignación un temporal");
+      }
+      valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(izq, [&](auto checado) {
+         checado->valor -= der_v->valor;
+      });
       return izq;
    }
-   */
+   //return izq;
 }
 valor_expresion* evalua(const expresion_llamada& e, tabla_simbolos& ts, tabla_temporales& tt) {
    int(*funcion)(const char*, ...);
