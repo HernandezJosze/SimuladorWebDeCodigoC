@@ -78,6 +78,19 @@ struct tabla_temporales {
    }
 };
 
+template<typename T>
+valor_escalar<T>* castea(valor_expresion* v, tabla_temporales& tt) {
+   valor_escalar<T>* res = nullptr;
+   valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(v, [&]<typename U>(valor_escalar<U>* checado) {
+      if constexpr(std::is_same_v<T, U>) {
+         res = checado;
+      } else {
+         res = tt.crea<valor_escalar<T>>(checado->valor);
+      }
+   });
+   return res;
+}
+
 // expresiones
 
 valor_expresion* evalua(const expresion& e, tabla_simbolos& ts, tabla_temporales& tt);
@@ -183,14 +196,8 @@ valor_expresion* evalua(const expresion_op_posfijo& e, tabla_simbolos& ts, tabla
       }
    }
 }
-template<typename T>
-valor_escalar<T>* castea(valor_expresion* v, tabla_temporales& tt) {
-   valor_escalar<T>* res = nullptr;
-   valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(v, [&](auto checado) {
-      res = tt.crea<valor_escalar<T>>(checado->valor);
-   });
-   return res;    // devuelve nulo si no pudo hacer el cast (no puede hacer el throw aquí porque no tiene suficiente información para hacerlo)
-}
+
+
 valor_expresion* evalua(const expresion_op_binario& e, tabla_simbolos& ts, tabla_temporales& tt) {
    auto izq = evalua(*e.izq, ts, tt); auto der = evalua(*e.der, ts, tt);
    auto izq_v = castea<int>(izq, tt);
