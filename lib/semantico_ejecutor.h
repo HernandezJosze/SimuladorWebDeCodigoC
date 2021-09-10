@@ -183,8 +183,30 @@ valor_expresion* evalua(const expresion_op_posfijo& e, tabla_simbolos& ts, tabla
       }
    }
 }
-valor_expresion* evalua(const expresion_op_binario& e, tabla_simbolos& ts, tabla_temporales& tt) {    // algo más difícil que las demás
-   return nullptr;
+template<typename T>
+valor_escalar<T>* castea(valor_expresion* v, tabla_temporales& tt) {
+   valor_escalar<T>* res = nullptr;
+   valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(v, [&](auto checado) {
+      res = tt.crea<valor_escalar<T>>(checado->valor);
+   });
+   return res;    // devuelve nulo si no pudo hacer el cast (no puede hacer el throw aquí porque no tiene suficiente información para hacerlo)
+}
+valor_expresion* evalua(const expresion_op_binario& e, tabla_simbolos& ts, tabla_temporales& tt) {
+   auto izq = evalua(*e.izq, ts, tt); auto der = evalua(*e.der, ts, tt);
+   auto izq_v = castea(izq, tt);
+   auto der_v = castea(der, tt);
+   if(!izq_v || !der_v){
+      throw error(*e.pos, "Solo se puede aplicar el operador a int o float");
+   }
+   /*
+   if (e.operador->tipo == ASIGNACION) {
+      if (tt.es_temporal(izq)) {
+         throw error(*e.operador, "No se puede realizar una asignación un temporal");
+      }
+      izq_v->valor = tt.crea<valor_escalar<typeid(izq_c->valor)>>(der_v->valor);
+      return izq;
+   }
+   */
 }
 valor_expresion* evalua(const expresion_llamada& e, tabla_simbolos& ts, tabla_temporales& tt) {
    int(*funcion)(const char*, ...);
