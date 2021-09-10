@@ -199,40 +199,146 @@ valor_expresion* evalua(const expresion_op_posfijo& e, tabla_simbolos& ts, tabla
 
 
 valor_expresion* evalua(const expresion_op_binario& e, tabla_simbolos& ts, tabla_temporales& tt) {
-   auto izq = evalua(*e.izq, ts, tt); auto der = evalua(*e.der, ts, tt);
-   auto izq_v = castea<int>(izq, tt);
-   auto der_v = castea<int>(der, tt);
-   if(!izq_v || !der_v){
-      throw error(*e.pos, "Solo se puede aplicar el operador a int o float");
+auto checa_izq = evalua(*e.izq, ts, tt); auto checa_der = evalua(*e.der, ts, tt);
+   if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(checa_izq, [&](auto izq) {
+      if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(checa_der, [&](auto der) {
+         if (e.operador->tipo == ASIGNACION) {
+            if (tt.es_temporal(izq)) {
+               throw error(*e.operador, "No se puede realizar una asignacion un temporal");
+            }
+            izq->valor = der->valor;
+            return izq;
+         }else if (e.operador->tipo == MAS_IGUAL) {
+            if (tt.es_temporal(izq)) {
+               throw error(*e.operador, "No se puede realizar una asignacion un temporal");
+            }
+            valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(izq, [&](auto checado) {
+               izq->valor += der->valor;
+            });
+            return izq;
+         }else if (e.operador->tipo == MENOS_IGUAL) {
+            if (tt.es_temporal(izq)) {
+               throw error(*e.operador, "No se puede realizar una asignacion un temporal");
+            }
+            valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(izq, [&](auto checado) {
+                izq->valor -= der->valor;
+            });
+            return izq;
+         }else if (e.operador->tipo == MULTIPLICA_IGUAL) {
+            if (tt.es_temporal(izq)) {
+               throw error(*e.operador, "No se puede realizar una asignacion un temporal");
+            }
+            valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(izq, [&](auto checado) {
+                izq->valor *= der->valor;
+            });
+            return izq;
+         }else if (e.operador->tipo == DIVIDE_IGUAL) {
+            if (tt.es_temporal(izq)) {
+               throw error(*e.operador, "No se puede realizar una asignacion un temporal");
+            }
+            valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(izq, [&](auto checado) {
+                izq->valor /= der->valor;
+            });
+            return izq;
+         }else if (e.operador->tipo == MODULO_IGUAL) {
+            if (tt.es_temporal(izq)) {
+               throw error(*e.operador, "No se puede realizar una asignacion un temporal");
+            }
+            if(valida<valor_escalar<int>*>(checa_der) && valida<valor_escalar<int>*>(checa_izq)){
+               izq->valor = (int)izq->valor / (int)der->valor;
+            }else{
+               throw error(*e.pos, "Solo se puede aplicar este operador a enteros");
+            }
+            return izq;
+         }/*else if (e.operador->tipo == OR) {
+            valor_expresion* res;
+            valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(izq, [&](auto checado) {
+               res = tt.crea<valor_escalar<int>>(izq_v->valor || der_v->valor);
+            });
+            return res;
+         }else if (e.operador->tipo == AND) {
+            valor_expresion* res;
+            valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(izq, [&](auto checado) {
+               res = tt.crea<valor_escalar<int>>(izq_v->valor && der_v->valor);
+            });
+            return res;
+         }else if (e.operador->tipo == IGUAL) {
+            valor_expresion* res;
+            valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(izq, [&](auto checado) {
+               res = tt.crea<valor_escalar<int>>(izq_v->valor == der_v->valor);
+            });
+            return res;
+         }else if (e.operador->tipo == DIFERENTE) {
+            valor_expresion* res;
+            valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(izq, [&](auto checado) {
+               res = tt.crea<valor_escalar<int>>(izq_v->valor != der_v->valor);
+            });
+            return res;
+         }else if (e.operador->tipo == MENOR) {
+            valor_expresion* res;
+            valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(izq, [&](auto checado) {
+               res = tt.crea<valor_escalar<int>>(izq_v->valor < der_v->valor);
+            });
+            return res;
+         }else if (e.operador->tipo == MENOR_IGUAL) {
+            valor_expresion* res;
+            valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(izq, [&](auto checado) {
+               res = tt.crea<valor_escalar<int>>(izq_v->valor <= der_v->valor);
+            });
+            return res;
+         }else if (e.operador->tipo == MAYOR) {
+            valor_expresion* res;
+            valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(izq, [&](auto checado) {
+               res = tt.crea<valor_escalar<int>>(izq_v->valor > der_v->valor);
+            });
+            return res;
+         }else if (e.operador->tipo == MAYOR_IGUAL) {
+            valor_expresion* res;
+            valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(izq, [&](auto checado) {
+               res = tt.crea<valor_escalar<int>>(izq_v->valor >= der_v->valor);
+            });
+            return res;
+         }else if (e.operador->tipo == MAS) {
+            valor_expresion* res;
+            valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(izq, [&](auto checado) {
+               res = tt.crea<valor_escalar<int>>(izq_v->valor + der_v->valor);
+            });
+            return res;
+         }else if (e.operador->tipo == MENOS) {
+            valor_expresion* res;
+            valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(izq, [&](auto checado) {
+               res = tt.crea<valor_escalar<int>>(izq_v->valor - der_v->valor);
+            });
+            return res;
+         }else if (e.operador->tipo == MULTIPLICACION) {
+            valor_expresion* res;
+            valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(izq, [&](auto checado) {
+               res = tt.crea<valor_escalar<int>>(izq_v->valor * der_v->valor);
+            });
+            return res;
+         }else if (e.operador->tipo == DIVISION) {
+            valor_expresion* res;
+            valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(izq, [&](auto checado) {
+               res = tt.crea<valor_escalar<int>>(izq_v->valor / der_v->valor);
+            });
+            return res;
+         }else if (e.operador->tipo == MODULO) {
+            valor_expresion* res;
+            if(!(valida<valor_escalar<int>*>(der) && valida_ejecuta<valor_escalar<int>*>(izq, [&](auto checado) {
+               res = tt.crea<valor_escalar<int>>(izq_v->valor && der_v->valor);
+            }))){
+               throw error(*e.pos, "Solo se puede aplicar este operador a enteros");
+            }
+            return res;
+         }*/
+      })){
+         throw error(*e.pos, "Solo se puede aplicar operadores a int o float");
+      }
+   })){
+      throw error(*e.pos, "Solo se puede aplicar operadores a int o float");
    }
-
-   if (e.operador->tipo == ASIGNACION) {
-      if (tt.es_temporal(izq)) {
-         throw error(*e.operador, "No se puede realizar una asignación un temporal");
-      }
-      valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(izq, [&](auto checado) {
-         checado->valor = der_v->valor;
-      });
-      return izq;
-   }else if (e.operador->tipo == MAS_IGUAL) {
-      if (tt.es_temporal(izq)) {
-         throw error(*e.operador, "No se puede realizar una asignación un temporal");
-      }
-      valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(izq, [&](auto checado) {
-         checado->valor += der_v->valor;
-      });
-      return izq;
-   }else if (e.operador->tipo == MENOS_IGUAL) {
-      if (tt.es_temporal(izq)) {
-         throw error(*e.operador, "No se puede realizar una asignación un temporal");
-      }
-      valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(izq, [&](auto checado) {
-         checado->valor -= der_v->valor;
-      });
-      return izq;
-   }
-   //return izq;
 }
+
 valor_expresion* evalua(const expresion_llamada& e, tabla_simbolos& ts, tabla_temporales& tt) {
    int(*funcion)(const char*, ...);
    if(!valida_ejecuta<valor_funcion<printf>*, valor_funcion<scanf>*>(evalua(*e.func, ts, tt), [&](auto checado) {
