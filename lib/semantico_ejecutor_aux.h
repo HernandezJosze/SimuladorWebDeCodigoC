@@ -50,4 +50,8 @@ bool valida(auto p) {
    });
 }
 
+bool es_operador_asignacion(token t){
+   return t == ASIGNACION || t == MAS_IGUAL || t == MENOS_IGUAL || t == MULTIPLICA_IGUAL || t == DIVIDE_IGUAL || t == MODULO_IGUAL;
+}
+
 #endif

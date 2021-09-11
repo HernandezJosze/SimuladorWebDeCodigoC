@@ -107,6 +107,8 @@ valor_expresion* evalua(const expresion_terminal& e, tabla_simbolos& ts, tabla_t
       }else{
          throw error(*e.tk, "La variable no esta declarada");
       }
+   }else {
+      return nullptr;
    }
 }
 valor_expresion* evalua(const expresion_op_prefijo& e, tabla_simbolos& ts, tabla_temporales& tt) {
@@ -166,6 +168,8 @@ valor_expresion* evalua(const expresion_op_prefijo& e, tabla_simbolos& ts, tabla
       } else {
          throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
       }
+   } else {
+      return nullptr;
    }
 }
 valor_expresion* evalua(const expresion_op_posfijo& e, tabla_simbolos& ts, tabla_temporales& tt) {
@@ -194,124 +198,77 @@ valor_expresion* evalua(const expresion_op_posfijo& e, tabla_simbolos& ts, tabla
       } else {
          throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
       }
+   } else {
+      return nullptr;
    }
 }
 
-
 valor_expresion* evalua(const expresion_op_binario& e, tabla_simbolos& ts, tabla_temporales& tt) {
-   valor_expresion* res;
-   if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(*e.izq, ts, tt), [&]<typename T>(valor_escalar<T>* checado_izq) {
-      if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(*e.der, ts, tt),[&]<typename F>(valor_escalar<F>* checado_der) {
+   valor_expresion* res = nullptr;
+
+   valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(*e.izq, ts, tt), [&]<typename TI>(valor_escalar<TI>* checado_izq) {
+      valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(*e.der, ts, tt),[&]<typename TD>(valor_escalar<TD>* checado_der) {
+         throw std::runtime_error("Solo se puede aplicar este operador a enteros");
+         if (es_operador_asignacion(e.operador->tipo) && tt.es_temporal(checado_izq)) {
+            throw error(*e.operador, "No se puede realizar una asignacion un temporal");
+         }
          if (e.operador->tipo == ASIGNACION) {
-            if (tt.es_temporal(checado_izq)) {
-               throw error(*e.operador, "No se puede realizar una asignacion un temporal");
-            }
             checado_izq->valor = checado_der->valor;
-            return res = checado_izq;
-
+            res = checado_izq;
          }else if (e.operador->tipo == MAS_IGUAL) {
-            if (tt.es_temporal(checado_izq)) {
-               throw error(*e.operador, "No se puede realizar una asignacion un temporal");
-            }
             checado_izq->valor += checado_der->valor;
-            return res = checado_izq;
-
+            res = checado_izq;
          }else if (e.operador->tipo == MENOS_IGUAL) {
-            if (tt.es_temporal(checado_izq)) {
-               throw error(*e.operador, "No se puede realizar una asignacion un temporal");
-            }
             checado_izq->valor -= checado_der->valor;
-            return res = checado_izq;
-
+            res = checado_izq;
          }else if (e.operador->tipo == MULTIPLICA_IGUAL) {
-            if (tt.es_temporal(checado_izq)) {
-               throw error(*e.operador, "No se puede realizar una asignacion un temporal");
-            }
             checado_izq->valor *= checado_der->valor;
-            return res = checado_izq;
-
+            res = checado_izq;
          }else if (e.operador->tipo == DIVIDE_IGUAL) {
-            if (tt.es_temporal(checado_izq)) {
-               throw error(*e.operador, "No se puede realizar una asignacion un temporal");
-            }
             checado_izq->valor /= checado_der->valor;
-            return res = checado_izq;
-
+            res = checado_izq;
          }else if (e.operador->tipo == MODULO_IGUAL) {
-            if (tt.es_temporal(checado_izq)) {
-               throw error(*e.operador, "No se puede realizar una asignacion un temporal");
-            }
-            if constexpr(std::is_same_v<T, F> && std::is_same_v<T, int>){
-               checado_izq->valor %= checado_der->valor;
-            }else{
+            if constexpr(!std::is_same_v<TI, int> || !std::is_same_v<TI, TD>){
                throw error(*e.pos, "Solo se puede aplicar este operador a enteros");
+            } else {
+               checado_izq->valor %= checado_der->valor;
+               res = checado_izq;
             }
-            return res = checado_izq;
-
          }else if (e.operador->tipo == OR) {
             res = tt.crea<valor_escalar<int>>(checado_izq->valor || checado_der->valor);
-            return res;
-
          }else if (e.operador->tipo == AND) {
             res = tt.crea<valor_escalar<int>>(checado_izq->valor && checado_der->valor);
-            return res;
-
          }else if (e.operador->tipo == IGUAL) {
-            res = tt.crea<valor_escalar<int>>(checado_izq->valor == checado_der->valor); // se puede hacer comparación entre int y float? ¿
-            /*
-            if constexpr(std::is_same_v(T, F)){
-               res = tt.crea<valor_escalar<int>>(checado_izq->valor == checado_der->valor);
-            }else{
-               throw error(*e.pos, "Solo se puede aplicar este operador a operandos del mismo tipo");
-            }*/
-            return res;
-
+            res = tt.crea<valor_escalar<int>>(checado_izq->valor == checado_der->valor);
          }else if (e.operador->tipo == DIFERENTE) {
             res = tt.crea<valor_escalar<int>>(checado_izq->valor != checado_der->valor);
-            return res;
-
          }else if (e.operador->tipo == MENOR) {
             res = tt.crea<valor_escalar<int>>(checado_izq->valor < checado_der->valor);
-            return res;
-
          }else if (e.operador->tipo == MENOR_IGUAL) {
             res = tt.crea<valor_escalar<int>>(checado_izq->valor <= checado_der->valor);
-            return res;
-
          }else if (e.operador->tipo == MAYOR) {
             res = tt.crea<valor_escalar<int>>(checado_izq->valor > checado_der->valor);
-            return res;
-
          }else if (e.operador->tipo == MAYOR_IGUAL) {
             res = tt.crea<valor_escalar<int>>(checado_izq->valor >= checado_der->valor);
-            return res;
-
          }else if (e.operador->tipo == MAS) {
             res = tt.crea<valor_escalar<int>>(checado_izq->valor + checado_der->valor);
-            return res;
-
          }else if (e.operador->tipo == MENOS) {
             res = tt.crea<valor_escalar<int>>(checado_izq->valor - checado_der->valor);
-            return res;
          }else if (e.operador->tipo == MULTIPLICACION) {
             res = tt.crea<valor_escalar<int>>(checado_izq->valor * checado_der->valor);
-            return res;
          }else if (e.operador->tipo == DIVISION) {
             res = tt.crea<valor_escalar<int>>(checado_izq->valor / checado_der->valor);
-            return res;
-
          }else if (e.operador->tipo == MODULO) {
-            if constexpr(std::is_same_v<T, F> && std::is_same_v<int, T>){
-               res = tt.crea<valor_escalar<int>>(checado_izq->valor % checado_der->valor);
-            }else{
+            if constexpr(!std::is_same_v<TI, int> || !std::is_same_v<TI, TD>){
                throw error(*e.pos, "Solo se puede aplicar este operador a enteros");
+            } else {
+               res = tt.crea<valor_escalar<int>>(checado_izq->valor % checado_der->valor);
             }
-            return res;
          }
-      })){
-         throw error(*e.pos, "Solo se puede aplicar operadores a int o float");
-      }
-   })){
+      });
+   });
+
+   if (res == nullptr) {
       throw error(*e.pos, "Solo se puede aplicar operadores a int o float");
    }
    return res;
@@ -412,6 +369,8 @@ valor_expresion* evalua(const expresion& e, tabla_simbolos& ts, tabla_temporales
       return evalua(*checar, ts, tt);
    } else if (auto checar = dynamic_cast<const expresion_arreglo*>(&e); checar != nullptr) {
       return evalua(*checar, ts, tt);
+   } else {
+      return nullptr;
    }
 }
 
