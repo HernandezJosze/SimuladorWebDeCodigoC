@@ -44,10 +44,12 @@ const char* interpreta(const char* codigo) {
       }
 // prueba
       std::cerr << "QUIERES PROBAR EL SEMANTICO? ";
-      int res;
-      std::cin >> res; getchar( );
-      if (res == 1) {
-         evalua(w);
+      int probar;
+      std::cin >> probar; getchar( );
+      if (probar == 1) {
+         std::ostringstream oss;
+         evalua(w, oss);
+         res = std::move(oss).str( );
          std::cerr << "FIN PRUEBA\n";
       }
 // fin prueba

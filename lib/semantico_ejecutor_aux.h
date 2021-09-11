@@ -32,6 +32,18 @@ namespace impl {
    }
 }
 
+template<typename T>
+struct scope_exit {
+   T func;
+
+   scope_exit(T&& f)
+   : func(f) {
+   }
+   ~scope_exit( ) {
+      func( );
+   }
+};
+
 template<typename... TS>
 bool valida_ejecuta(auto p, auto f) {
    bool res = false;
