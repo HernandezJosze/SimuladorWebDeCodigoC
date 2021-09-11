@@ -101,7 +101,7 @@ struct tabla_temporales {
 
 void emite_crea(valor_expresion* v, const tabla_simbolos& ts, std::ostream& os) {
    valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_arreglo<std::unique_ptr<valor_expresion>>*>(v, [&](auto checado) {
-      if constexpr(std::is_scalar_v<decltype(checado->valor)>) {
+      if constexpr(std::is_arithmetic_v<decltype(checado->valor)>) {
          os << "CREA VAR " << ts.busca(checado) << "$" << checado << "\n";
       } else {
          os << "CREA ARR " << ts.busca(checado) << "$" << checado << " " << checado->valor.size( ) << "\n";
@@ -228,7 +228,7 @@ valor_expresion* evalua(const expresion_op_prefijo& e, tabla_simbolos& ts, tabla
    } else if (e.operador->tipo == DIRECCION) {
       valor_expresion* res;
       if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&]<typename T>(valor_escalar<T>* checado) {
-         res = tt.crea<valor_escalar<T*>>(&checado->valor);
+         res = tt.crea<valor_escalar<valor_escalar<T>*>>(checado);
       })) {
          return res;
       } else {
@@ -375,12 +375,14 @@ valor_expresion* evalua(const expresion_llamada& e, tabla_simbolos& ts, tabla_te
             if (actual >= params.size( )) {
                throw error(*e.func->pos, "No hay suficientes parametros");
             }
-            if (!valida_ejecuta<valor_escalar<int>*, valor_escalar<int*>*, valor_escalar<float>*, valor_escalar<float*>*>(params[actual++], [&]<typename T>(valor_escalar<T>* checado) {
-               if (cad->valor[i] == 'd' && (funcion == printf && std::is_same_v<T, int> || funcion == scanf && std::is_same_v<T, int*>) ||
-                   cad->valor[i] == 'f' && (funcion == printf && std::is_same_v<T, float> || funcion == scanf && std::is_same_v<T, float*>)) {
-                  res += funcion(std::to_array({ '%', cad->valor[i], '\0' }).data( ), checado->valor);
-                  if (funcion == scanf) {
-                     emite_escribe(checado, ts, os);
+            if (!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<valor_escalar<int>*>*, valor_escalar<valor_escalar<float>*>*>(params[actual++], [&]<typename T>(valor_escalar<T>* checado) {
+               if (cad->valor[i] == 'd' && (funcion == printf && std::is_same_v<T, int> || funcion == scanf && std::is_same_v<T, valor_escalar<int>*>) ||
+                   cad->valor[i] == 'f' && (funcion == printf && std::is_same_v<T, float> || funcion == scanf && std::is_same_v<T, valor_escalar<float>*>)) {
+                  if constexpr(std::is_arithmetic_v<T>) {
+                     res += funcion(std::to_array({ '%', cad->valor[i], '\0' }).data( ), checado->valor);
+                  } else {
+                     res += funcion(std::to_array({ '%', cad->valor[i], '\0' }).data( ), &checado->valor->valor);
+                     emite_escribe(checado->valor, ts, os);
                   }
                } else {
                   throw error(*e.func->pos, "El especificador no coincide con el tipo");
