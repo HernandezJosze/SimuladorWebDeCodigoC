@@ -2,5 +2,6 @@ float decimal = .26;
 int entero = 3.4;
 entero/=decimal;
 decimal*=entero;
+entero%decimal;
 entero;
 decimal;
