@@ -10,15 +10,15 @@
 #include <tuple>
 
 namespace impl {
-   template<auto N> //requires (std::is_integral_v<decltype(N)>)
+   template<auto N>
    struct constexpr_integer {
-      constexpr operator decltype(N)( ) const noexcept {
+      constexpr operator decltype(N)( ) const {
          return N;
       }
    };
 
    template<auto I, auto F, std::intmax_t S = (I <= F ? +1 : -1), typename T>
-   constexpr void unrolled_for(T&& f) noexcept {
+   constexpr void unrolled_for(T&& f) {
       if constexpr(I == F) {
          return;
       } else if constexpr(std::is_same_v<void, decltype(f(constexpr_integer<I>( )))>) {
