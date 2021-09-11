@@ -79,7 +79,7 @@ struct tabla_temporales {
 };
 
 template<typename T>
-valor_escalar<T>* castea(valor_expresion* v, tabla_temporales& tt) {
+valor_escalar<T>* castea(valor_expresion* v, tabla_temporales& tt, const token_anotada op) {
    valor_escalar<T>* res = nullptr;
    valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(v, [&]<typename U>(valor_escalar<U>* checado) {
       if constexpr(std::is_same_v<T, U>) {
@@ -88,6 +88,9 @@ valor_escalar<T>* castea(valor_expresion* v, tabla_temporales& tt) {
          res = tt.crea<valor_escalar<T>>(checado->valor);
       }
    });
+   if(res == nullptr){
+      throw error(op, "Solo se puede aplicar operadores a int o float");
+   }
    return res;
 }
 
@@ -204,11 +207,17 @@ valor_expresion* evalua(const expresion_op_posfijo& e, tabla_simbolos& ts, tabla
 }
 
 valor_expresion* evalua(const expresion_op_binario& e, tabla_simbolos& ts, tabla_temporales& tt) {
-   valor_expresion* res = nullptr;
+   if (e.operador->tipo == OR) {
+         auto checado_izq = castea<float>(evalua(*e.izq, ts, tt), tt, *e.pos);
+         return tt.crea<valor_escalar<int>>(checado_izq->valor ? checado_izq->valor : castea<float>(evalua(*e.der, ts, tt), tt, *e.pos)->valor);
+   }else if (e.operador->tipo == AND) {
+         auto checado_izq = castea<float>(evalua(*e.izq, ts, tt), tt, *e.pos);
+         return tt.crea<valor_escalar<int>>(checado_izq->valor ? castea<float>(evalua(*e.der, ts, tt), tt, *e.pos)->valor : 0);
+   }
 
+   valor_expresion* res = nullptr;
    valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(*e.izq, ts, tt), [&]<typename TI>(valor_escalar<TI>* checado_izq) {
       valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(*e.der, ts, tt),[&]<typename TD>(valor_escalar<TD>* checado_der) {
-         throw std::runtime_error("Solo se puede aplicar este operador a enteros");
          if (es_operador_asignacion(e.operador->tipo) && tt.es_temporal(checado_izq)) {
             throw error(*e.operador, "No se puede realizar una asignacion un temporal");
          }
@@ -234,10 +243,6 @@ valor_expresion* evalua(const expresion_op_binario& e, tabla_simbolos& ts, tabla
                checado_izq->valor %= checado_der->valor;
                res = checado_izq;
             }
-         }else if (e.operador->tipo == OR) {
-            res = tt.crea<valor_escalar<int>>(checado_izq->valor || checado_der->valor);
-         }else if (e.operador->tipo == AND) {
-            res = tt.crea<valor_escalar<int>>(checado_izq->valor && checado_der->valor);
          }else if (e.operador->tipo == IGUAL) {
             res = tt.crea<valor_escalar<int>>(checado_izq->valor == checado_der->valor);
          }else if (e.operador->tipo == DIFERENTE) {
@@ -268,7 +273,7 @@ valor_expresion* evalua(const expresion_op_binario& e, tabla_simbolos& ts, tabla
       });
    });
 
-   if (res == nullptr) {
+   if (res == nullptr){
       throw error(*e.pos, "Solo se puede aplicar operadores a int o float");
    }
    return res;
