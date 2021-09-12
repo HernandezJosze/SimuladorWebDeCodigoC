@@ -28,7 +28,7 @@ extern "C"
 #ifdef __EMSCRIPTEN__
    EMSCRIPTEN_KEEPALIVE
 #endif
-const char* interpreta(const char* codigo) {
+const char* interpreta(const char* codigo, const char* entrada) {
    static std::string res = "";
 
    try {
@@ -42,17 +42,16 @@ const char* interpreta(const char* codigo) {
       for (const auto& actual : w) {
          std::cerr << *actual << "\n";
       }
-// prueba
       std::cerr << "QUIERES PROBAR EL SEMANTICO? ";
       int probar;
       std::cin >> probar; getchar( );
       if (probar == 1) {
+         std::istringstream iss(entrada);
          std::ostringstream oss;
-         evalua(w, oss);
+         evalua(w, { iss, oss });
          res = std::move(oss).str( );
          std::cerr << "FIN PRUEBA\n";
       }
-// fin prueba
    } catch (const error& e) {
       auto ini = codigo, fin = codigo + strlen(codigo);
       std::cout << "\nError en linea " << linea_de(ini, e.tk) << ", columna " << columna_de(ini, e.tk) << ":\n"
@@ -70,17 +69,18 @@ int main(int argc, const char* argv[]) {
    return 0;
 #else
    if(argc < 2){
-      std::cout << "Modo de uso: " << argv[0] << " ruta_codigo";
+      std::cout << "Modo de uso: " << argv[0] << " ruta_codigo ruta_entrada";
       return 0;
    }
 
-   std::ifstream file(argv[1], std::ios::in);
-   if (!file.is_open( )) {
-      std::cout << "No se pudo abrir " << argv[1] << "\n";
+   std::ifstream codigo(argv[1]), entrada(argv[2]);
+   if (!codigo.is_open( ) || !entrada.is_open( )) {
+      std::cout << "No se pudieron abrir los archivos.\n";
       return 0;
    }
-   std::ostringstream buffer;
-   buffer << file.rdbuf( );
-   std::cout << interpreta(std::move(buffer).str( ).c_str( ));
+
+   std::ostringstream codigo_str, entrada_str;
+   codigo_str << codigo.rdbuf( ), entrada_str << entrada.rdbuf( );
+   std::cout << interpreta(std::move(codigo_str).str( ).c_str( ), std::move(entrada_str).str( ).c_str( ));
 #endif
 }
