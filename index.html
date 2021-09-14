@@ -62,59 +62,105 @@
       </style>
    </head>
    <body id="body">
-      <div style="display: grid; grid-template-columns:1fr 1fr;">
+      <div style="display: grid; grid-template-columns:1fr 1fr 1fr;">
          <div id="editor"  style="grid-row: 1 / span 3; grid-column: 1 / span 1; display: flex;">
             <div id="nums" class="small">1<br>2<br>3<br>4</div>
-            <textarea class="darkmodeEditor" id="input" style=" width: 99%; height: 98%;">CREA ARR bh 10 5,4,3,4
-ESCRIBE bh[0] H
-ESCRIBE bh[1] o
-ESCRIBE bh[2] l
-ESCRIBE bh[3] a
-ESCRIBE bh[4]
-ESCRIBE bh[5] M
-ESCRIBE bh[6] u
-ESCRIBE bh[7] n
-ESCRIBE bh[8] d
-ESCRIBE bh[9] o
-CREA VAR ca
-CREA VAR cb
-CREA VAR cc
-CREA VAR cd
-CREA VAR ce
-CREA VAR cr
-CREA VAR cs
-ESCRIBE ca 3
-CREA ARR b 10
-ESCRIBE b[0] H
-ESCRIBE b[1] o
-ESCRIBE b[2] l
-ESCRIBE b[3] a
-ESCRIBE b[4]
-ESCRIBE b[5] M
-ESCRIBE b[6] u
-ESCRIBE b[7] n
-ESCRIBE b[8] d
-ESCRIBE b[9] o
-CREA VAR a
-ESCRIBE a 3
-CREA VAR ab
-ESCRIBE ab 34
-ESCRIBE ab 333</textarea>
-         </div>
-         <div>
-            <button id="btnGetText">Cargar Instrucciones / reniciar entorno</button>
-            <button id="btnDarkMode">Cambiar a modo oscuro</button>
-         </div>
-         <div>
-            <button id="btnPrevInst" disabled>Ejecutar anterior</button>
-            <button id="btnNextInst" disabled>Ejecutar siguiente</button>
-         </div>
-         <div>
-            <button id="btnPlay" disabled>Reproducir</button>
-            <label for="speed">Velocidad</label>
-               <input type="range" id="speed" min="1" max="10" value="2">
-            <button id="btnStop" disabled>Detener</button>
-         </div>
+            <textarea class="darkmodeEditor" id="input" style=" width: 99%; height: 98%;">CREAVARn10
+CREAVARi0
+CREAVARa
+ESCRIBEa0
+ESCRIBEi1
+DESTRUYE1
+CREAVARa
+ESCRIBEa1
+IMPRIME6
+
+ESCRIBEi2
+DESTRUYE1
+CREAVARa
+ESCRIBEa2
+IMPRIME7
+
+ESCRIBEi3
+DESTRUYE1
+CREAVARa
+ESCRIBEa3
+ESCRIBEi4
+DESTRUYE1
+CREAVARa
+ESCRIBEa4
+IMPRIME9
+
+ESCRIBEi5
+DESTRUYE1
+CREAVARa
+ESCRIBEa5
+IMPRIME10
+
+ESCRIBEi6
+DESTRUYE1
+CREAVARa
+ESCRIBEa6
+ESCRIBEi7
+DESTRUYE1
+CREAVARa
+ESCRIBEa7
+DESTRUYE1
+DESTRUYE1
+CREAARRarr51,2,3,4,5
+CREAVARi0
+IMPRIME1 
+ESCRIBEi1
+IMPRIME2 
+ESCRIBEi2
+IMPRIME3 
+ESCRIBEi3
+IMPRIME4 
+ESCRIBEi4
+IMPRIME5 
+ESCRIBEi5
+DESTRUYE1
+CREAARRbrr5
+CREAVARa5
+CREAVARa7
+CREAVARa0
+IMPRIME:(
+
+DESTRUYE1
+DESTRUYE1
+CREAVARx0
+ESCRIBEx1
+CREAVARn2
+IMPRIMEX2X
+DESTRUYE1
+ESCRIBEx2
+CREAVARn2
+IMPRIMEX2X
+DESTRUYE1
+ESCRIBEx3
+CREAVARn2
+IMPRIMEX2X
+DESTRUYE1
+ESCRIBEx4
+		</textarea>
+        </div>
+        <div>
+           <button id="btnGetText">Cargar Instrucciones / reniciar entorno</button>
+		   <button id="btnDarkMode">Cambiar a modo oscuro</button>
+        </div>
+        <div>
+           <button id="btnPrevInst" disabled>Ejecutar anterior</button>
+           <button id="btnNextInst" disabled>Ejecutar siguiente</button>
+        </div>
+        <div>
+           <button id="btnPlay" disabled>Reproducir</button>
+           <label for="speed">Velocidad</label>
+              <input type="range" id="speed" min="1" max="10" value="2">
+           <button id="btnStop" disabled>Detener</button>
+        </div>
+		<div style="grid-row: 1 / span 3; grid-column: 2 / span 1; display: flex;">
+			<textarea class="darkmodeEditor" id="output" disabled="true" style="width: 99%; height: 98%;"></textarea>
+	    </div>
       </div>
       <svg id="containerSVG" class="darkmodeContaier">
       </svg>
@@ -140,273 +186,407 @@ ESCRIBE ab 333</textarea>
    </footer>
    -->
    <script>
-      let btnDark = document.getElementById('btnDarkMode');
-      btnDark.addEventListener('click', ( ) => {
-         document.getElementById('body').classList.toggle('darkModeBody');
-         document.getElementById('containerSVG').classList.toggle('darkModeContainer');
-         document.getElementById('input').classList.toggle('darkModeEditor');
-         btnDark.innerText = btnDark.textContent === "Cambiar a modo oscuro" ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
-      });
-      btnDark.click( );
+    let btnDark = document.getElementById('btnDarkMode');
+    btnDark.addEventListener('click', ( ) => {
+       document.getElementById('body').classList.toggle('darkModeBody');
+       document.getElementById('containerSVG').classList.toggle('darkModeContainer');
+       document.getElementById('input').classList.toggle('darkModeEditor');
+       btnDark.innerText = btnDark.textContent === "Cambiar a modo oscuro" ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
+    });
+    btnDark.click( );
 
 
-      const posX = 30, posY = 30, tam = 60, container = document.getElementById("containerSVG");
-      const MAX_X = 1900, MAX_Y = 840;
-      let cx = posX, cy = posY, instructions = [ ], currentInst = 0, idVar = new Set( ), listOfValuesVars = new Map( );
+    const posX = 30, posY = 30, tam = 60, container = document.getElementById("containerSVG");
+    const MAX_X = 1900, MAX_Y = 840;
+    let cx = posX, cy = posY;
+	let instructions = [ ], currentInst = 0;
+	let data = new Map( ), data_backup = new Map( );
+	let stack = [], stack_backup = [];
+	let text = "INPUT:\n", memoryText = [text];
+    function cleanAll( ){
+		cx = posX, cy = posY;
+		instructions = [ ], currentInst = 0;
+		data = new Map( ), data_backup = new Map( );
+		stack = [], stack_backup = [];
+		text = "INPUT:\n", memoryText = [text];
+		document.getElementById('output').value = "INPUT:\n";
+		while(container.hasChildNodes( )){
+			container.removeChild(container.lastChild);
+		}
+    }
+
+    function createSvg(type, svg_attributes, properties) {
+       let node = document.createElementNS("http://www.w3.org/2000/svg", type);
+       for (const name in svg_attributes) {
+          node.setAttributeNS(null, name, svg_attributes[name]);
+       }
+       for (const name in properties) {
+          node[name] = properties[name];
+       }
+       return node;
+    }
 
 
-      function cleanAll( ){
-         cx = posX; cy = posY; instructions = [ ]; currentInst = 0; idVar = new Set( ); listOfValuesVars = new Map( );
-         while(container.hasChildNodes( )){
-            container.removeChild(container.lastChild);
-         }
-      }
+    const btnGetText = document.getElementById('btnGetText');
+	btnGetText.addEventListener('click', ( ) =>{
+       cleanAll( );
+       let line = document.getElementById('input').value.split('\04\n'); //separador de instruccion
+       for(let instruction of line){
+          instructions.push(instruction.split('\01'));// Separador de token
+       }
+       let ids = ["btnNextInst", "btnPlay"];
+       for(let id of ids){
+          document.getElementById(id).removeAttribute("disabled");
+       }
+       document.getElementById('btnPrevInst').setAttribute('disabled','');
+    });
+
+    function auxPlay( ){
+       if(currentInst < instructions.length) {
+          let timer = setTimeout(( ) => {
+             executeNextInstruction( );
+             auxPlay();
+          }, 800 / parseInt(document.getElementById('speed').value));
+          btnStop.onclick = ( ) => {
+             clearTimeout(timer);
+          };
+       }else{
+          btnStop.click( ); btnNext.click( );
+       }
+    }
+
+    const btnPlay = document.getElementById('btnPlay');
+    btnPlay.addEventListener('click', ( ) => {
+       document.getElementById('btnStop').removeAttribute("disabled");
+       const ids = ["btnNextInst","btnPrevInst", "btnPlay"];
+       for(const id of ids){
+          document.getElementById(id).setAttribute("disabled", '' );
+       }
+       auxPlay();
+    });
+
+    const btnStop = document.getElementById('btnStop');
+    btnStop.addEventListener('click', function( ){
+       this.setAttribute('disabled', '');
+       const ids = ["btnNextInst","btnPrevInst", "btnPlay"];
+       for(const id of ids){
+          document.getElementById(id).removeAttribute("disabled");
+       }
+    });
+
+    const btnNext = document.getElementById("btnNextInst");
+    btnNext.addEventListener('click', ( ) => {
+       if(currentInst < instructions.length) {
+          executeNextInstruction();
+          document.getElementById('btnPrevInst').removeAttribute('disabled');
+       }
+       if(currentInst === instructions.length){
+          btnNext.setAttribute('disabled','');
+       }
+    });
+ 
+	function wasArray(name){
+		let index = name.indexOf("[");
+		if(index === -1){
+			return {'name': name, 'var': index};
+		}else{
+			const NAME = name.substr(0, index);
+			let VAR = ''; ++index;
+			while(name[index] !== "]"){
+				VAR += name[index++];
+			}
+			return {'name': NAME, 'var': VAR};
+		}
+	}
+	
+    function executeNextInstruction( ){
+		console.log(currentInst);
+		const command = instructions[currentInst][0];   //command type/name name/value value
+		if(command === "CREA"){
+			const type = instructions[currentInst][1];
+			const name = instructions[currentInst][2];
+			stack.push({'name': name, 
+						'version': 'v' + (data.has(name) ? data.get(name).length : 0)});
+			let value;
+			if (type === "ARR") {
+              const tam = instructions[currentInst][3];
+			if(instructions[currentInst].length === 5){
+				let s = instructions[currentInst][4].split(',');
+				value = s;
+			}else{
+				value = [];
+			}
+			if(!data.has(name)){
+				data.set(name, []);
+			}
+			data.get(name).push({'tam': tam,
+								 'vars': []});
+			createArr(name, value);
+          } else if(type === "VAR"){
+              value = instructions[currentInst].length === 4 ? instructions[currentInst][3] : '?';
+			if(!data.has(name)){
+				data.set(name, [{'tam': -1,
+								 'values': [value]}]);
+			}else{
+				data.get(name).push({'tam': -1,
+									 'values':[value]});
+			}
+			createVar(name);
+          }
+		const last = data.get(name).length - 1;
+       }else if (command === 'ESCRIBE') {
+          const name = instructions[currentInst][1];
+          const value = instructions[currentInst][2];
+		let res = wasArray(name);
+
+		const last = data.get(res.name).length - 1;
+		let completa = '';
+		if(res.var === -1){
+			data.get(res.name)[last].values.push(value);
+		}else{
+			data.get(res.name)[last].vars[res.var].values.push(value);
+			completa = '[' + res.var + ']';
+		}
+          modifyBox(res.name + 'v' + (data.get(res.name).length - 1) + completa, value);
+       }else if(command === 'DESTRUYE'){
+		let veces = instructions[currentInst][1];
+		while(veces--){
+			const variable = stack.pop( );
+			stack_backup.push(variable);
+			const name = variable.name;
+			delete_(variable.name, variable.version);
+			if(!data_backup.has(name)){
+				data_backup.set(name, []);
+			}
+			data_backup.get(name).push(data.get(name).pop( ));
+			if(data.get(name).length === 0){
+				data.delete(name);
+			}
+		}
+	 }else if(command === 'IMPRIME'){
+		const value = instructions[currentInst][1];
+		text += value;
+		memoryText.push(text);
+		const textarea = document.getElementById('output');
+		textarea.value  = text;
+		textarea.scrollTop = textarea.scrollHeight;
+	 }
+       currentInst++;
+    }
 
 
-      function createSvg(type, svg_attributes, properties) {
-         let node = document.createElementNS("http://www.w3.org/2000/svg", type);
-         for (const name in svg_attributes) {
-            node.setAttributeNS(null, name, svg_attributes[name]);
-         }
-         for (const name in properties) {
-            node[name] = properties[name];
-         }
-         return node;
-      }
+    let btnPrev = document.getElementById('btnPrevInst');
+    btnPrev.addEventListener('click', ( ) => {
+       if(currentInst === 1){
+          btnPrev.setAttribute('disabled','');
+       }
+       document.getElementById('btnNextInst').removeAttribute('disabled');
+       backPrevInstruction( );
+    });
 
 
-      const btnGetText = document.getElementById('btnGetText');
-      btnGetText.addEventListener('click', ( ) =>{
-         cleanAll( );
-         let line = document.getElementById('input').value.split('\n');
-         for(let instruction of line){
-            instructions.push(instruction.split(' '));
-         }
-         let ids = ["btnNextInst", "btnPlay"];
-         for(let id of ids){
-            document.getElementById(id).removeAttribute("disabled");
-         }
-         document.getElementById('btnPrevInst').setAttribute('disabled','');
-      });
+    function backPrevInstruction( ){
+      currentInst--;
+	console.log(currentInst);
+       const command = instructions[currentInst][0];
+       if(command === "CREA"){
+          const type = instructions[currentInst][1];
+          const name = instructions[currentInst][2];
+		const variable = stack.pop( );
+		delete_(variable.name, variable.version);
+		data.get(name).pop( );
+		if(data.get(name).empty){
+			data.delete(name);
+		}
+       }else if(command === 'ESCRIBE'){
+          const name = instructions[currentInst][1];
+          const value = instructions[currentInst][2];
+		let res = wasArray(name);
+		const last = data.get(res.name).length - 1;
+		let completa = '';
+		if(res.var === -1){
+			data.get(res.name)[last].values.push(value);
+		}else{
+			data.get(res.name)[last].vars[res.var].values.push(value);
+			completa = '[' + res.var + ']';
+		}
+          modifyBox(res.name + 'v' + (data.get(res.name).length - 1) + completa, value);
+       }else if(command === 'DESTRUYE'){
+		let veces = instructions[currentInst][1];
+		while(veces--){
+			const variable = stack_backup.pop( );
+			stack.push(variable);
+			const name = variable.name;
+			if(!data.has(name)){
+				data.set(name, []);
+			}
+			data.get(name).push(data_backup.get(name).pop( ));
+			if(data_backup.get(name).length === 0){
+				data_backup.delete(name);
+			}
+			recovery(name);
+		}
+	 }else if(command === 'IMPRIME'){
+		memoryText.pop( );
+		
+		document.getElementById('output').value = text = memoryText[memoryText.length - 1];
+	 }
+    }
+	
+	function recovery(name){
+		if(data.get(name)[getLastPos(data.get(name))].tam === -1){
+			createVar(name);
+		}else{
+			recuArr(name);
+		}
+	}
+	
+	function getLastPos(arr){
+		return arr.length - 1;
+	}
+    function createArr(name, values){
+	const num = data.get(name)[getLastPos(data.get(name))].tam;
+       if(cx + tam + tam * num >= MAX_X){
+          cx = posX;  cy += 150;
+          if(cy >= MAX_Y || cx + tam * num + tam >= MAX_X){
+             alert("El arreglo es demasiado grande");
+             return;
+          }
+       }
+	 const realName = stack[stack.length - 1].name + stack[stack.length - 1].version;
+       //Create the name of the array
+       let node = createSvg("text", { "x": cx, "y": cy + 5 + tam / 2, "text-anchor": "middle", "class": "small"}, { "textContent": name + ':'});
+       node.id = `svg|${realName}|`;
+       container.appendChild(node);
+       cx += tam / 2;
+
+       //Create array
+       const insert = (values.empty ? '?' : '0');
+       while(values.length < num){
+          values.push(insert);
+       }
+	 data.get(name)[getLastPos(data.get(name))].vars = [];
+       for(let index = 0; index < num; ++index){
+		data.get(name)[getLastPos(data.get(name))].vars.push({'tam': -1,
+															  'values': [values[index]]});
+          createSpace(index, realName, values[index]);
+          cx += tam;
+       }
+       cx += tam;
+    }
+	function recuArr(name){
+	const num = data.get(name)[getLastPos(data.get(name))].tam;
+       if(cx + tam + tam * num >= MAX_X){
+          cx = posX;  cy += 150;
+          if(cy >= MAX_Y || cx + tam * num + tam >= MAX_X){
+             alert("El arreglo es demasiado grande");
+             return;
+          }
+       }
+	 const realName = stack[stack.length - 1].name + stack[stack.length - 1].version;
+       //Create the name of the array
+       let node = createSvg("text", { "x": cx, "y": cy + 5 + tam / 2, "text-anchor": "middle", "class": "small"}, { "textContent": name + ':'});
+       node.id = `svg|${realName}|`;
+       container.appendChild(node);
+       cx += tam / 2;
+
+       //Create array
+       for(let index = 0; index < num; ++index){
+		const last = data.get(name)[getLastPos(data.get(name))].vars.length - 1;
+		const lastV = data.get(name)[getLastPos(data.get(name))].vars[last].values.length - 1;
+          createSpace(index, realName, data.get(name)[getLastPos(data.get(name))].vars[last].values[lastV]);
+          cx += tam;
+       }
+       cx += tam;
+	}
+	function delete_(name, version){
+	const last = data.get(name).length - 1;
+	if(data.get(name)[last].tam === -1){
+		deleteVar(name + version);
+	}else{
+		deleteArr(name + version, data.get(name)[last].tam);
+	}
+	}
+    function deleteArr(name, num){
+       document.getElementById(`svg|${name}|`).remove( );
+       while(num > 0){
+          num -= 1;
+          const ids = [`svg|${name}[${num}]|box`, `svg|${name}[${num}]|value`, `svg|${name}[${num}]|name`];
+          for(let id of ids) {
+             document.getElementById(id).remove( );
+          }
+          cx -= tam;
+       }
+       cx = (cx - tam - tam / 2);
+       repositionCY( );
+    }
+
+    function createVar(name){
+       if(cx + tam >= MAX_X){
+          cx = posX; cy += 150;
+          if(cy >= MAX_Y){
+             alert("Espacio lleno");
+             return;
+          }
+       }
+	 const last = data.get(name).length - 1;
+	 const lastV = data.get(name)[last].values.length - 1;
+       createSpace(name, '', data.get(name)[last].values[lastV]);
+       cx += 2 * tam;
+    }
 
 
-      function auxPlay( ){
-         if(currentInst < instructions.length) {
-            let timer = setTimeout(( ) => {
-               executeNextInstruction( );
-               auxPlay();
-            }, 800 / parseInt(document.getElementById('speed').value));
-            btnStop.onclick = ( ) => {
-               clearTimeout(timer);
-            };
-         }else{
-            btnStop.click( ); btnNext.click( );
-         }
-      }
+    function deleteVar(name){
+       const ids = [`svg|${name}|box`, `svg|${name}|value`, `svg|${name}|name`];
+       for(const id of ids) {
+          document.getElementById(id).remove( );
+       }
+       cx = cx - 2 * tam;
+       repositionCY( );
+    }
 
 
-      const btnPlay = document.getElementById('btnPlay');
-      btnPlay.addEventListener('click', ( ) => {
-         document.getElementById('btnStop').removeAttribute("disabled");
-         const ids = ["btnNextInst","btnPrevInst", "btnPlay"];
-         for(const id of ids){
-            document.getElementById(id).setAttribute("disabled", '' );
-         }
-         auxPlay();
-      });
+    function repositionCY( ){
+       const child = document.getElementById('containerSVG').lastChild;
+       if(cx === posX && child){
+          cx = parseInt(child.getAttribute('x')) + tam + tam / 2;
+          cy = cy !== 30 ? cy - 150 : cy;
+       }
+    }
+
+    function createSpace(name, father, value){
+	 const realName = stack[stack.length - 1].name + stack[stack.length - 1].version;
+       // Create variable's name
+       let node, NAME = (father === '' ? `${realName}` : `${father}[${name}]`);
+	 let id = `svg|${NAME}|`;
+       node = createSvg("text", { "x": cx + tam / 2, "y": cy + 15 + tam, "text-anchor":"middle", "class": "small"}, { "textContent": name });
+       node.id = id + 'name';
+       container.appendChild(node);
+
+       //Create box variable
+       node = createSvg('rect', { "x": cx, "y": cy, "width": tam, "height": tam, "fill": "lightgray", "stroke":"black"});
+       node.id = id + 'box';
+       container.appendChild(node);
+
+       //Create content
+       node = createSvg("text", { "x": cx + tam / 2, "y": cy + 5 + tam / 2, "text-anchor":"middle", "class": "small"});
+       node.id = id + 'value';
+       container.appendChild(node);
+       modifyBox(NAME, value);		
+    }
 
 
-      const btnStop = document.getElementById('btnStop');
-      btnStop.addEventListener('click', function( ){
-         this.setAttribute('disabled', '');
-         const ids = ["btnNextInst","btnPrevInst", "btnPlay"];
-         for(const id of ids){
-            document.getElementById(id).removeAttribute("disabled");
-         }
-      });
-
-
-      const btnNext = document.getElementById("btnNextInst");
-      btnNext.addEventListener('click', ( ) => {
-         if(currentInst < instructions.length) {
-            executeNextInstruction();
-            document.getElementById('btnPrevInst').removeAttribute('disabled');
-         }
-         if(currentInst === instructions.length){
-            btnNext.setAttribute('disabled','');
-         }
-      });
-
-
-      function executeNextInstruction( ){
-         const command = instructions[currentInst][0];   //command type/name name/value value
-         if (command === "CREA") {
-            const type = instructions[currentInst][1];
-            const name = instructions[currentInst][2];
-            if (!isUsed(name)) {
-               if (type === "ARR") {
-                  const num = instructions[currentInst][3];
-                  const value = instructions[currentInst].length === 5 ? instructions[currentInst][4] : '?';
-                  createArr(name, num, value);
-               } else {
-                  const value = instructions[currentInst].length === 4 ? instructions[currentInst][3] : '?';
-                  createVar(name, value);
-               }
-               idVar.add(`svg|${name}|`);
-            }
-
-         } else if (command === 'ESCRIBE') {
-            const name = instructions[currentInst][1];
-            const value = instructions[currentInst][2];
-            listOfValuesVars[name].push(value);
-            modifyBox(name, value);
-         }
-         currentInst++;
-      }
-
-
-      let btnPrev = document.getElementById('btnPrevInst');
-      btnPrev.addEventListener('click', ( ) => {
-         if(currentInst === 1){
-            btnPrev.setAttribute('disabled','');
-         }
-         document.getElementById('btnNextInst').removeAttribute('disabled');
-         backPrevInstruction( );
-      });
-
-
-      function backPrevInstruction( ){
-         currentInst--;
-         const command = instructions[currentInst][0];
-         if(command === "CREA"){
-            const type = instructions[currentInst][1];
-            const name = instructions[currentInst][2];
-            if(type === "ARR") {
-               let num = instructions[currentInst][3];
-               deleteArr(name, num);
-            }else{
-               deleteVar(name);
-            }
-            idVar.delete(`svg|${name}|`);
-         }else if(command === 'ESCRIBE'){
-            const name = instructions[currentInst][1];
-            listOfValuesVars[name].pop( );
-            modifyBox(name,  listOfValuesVars[name][listOfValuesVars[name].length - 1]);
-         }
-      }
-
-
-      function isUsed(name){
-         return idVar.has(`svg|${name}|`);
-      }
-
-
-      function createArr(name, num, value){
-         if(cx + tam + tam * num >= MAX_X){
-            cx = posX;  cy += 150;
-            if(cy >= MAX_Y || cx + tam * num + tam >= MAX_X){
-               alert("El arreglo es demasiado grande");
-               return;
-            }
-         }
-         //Create the name of the array
-         let node = createSvg("text", { "x": cx, "y": cy + 5 + tam / 2, "text-anchor": "middle", "class": "small"}, { "textContent": name + ':'});
-         node.id = `svg|${name}|`;
-         container.appendChild(node);
-         cx += tam / 2;
-
-         //Create array
-         const insert = (value === '?' ? '?' : '0');
-         let val = value.split(',');
-         while(val.length < num){
-            val.push(insert);
-         }
-         for(let index = 0; index < num; ++index){
-            createSpace(index, name, val[index]);
-            cx += tam;
-         }
-         cx += tam;
-      }
-
-
-      function deleteArr(name, num){
-         document.getElementById(`svg|${name}|`).remove( );
-         while(num > 0){
-            num -= 1;
-            const ids = [`svg|${name}[${num}]|box`, `svg|${name}[${num}]|value`, `svg|${name}[${num}]|name`];
-            for(let id of ids) {
-               document.getElementById(id).remove( );
-            }
-            cx -= tam;
-         }
-         cx = (cx - tam - tam / 2);
-         reposition( );
-      }
-
-
-      function createVar(name, value){
-         if(cx + tam >= MAX_X){
-            cx = posX; cy += 150;
-            if(cy >= MAX_Y){
-               alert("Espacio lleno");
-               return;
-            }
-         }
-         createSpace(name, '', value);
-         cx += 2 * tam;
-      }
-
-
-      function deleteVar(name){
-         const ids = [`svg|${name}|box`, `svg|${name}|value`, `svg|${name}|name`];
-         for(const id of ids) {
-            document.getElementById(id).remove( );
-         }
-         cx = cx - 2 * tam;
-         reposition( );
-      }
-
-
-      function reposition( ){
-         const child = document.getElementById('containerSVG').lastChild;
-         if(cx === posX && child){
-            cx = parseInt(child.getAttribute('x')) + tam + tam / 2;
-            cy = cy !== 30 ? cy - 150 : cy;
-         }
-      }
-
-      function createSpace(name, father, value){
-         // Create variable's name
-         let node, NAME = (father === '' ? `${name}` : `${father}[${name}]`), id = `svg|${NAME}|`;
-         node = createSvg("text", { "x": cx + tam / 2, "y": cy + 15 + tam, "text-anchor":"middle", "class": "small"}, { "textContent": name });
-         node.id = id + 'name';
-         container.appendChild(node);
-
-         //Create box variable
-         node = createSvg('rect', { "x": cx, "y": cy, "width": tam, "height": tam, "fill": "lightgray", "stroke":"black"});
-         node.id = id + 'box';
-         container.appendChild(node);
-
-         //Create content
-         node = createSvg("text", { "x": cx + tam / 2, "y": cy + 5 + tam / 2, "text-anchor":"middle", "class": "small"});
-         node.id = id + 'value';
-         container.appendChild(node);
-         modifyBox(NAME, value);
-         listOfValuesVars[NAME] = [value];
-      }
-
-
-      let lastActive = undefined;
-      function modifyBox(name, value) {
-         let box = document.getElementById(`svg|${name}|box`), node = document.getElementById(`svg|${name}|value`);
-         if (node) {
-            node.textContent = value;
-            if(lastActive) {
-               lastActive.removeAttribute('class');
-            }
-            box.setAttribute('class','active');
-            lastActive = box;
-         }
-      }
+    let lastActive = undefined;
+    function modifyBox(name, value) {
+       let box = document.getElementById(`svg|${name}|box`), node = document.getElementById(`svg|${name}|value`);
+       if (node) {
+          node.textContent = value;
+          if(lastActive) {
+             lastActive.removeAttribute('class');
+          }
+          box.setAttribute('class','active');
+          lastActive = box;
+       }
+    }
    </script>
 </html>

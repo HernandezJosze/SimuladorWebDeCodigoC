@@ -1,0 +1,40 @@
+int n = 10;
+for (int i = 0; i < n; ++i) {
+   int a[2];
+   scanf("%d", &a[0]);
+   a[0] = a[0];
+   a[1]=a[1];
+   if (a[0] == 7) {
+      break;
+   } else if (a[0] % 3 == 0) {
+      continue;
+   } else {
+      printf("%d\n", a[0] + 5);
+   }
+}
+
+int arr[] = { 1, 2, 3, 4, 5 };
+for (int i = 0; i < 5; ++i) {
+   printf("%d ", arr[i]);
+}
+
+int brr[5];
+
+int a = 5;
+if (a < 10) {
+   int a = 7;
+   if (a < 8) {
+      int a = 0;
+      if (a < -2) {
+         printf(":)\n");
+      } else {
+         printf(":(\n");
+      }
+   }
+}
+
+int x = 0;
+while (x++ < 3) {
+   int n = 2;
+   printf("X%dX", n);
+}

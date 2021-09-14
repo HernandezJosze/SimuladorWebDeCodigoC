@@ -109,23 +109,23 @@ void esquiva_lectura(std::istream& is, char c) {
    }
 }
 void emite_imprime(std::ostream& os, const std::string& s) {
-   os << "IMPRIME " << s << "\04\n";
+   os << "IMPRIME\01" << s << "\04\n";
 }
 void emite_crea(std::ostream& os, valor_expresion* v, const tabla_simbolos& ts) {
    valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_arreglo<std::unique_ptr<valor_expresion>>*>(v, [&](auto checado) {
       if constexpr(std::is_arithmetic_v<decltype(checado->valor)>) {
-         os << "CREA VAR " << ts.busca(checado) << "$" << checado << "\04\n";
+         os << "CREA\01VAR\01" << ts.busca(checado) << "\04\n";
       } else {
-         os << "CREA ARR " << ts.busca(checado) << "$" << checado << " " << checado->valor.size( ) << "\04\n";
+         os << "CREA\01ARR\01" << ts.busca(checado) << "\01" << checado->valor.size( ) << "\04\n";
       }
    });
 }
 void emite_crea_escribe(std::ostream& os, valor_expresion* v, const tabla_simbolos& ts) {
    valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_arreglo<std::unique_ptr<valor_expresion>>*>(v, [&](auto checado) {
       if constexpr(std::is_scalar_v<decltype(checado->valor)>) {
-         os << "CREA VAR " << ts.busca(checado) << "$" << checado << " " << checado->valor << "\04\n";
+         os << "CREA\01VAR\01" << ts.busca(checado) << "\01" << checado->valor << "\04\n";
       } else {
-         os << "CREA ARR " << ts.busca(checado) << "$" << checado << " " << checado->valor.size( ) << " ";
+         os << "CREA\01ARR\01" << ts.busca(checado) << "\01" << checado->valor.size( ) << "\01";
          for (int i = 0; i < checado->valor.size( ); ++i) {
             valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(checado->valor[i].get( ), [&](auto elem) {
                os << elem->valor << (i + 1 < checado->valor.size( ) ? "," : "\04\n");
@@ -137,7 +137,7 @@ void emite_crea_escribe(std::ostream& os, valor_expresion* v, const tabla_simbol
 void emite_escribe(std::ostream& os, valor_expresion* v, const tabla_simbolos& ts) {
    valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_arreglo<std::unique_ptr<valor_expresion>>*>(v, [&](auto checado) {
       if constexpr(std::is_scalar_v<decltype(checado->valor)>) {
-         os << "ESCRIBE " << ts.busca(checado) << "$" << checado << " " << checado->valor << "\04\n";
+         os << "ESCRIBE\01" << ts.busca(checado) << "\01" << checado->valor << "\04\n";
       } else {
          for (const auto& p : checado->valor) {
             emite_escribe(os, p.get( ), ts);
@@ -147,7 +147,7 @@ void emite_escribe(std::ostream& os, valor_expresion* v, const tabla_simbolos& t
 }
 void emite_destruye(std::ostream& os, const tabla_simbolos& ts) {
    if (!ts.ambito.empty( )) {
-      os << "DESTRUYE " << ts.ambito.size( ) << "\04\n";
+      os << "DESTRUYE\01" << ts.ambito.size( ) << "\04\n";
    }
 }
 
