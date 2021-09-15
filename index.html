@@ -207,7 +207,8 @@ while (x++ < 3) {
        for(let instruction of line){
           instructions.push(instruction.split('\01'));// Separador de token
        }
-       instructions.pop( ); // eliminamos el salto de linea del final
+       if(instructions[getLastPos(instructions)][0] === "")
+           instructions.pop( ); // eliminamos el salto de linea del final
        let ids = ["btnNextInst", "btnPlay"];
        for(let id of ids){
           document.getElementById(id).removeAttribute("disabled");
