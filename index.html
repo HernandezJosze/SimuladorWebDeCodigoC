@@ -307,75 +307,58 @@ ESCRIBEx4
 			const name = instructions[currentInst][2];
 			stack.push({'name': name, 
 						'version': 'v' + (data.has(name) ? data.get(name).length : 0)});
-			let value;
-			if (type === "ARR") {
-              const tam = instructions[currentInst][3];
-			if(instructions[currentInst].length === 5){
-				let s = instructions[currentInst][4].split(',');
-				value = s;
-			}else{
-				value = [];
-			}
 			if(!data.has(name)){
 				data.set(name, []);
 			}
-			data.get(name).push({'tam': tam,
-								 'vars': []});
-			createArr(name, value);
-          } else if(type === "VAR"){
-              value = instructions[currentInst].length === 4 ? instructions[currentInst][3] : '?';
-			if(!data.has(name)){
-				data.set(name, [{'tam': -1,
-								 'values': [value]}]);
-			}else{
+			if (type === "ARR") {
+				const tam = instructions[currentInst][3];
+				const value = instructions[currentInst].length === 5 ? instructions[currentInst][4].split(',') : new Array();
+				data.get(name).push({'tam': tam,
+									 'vars': []});
+				createArr(name, value);
+			}else if(type === "VAR"){
+				const value = instructions[currentInst].length === 4 ? instructions[currentInst][3] : '?';
 				data.get(name).push({'tam': -1,
 									 'values':[value]});
+				createVar(name);
 			}
-			createVar(name);
-          }
-		const last = data.get(name).length - 1;
-       }else if (command === 'ESCRIBE') {
-          const name = instructions[currentInst][1];
-          const value = instructions[currentInst][2];
-		let res = wasArray(name);
-
-		const last = data.get(res.name).length - 1;
-		let completa = '';
-		if(res.var === -1){
-			data.get(res.name)[last].values.push(value);
-		}else{
-			data.get(res.name)[last].vars[res.var].values.push(value);
-			completa = '[' + res.var + ']';
+		}else if (command === 'ESCRIBE') {
+			const res = wasArray(instructions[currentInst][1]);//name
+			const value = instructions[currentInst][2];
+			const last = getLastPos(data.get(res.name));
+			let id = '';
+			if(res.var === -1){ // entonces es una variable
+				data.get(res.name)[last].values.push(value);
+				id = `${res.name}v${last}`;
+			}else{ //es un arreglo
+				data.get(res.name)[last].vars[res.var].values.push(value);
+				id = `${res.name}v${last}[${res.var}]`;
+			}
+			 modifyBox(id, value);
+		}else if(command === 'DESTRUYE'){
+			let veces = instructions[currentInst][1];
+			while(veces--){
+				const variable = stack.pop( );
+				stack_backup.push(variable);
+				
+				deleteVarArrOfHTML(variable.name, variable.version);
+				if(!data_backup.has(variable.name)){
+					data_backup.set(variable.name, []);
+				}
+				data_backup.get(variable.name).push(data.get(variable.name).pop( ));
+			}
+		}else if(command === 'IMPRIME'){
+			const value = instructions[currentInst][1];
+			text += value;
+			memoryText.push(text);
+			const textarea = document.getElementById('output');
+			textarea.value  = text;
+			textarea.scrollTop = textarea.scrollHeight;
 		}
-          modifyBox(res.name + 'v' + (data.get(res.name).length - 1) + completa, value);
-       }else if(command === 'DESTRUYE'){
-		let veces = instructions[currentInst][1];
-		while(veces--){
-			const variable = stack.pop( );
-			stack_backup.push(variable);
-			const name = variable.name;
-			delete_(variable.name, variable.version);
-			if(!data_backup.has(name)){
-				data_backup.set(name, []);
-			}
-			data_backup.get(name).push(data.get(name).pop( ));
-			if(data.get(name).length === 0){
-				data.delete(name);
-			}
-		}
-	 }else if(command === 'IMPRIME'){
-		const value = instructions[currentInst][1];
-		text += value;
-		memoryText.push(text);
-		const textarea = document.getElementById('output');
-		textarea.value  = text;
-		textarea.scrollTop = textarea.scrollHeight;
-	 }
-       currentInst++;
+		currentInst++;
     }
 
-
-    let btnPrev = document.getElementById('btnPrevInst');
+    const btnPrev = document.getElementById('btnPrevInst');
     btnPrev.addEventListener('click', ( ) => {
        if(currentInst === 1){
           btnPrev.setAttribute('disabled','');
@@ -384,208 +367,183 @@ ESCRIBEx4
        backPrevInstruction( );
     });
 
-
     function backPrevInstruction( ){
-      currentInst--;
-	console.log(currentInst);
-       const command = instructions[currentInst][0];
-       if(command === "CREA"){
-          const type = instructions[currentInst][1];
-          const name = instructions[currentInst][2];
-		const variable = stack.pop( );
-		delete_(variable.name, variable.version);
-		data.get(name).pop( );
-		if(data.get(name).empty){
-			data.delete(name);
-		}
-       }else if(command === 'ESCRIBE'){
-          const name = instructions[currentInst][1];
-          const value = instructions[currentInst][2];
-		let res = wasArray(name);
-		const last = data.get(res.name).length - 1;
-		let completa = '';
-		if(res.var === -1){
-			data.get(res.name)[last].values.push(value);
-		}else{
-			data.get(res.name)[last].vars[res.var].values.push(value);
-			completa = '[' + res.var + ']';
-		}
-          modifyBox(res.name + 'v' + (data.get(res.name).length - 1) + completa, value);
+		currentInst--;
+		console.log(currentInst);
+		const command = instructions[currentInst][0];
+		if(command === "CREA"){
+			const type = instructions[currentInst][1];
+			const variable = stack.pop( );
+			deleteVarArrOfHTML(variable.name, variable.version);
+			data.get(variable.name).pop( );
+		}else if(command === 'ESCRIBE'){
+			const res = wasArray(instructions[currentInst][1]); //name
+			const value = instructions[currentInst][2];
+			const last = data.get(res.name).length - 1;
+			let id = '';
+			if(res.var === -1){// es var
+				data.get(res.name)[last].values.push(value);
+				id = `${res.name}v${last}`;
+			}else{ // es array
+				data.get(res.name)[last].vars[res.var].values.push(value);
+				id = `${res.name}v${last}[${res.var}]`;
+			}
+			modifyBox(id, value);
        }else if(command === 'DESTRUYE'){
-		let veces = instructions[currentInst][1];
-		while(veces--){
-			const variable = stack_backup.pop( );
-			stack.push(variable);
-			const name = variable.name;
-			if(!data.has(name)){
-				data.set(name, []);
+			let veces = instructions[currentInst][1];
+			while(veces--){
+				const variable = stack_backup.pop( );
+				stack.push(variable);
+				data.get(variable.name).push(data_backup.get(variable.name).pop( ));
+				recovery(variable.name);
 			}
-			data.get(name).push(data_backup.get(name).pop( ));
-			if(data_backup.get(name).length === 0){
-				data_backup.delete(name);
-			}
-			recovery(name);
+		}else if(command === 'IMPRIME'){
+			memoryText.pop( );
+			document.getElementById('output').value = text = memoryText[memoryText.length - 1];
 		}
-	 }else if(command === 'IMPRIME'){
-		memoryText.pop( );
-		
-		document.getElementById('output').value = text = memoryText[memoryText.length - 1];
-	 }
     }
 	
 	function recovery(name){
 		if(data.get(name)[getLastPos(data.get(name))].tam === -1){
 			createVar(name);
 		}else{
-			recuArr(name);
+			createArr(name, [], false);
 		}
 	}
 	
 	function getLastPos(arr){
 		return arr.length - 1;
 	}
-    function createArr(name, values){
-	const num = data.get(name)[getLastPos(data.get(name))].tam;
-       if(cx + tam + tam * num >= MAX_X){
-          cx = posX;  cy += 150;
-          if(cy >= MAX_Y || cx + tam * num + tam >= MAX_X){
-             alert("El arreglo es demasiado grande");
-             return;
-          }
-       }
-	 const realName = stack[stack.length - 1].name + stack[stack.length - 1].version;
-       //Create the name of the array
-       let node = createSvg("text", { "x": cx, "y": cy + 5 + tam / 2, "text-anchor": "middle", "class": "small"}, { "textContent": name + ':'});
-       node.id = `svg|${realName}|`;
-       container.appendChild(node);
-       cx += tam / 2;
+    function createArr(name, values, primera_vez = true){
+		const num = data.get(name)[getLastPos(data.get(name))].tam;
+		if(cx + tam + tam * num >= MAX_X){
+			cx = posX;  cy += 150;
+			if(cy >= MAX_Y || cx + tam * num + tam >= MAX_X){
+				alert("El arreglo es demasiado grande");
+				return;
+			}
+		}
+		const realName = stack[getLastPos(stack)].name + stack[getLastPos(stack)].version;
+		//Create the name of the array
+		let node = createSvg("text", { "x": cx, "y": cy + 5 + tam / 2, "text-anchor": "middle", "class": "small"}, { "textContent": name + ':'});
+		node.id = `svg|${realName}|`;
+		container.appendChild(node);
+		cx += tam / 2;
 
-       //Create array
-       const insert = (values.empty ? '?' : '0');
-       while(values.length < num){
-          values.push(insert);
-       }
-	 data.get(name)[getLastPos(data.get(name))].vars = [];
-       for(let index = 0; index < num; ++index){
-		data.get(name)[getLastPos(data.get(name))].vars.push({'tam': -1,
-															  'values': [values[index]]});
-          createSpace(index, realName, values[index]);
-          cx += tam;
-       }
-       cx += tam;
+		//Create array
+		if(primera_vez){
+			const insert = (!values.length ? '?' : '0');
+			while(values.length < num){
+				values.push(insert);
+			}
+			for(let index = 0; index < num; ++index){
+				createSpace(index, realName, values[index]);
+				cx += tam;
+				data.get(name)[getLastPos(data.get(name))].vars.push({'tam': -1,
+																	  'values': [values[index]]});
+			}
+			cx += tam;
+		}else{
+			createArrAux(name);
+		}
     }
-	function recuArr(name){
-	const num = data.get(name)[getLastPos(data.get(name))].tam;
-       if(cx + tam + tam * num >= MAX_X){
-          cx = posX;  cy += 150;
-          if(cy >= MAX_Y || cx + tam * num + tam >= MAX_X){
-             alert("El arreglo es demasiado grande");
-             return;
-          }
-       }
-	 const realName = stack[stack.length - 1].name + stack[stack.length - 1].version;
-       //Create the name of the array
-       let node = createSvg("text", { "x": cx, "y": cy + 5 + tam / 2, "text-anchor": "middle", "class": "small"}, { "textContent": name + ':'});
-       node.id = `svg|${realName}|`;
-       container.appendChild(node);
-       cx += tam / 2;
-
+	function createArrAux(name){
+		const num = data.get(name)[getLastPos(data.get(name))].tam;
+		const realName = stack[getLastPos(stack)].name + stack[getLastPos(stack)].version;
        //Create array
-       for(let index = 0; index < num; ++index){
+		for(let index = 0; index < num; ++index){
 		const last = data.get(name)[getLastPos(data.get(name))].vars.length - 1;
 		const lastV = data.get(name)[getLastPos(data.get(name))].vars[last].values.length - 1;
-          createSpace(index, realName, data.get(name)[getLastPos(data.get(name))].vars[last].values[lastV]);
-          cx += tam;
-       }
-       cx += tam;
+			createSpace(index, realName, data.get(name)[getLastPos(data.get(name))].vars[last].values[lastV]);
+			cx += tam;
+		}
+		cx += tam;
 	}
-	function delete_(name, version){
-	const last = data.get(name).length - 1;
-	if(data.get(name)[last].tam === -1){
-		deleteVar(name + version);
-	}else{
-		deleteArr(name + version, data.get(name)[last].tam);
-	}
+	function deleteVarArrOfHTML(name, version){
+		const last = getLastPos(data.get(name));
+		if(data.get(name)[last].tam === -1){
+			deleteVar(name + version);
+		}else{
+			deleteArr(name + version, data.get(name)[last].tam);
+		}
 	}
     function deleteArr(name, num){
-       document.getElementById(`svg|${name}|`).remove( );
-       while(num > 0){
-          num -= 1;
-          const ids = [`svg|${name}[${num}]|box`, `svg|${name}[${num}]|value`, `svg|${name}[${num}]|name`];
-          for(let id of ids) {
-             document.getElementById(id).remove( );
-          }
-          cx -= tam;
-       }
-       cx = (cx - tam - tam / 2);
-       repositionCY( );
+		document.getElementById(`svg|${name}|`).remove( );
+		while(num > 0){
+			num -= 1;
+			const ids = [`svg|${name}[${num}]|box`, `svg|${name}[${num}]|value`, `svg|${name}[${num}]|name`];
+			for(let id of ids) {
+				document.getElementById(id).remove( );
+			}
+			cx -= tam;
+		}
+		cx = (cx - tam - tam / 2);
+		repositionCY( );
     }
 
     function createVar(name){
-       if(cx + tam >= MAX_X){
-          cx = posX; cy += 150;
-          if(cy >= MAX_Y){
-             alert("Espacio lleno");
-             return;
-          }
-       }
-	 const last = data.get(name).length - 1;
-	 const lastV = data.get(name)[last].values.length - 1;
-       createSpace(name, '', data.get(name)[last].values[lastV]);
-       cx += 2 * tam;
+		if(cx + tam >= MAX_X){
+			cx = posX; cy += 150;
+			if(cy >= MAX_Y){
+				alert("Espacio lleno");
+				return;
+			}
+		}
+		const last = data.get(name).length - 1;
+		const lastV = data.get(name)[last].values.length - 1;
+		createSpace(name, '', data.get(name)[last].values[lastV]);
+		cx += 2 * tam;
     }
-
 
     function deleteVar(name){
-       const ids = [`svg|${name}|box`, `svg|${name}|value`, `svg|${name}|name`];
-       for(const id of ids) {
-          document.getElementById(id).remove( );
-       }
-       cx = cx - 2 * tam;
-       repositionCY( );
+		const ids = [`svg|${name}|box`, `svg|${name}|value`, `svg|${name}|name`];
+		for(const id of ids) {
+			document.getElementById(id).remove( );
+		}
+		cx = cx - 2 * tam;
+		repositionCY( );
     }
 
-
     function repositionCY( ){
-       const child = document.getElementById('containerSVG').lastChild;
-       if(cx === posX && child){
-          cx = parseInt(child.getAttribute('x')) + tam + tam / 2;
-          cy = cy !== 30 ? cy - 150 : cy;
-       }
+		const child = document.getElementById('containerSVG').lastChild;
+		if(cx === posX && child){
+			cx = parseInt(child.getAttribute('x')) + tam + tam / 2;
+			cy = cy !== 30 ? cy - 150 : cy;
+		}
     }
 
     function createSpace(name, father, value){
-	 const realName = stack[stack.length - 1].name + stack[stack.length - 1].version;
-       // Create variable's name
-       let node, NAME = (father === '' ? `${realName}` : `${father}[${name}]`);
-	 let id = `svg|${NAME}|`;
-       node = createSvg("text", { "x": cx + tam / 2, "y": cy + 15 + tam, "text-anchor":"middle", "class": "small"}, { "textContent": name });
-       node.id = id + 'name';
-       container.appendChild(node);
+		const realName = stack[getLastPos(stack)].name + stack[getLastPos(stack)].version;
+		// Create variable's name
+		let node, NAME = (father === '' ? `${realName}` : `${father}[${name}]`);
+		let id = `svg|${NAME}|`;
+		node = createSvg("text", { "x": cx + tam / 2, "y": cy + 15 + tam, "text-anchor":"middle", "class": "small"}, { "textContent": name });
+		node.id = id + 'name';
+		container.appendChild(node);
 
-       //Create box variable
-       node = createSvg('rect', { "x": cx, "y": cy, "width": tam, "height": tam, "fill": "lightgray", "stroke":"black"});
-       node.id = id + 'box';
-       container.appendChild(node);
+		//Create box variable
+		node = createSvg('rect', { "x": cx, "y": cy, "width": tam, "height": tam, "fill": "lightgray", "stroke":"black"});
+		node.id = id + 'box';
+		container.appendChild(node);
 
-       //Create content
-       node = createSvg("text", { "x": cx + tam / 2, "y": cy + 5 + tam / 2, "text-anchor":"middle", "class": "small"});
-       node.id = id + 'value';
-       container.appendChild(node);
-       modifyBox(NAME, value);		
+		//Create content
+		node = createSvg("text", { "x": cx + tam / 2, "y": cy + 5 + tam / 2, "text-anchor":"middle", "class": "small"});
+		node.id = id + 'value';
+		container.appendChild(node);
+		modifyBox(NAME, value);		
     }
 
 
     let lastActive = undefined;
     function modifyBox(name, value) {
-       let box = document.getElementById(`svg|${name}|box`), node = document.getElementById(`svg|${name}|value`);
-       if (node) {
-          node.textContent = value;
-          if(lastActive) {
-             lastActive.removeAttribute('class');
-          }
-          box.setAttribute('class','active');
-          lastActive = box;
+		let box = document.getElementById(`svg|${name}|box`), node = document.getElementById(`svg|${name}|value`);
+		if (node) {
+			node.textContent = value;
+			if(lastActive) {
+				lastActive.removeAttribute('class');
+			}
+			box.setAttribute('class','active');
+			lastActive = box;
        }
     }
    </script>
