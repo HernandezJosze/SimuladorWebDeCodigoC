@@ -1,0 +1,19 @@
+int n;
+scanf("%d", &n);
+int vector1[n], vector2[n];
+
+int valor;
+for(int i = 0; i < n; ++i){
+	scanf("%d", &vector1[i]);
+}
+for(int i = 0; i < n; ++i){
+	scanf("%d", &vector2[i]);
+}
+int res = 1;
+for(int i = 0; i < n; ++i){
+    if(vector1[i] <= vector2[i]){
+        res = 0;
+        break;
+    }
+}
+printf("%d", res);

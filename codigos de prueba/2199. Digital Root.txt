@@ -1,0 +1,23 @@
+int n;
+
+do{
+   scanf("%d", &n);
+   int m = n;
+
+   int repetir = 1;
+
+   while(repetir && n != 0){
+      int aux = 0;
+      while(m != 0){
+         aux += m % 10;
+         m /= 10;
+      }
+      if(aux < 10){
+		 printf("%d\n", aux);
+         repetir = 0;
+      }else{
+         m = aux;
+         aux = 0;
+      }
+   }
+   }while(n != 0);
