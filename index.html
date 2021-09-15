@@ -171,7 +171,7 @@ while (x++ < 3) {
     });
     btnDark.click( );
 
-
+    const textarea = document.getElementById('outputC');
     const posX = 30, posY = 30, tam = 60, container = document.getElementById("containerSVG");
     const MAX_X = 1900, MAX_Y = 840;
     let cx = posX, cy = posY;
@@ -324,10 +324,12 @@ while (x++ < 3) {
 			const value = instructions[currentInst][1];
 			text += value;
 			memoryText.push(text);
-			const textarea = document.getElementById('outputC');
 			textarea.value  = text;
 			textarea.scrollTop = textarea.scrollHeight;
-		}
+		}else{
+            textarea.value = command;
+            return;
+        }
 		currentInst++;
     }
 
@@ -372,7 +374,7 @@ while (x++ < 3) {
 			}
 		}else if(command === 'IMPRIME'){
 			memoryText.pop( );
-			document.getElementById('outputC').value = text = memoryText[memoryText.length - 1];
+            textarea.value = text = memoryText[memoryText.length - 1];
 		}
     }
 	
