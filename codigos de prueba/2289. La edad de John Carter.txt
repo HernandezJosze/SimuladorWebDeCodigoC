@@ -1,0 +1,8 @@
+int v;
+scanf("%d", &v);
+int dias = 0, value;
+    for(int i = 0; i < v; ++i){
+      scanf("%d", &value);
+      dias += value;
+    }
+printf("%d ",dias / 365);
