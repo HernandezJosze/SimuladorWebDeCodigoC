@@ -1,0 +1,12 @@
+int n, m;
+scanf("%d %d", &n, &m);
+
+int lapiz, contador = 0;
+for( int i = 0 ; i < n ; ++i ){
+    scanf("%d", &lapiz );
+    if ( lapiz == m ){
+        contador+=1;
+	}
+}
+
+printf("%d", contador);

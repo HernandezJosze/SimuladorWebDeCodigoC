@@ -1,0 +1,9 @@
+int n;
+scanf("%d", &n);
+
+int bolsa, precio, total = 0;
+for( int i = 0 ; i < n ; ++i ){
+    scanf("%d %d", &bolsa, &precio );
+    total+= bolsa*precio;
+}
+printf("%d", total);

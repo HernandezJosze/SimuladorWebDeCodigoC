@@ -1,0 +1,19 @@
+int n;
+scanf("%d", &n );
+int izq = 1 , der = 1 ;
+
+int suma = 0, formas = 1, menorp = 2147483647;
+do{
+   while ( suma < n  ){
+      suma += der++ ;
+   }
+
+   if ( suma == n ){
+      formas+=1;
+	  if(izq < menorp){
+		menorp = izq;
+	  }
+   }
+   suma-=izq++;
+}while( der != n );
+printf("%d %d", formas , menorp );
