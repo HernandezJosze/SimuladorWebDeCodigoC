@@ -220,8 +220,8 @@ std::vector<token_anotada> lexer(const char* ptr){
       }else if(isComment(ptr, advance)) {
          ptr += advance;
       }else if(isString(ptr, advance, tipo) ||
-               isNumeric(ptr, advance, tipo) ||
                isSymbol(ptr, advance, tipo) ||
+               isNumeric(ptr, advance, tipo) ||
                isAlphaNumeric(ptr, advance, tipo)) {
          vectorLexer.push_back(token_anotada{tipo, std::string_view(ptr, advance)});
          ptr += advance;
