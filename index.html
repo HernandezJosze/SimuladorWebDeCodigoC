@@ -60,88 +60,51 @@
               color: white;
           }
       </style>
+      <script src="interprete.js"></script>
    </head>
    <body id="body">
       <div style="display: grid; grid-template-columns:1fr 1fr 1fr;">
          <div id="editor"  style="grid-row: 1 / span 3; grid-column: 1 / span 1; display: flex;">
             <div id="nums" class="small">1<br>2<br>3<br>4</div>
-            <textarea class="darkmodeEditor" id="input" style=" width: 99%; height: 98%;">CREAVARn10
-CREAVARi0
-CREAVARa
-ESCRIBEa0
-ESCRIBEi1
-DESTRUYE1
-CREAVARa
-ESCRIBEa1
-IMPRIME6
-
-ESCRIBEi2
-DESTRUYE1
-CREAVARa
-ESCRIBEa2
-IMPRIME7
-
-ESCRIBEi3
-DESTRUYE1
-CREAVARa
-ESCRIBEa3
-ESCRIBEi4
-DESTRUYE1
-CREAVARa
-ESCRIBEa4
-IMPRIME9
-
-ESCRIBEi5
-DESTRUYE1
-CREAVARa
-ESCRIBEa5
-IMPRIME10
-
-ESCRIBEi6
-DESTRUYE1
-CREAVARa
-ESCRIBEa6
-ESCRIBEi7
-DESTRUYE1
-CREAVARa
-ESCRIBEa7
-DESTRUYE1
-DESTRUYE1
-CREAARRarr51,2,3,4,5
-CREAVARi0
-IMPRIME1 
-ESCRIBEi1
-IMPRIME2 
-ESCRIBEi2
-IMPRIME3 
-ESCRIBEi3
-IMPRIME4 
-ESCRIBEi4
-IMPRIME5 
-ESCRIBEi5
-DESTRUYE1
-CREAARRbrr5
-CREAVARa5
-CREAVARa7
-CREAVARa0
-IMPRIME:(
-
-DESTRUYE1
-DESTRUYE1
-CREAVARx0
-ESCRIBEx1
-CREAVARn2
-IMPRIMEX2X
-DESTRUYE1
-ESCRIBEx2
-CREAVARn2
-IMPRIMEX2X
-DESTRUYE1
-ESCRIBEx3
-CREAVARn2
-IMPRIMEX2X
-DESTRUYE1
-ESCRIBEx4
+            <textarea class="darkmodeEditor" id="code" style=" width: 99%; height: 98%;">int n = 10;
+for (int i = 0; i < n; ++i) {
+   int a[2];
+   scanf("%d", &a[0]);
+   a[0] = a[0];
+   if (a[0] == 7) {
+      break;
+   } else if (a[0] % 3 == 0) {
+      continue;
+   } else {
+      printf("%d\n", a[0] + 5);
+   }
+}
+
+int arr[] = { 1, 2, 3, 4, 5 };
+for (int i = 0; i < 5; ++i) {
+   printf("%d ", arr[i]);
+}
+
+int brr[5];
+
+int a = 5;
+if (a < 10) {
+   int a = 7;
+   if (a < 8) {
+      int a = 0;
+      if (a < -2) {
+         printf(":)\n");
+      } else {
+         printf(":(\n");
+      }
+   }
+}
+
+int x = 0;
+while (x++ < 3) {
+   int n = 2;
+   printf("X%dX", n);
+}
 		</textarea>
         </div>
         <div>
@@ -158,9 +121,14 @@ ESCRIBEx4
               <input type="range" id="speed" min="1" max="10" value="2">
            <button id="btnStop" disabled>Detener</button>
         </div>
-		<div style="grid-row: 1 / span 3; grid-column: 2 / span 1; display: flex;">
-			<textarea class="darkmodeEditor" id="output" disabled="true" style="width: 99%; height: 98%;"></textarea>
-	    </div>
+          <div style="grid-row: 1 / span 3; grid-column: 2 / span 1; display: flex;">
+              <label for="inputC">Entrada del codigo</label>
+              <textarea class="darkmodeEditor" id="inputC" style="width: 99%; height: 98%;"></textarea>
+          </div>
+          <div style="grid-row: 1 / span 3; grid-column: 3 / span 1; display: flex;">
+              <label for="outputC">Salida del codigo</label>
+              <textarea class="darkmodeEditor" id="outputC" disabled="true" style="width: 99%; height: 98%;"></textarea>
+          </div>
       </div>
       <svg id="containerSVG" class="darkmodeContaier">
       </svg>
@@ -186,11 +154,19 @@ ESCRIBEx4
    </footer>
    -->
    <script>
+       let result;
+       Module.onRuntimeInitialized = function( ) {
+           let interpreta = Module.cwrap("interpreta", "string", [ "string", "string" ]);
+           document.getElementById("btnGetText").onclick = function( ) {
+               result = interpreta(document.getElementById("code").value, document.getElementById("inputC").value);
+               initialization( );
+           }
+       };
     let btnDark = document.getElementById('btnDarkMode');
     btnDark.addEventListener('click', ( ) => {
        document.getElementById('body').classList.toggle('darkModeBody');
        document.getElementById('containerSVG').classList.toggle('darkModeContainer');
-       document.getElementById('input').classList.toggle('darkModeEditor');
+       document.getElementById('inputC').classList.toggle('darkModeEditor');
        btnDark.innerText = btnDark.textContent === "Cambiar a modo oscuro" ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
     });
     btnDark.click( );
@@ -202,14 +178,14 @@ ESCRIBEx4
 	let instructions = [ ], currentInst = 0;
 	let data = new Map( ), data_backup = new Map( );
 	let stack = [], stack_backup = [];
-	let text = "INPUT:\n", memoryText = [text];
+	let text = "", memoryText = [text];
     function cleanAll( ){
 		cx = posX, cy = posY;
 		instructions = [ ], currentInst = 0;
 		data = new Map( ), data_backup = new Map( );
 		stack = [], stack_backup = [];
-		text = "INPUT:\n", memoryText = [text];
-		document.getElementById('output').value = "INPUT:\n";
+		text = "", memoryText = [text];
+		document.getElementById('outputC').value = "";
 		while(container.hasChildNodes( )){
 			container.removeChild(container.lastChild);
 		}
@@ -225,12 +201,9 @@ ESCRIBEx4
        }
        return node;
     }
-
-
-    const btnGetText = document.getElementById('btnGetText');
-	btnGetText.addEventListener('click', ( ) =>{
+    function initialization( ){
        cleanAll( );
-       let line = document.getElementById('input').value.split('\04\n'); //separador de instruccion
+       let line = result.split('\04\n'); //separador de instruccion
        for(let instruction of line){
           instructions.push(instruction.split('\01'));// Separador de token
        }
@@ -239,7 +212,7 @@ ESCRIBEx4
           document.getElementById(id).removeAttribute("disabled");
        }
        document.getElementById('btnPrevInst').setAttribute('disabled','');
-    });
+    }
 
     function auxPlay( ){
        if(currentInst < instructions.length) {
@@ -351,7 +324,7 @@ ESCRIBEx4
 			const value = instructions[currentInst][1];
 			text += value;
 			memoryText.push(text);
-			const textarea = document.getElementById('output');
+			const textarea = document.getElementById('outputC');
 			textarea.value  = text;
 			textarea.scrollTop = textarea.scrollHeight;
 		}
@@ -399,7 +372,7 @@ ESCRIBEx4
 			}
 		}else if(command === 'IMPRIME'){
 			memoryText.pop( );
-			document.getElementById('output').value = text = memoryText[memoryText.length - 1];
+			document.getElementById('outputC').value = text = memoryText[memoryText.length - 1];
 		}
     }
 	
