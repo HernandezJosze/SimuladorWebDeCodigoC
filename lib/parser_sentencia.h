@@ -107,7 +107,7 @@ std::unique_ptr<sentencia> parsea_declaraciones(const token_anotada*& iter) {
          espera(iter, ASIGNACION, "Se esperaba una asignacion");
          ex = parsea_expresion(iter);
       }
-      return sentencia_declaraciones::subdeclaracion(nombre, std::move(arreglo), std::move(ex));
+      return sentencia_declaraciones::subdeclaracion{nombre, std::move(arreglo), std::move(ex)};
    };
 
    auto pos = iter, tipo = espera(iter, es_tipo, "Se esperaba un tipo");

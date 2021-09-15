@@ -503,7 +503,7 @@ void evalua(const sentencia_declaraciones& s, tabla_simbolos& ts, std::pair<std:
                   if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(elemento, [&](auto checado) {
                      elementos.push_back((s.tipo->tipo == INT ? (std::unique_ptr<valor_expresion>)std::make_unique<valor_escalar<int>>(checado->valor) : std::make_unique<valor_escalar<float>>(checado->valor)));  //valor que es una copia del del inicializador
                   })){
-                     throw error(*actual.inicializador->pos, "El tipo del elemento no es válido al inicializar el arreglo");
+                     throw error(*actual.inicializador->pos, "El tipo del elemento no es valido al inicializar el arreglo");
                   }
                }
             } else {
@@ -552,7 +552,7 @@ void evalua(const sentencia_if& s, tabla_simbolos& ts, std::pair<std::istream&, 
          }
       }
    })){
-      throw error(*s.pos, "Tipo inválido en condición");
+      throw error(*s.pos, "Tipo invalido en condicion");
    }
 }
 void evalua(const sentencia_for& s, tabla_simbolos& ts, std::pair<std::istream&, std::ostream&> ios) {

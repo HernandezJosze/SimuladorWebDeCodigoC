@@ -1,1 +1,5 @@
-em++ -O3 ejemplo.cpp -s EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap'] -o ejemplo.js
+emsdk update
+emsdk install latest
+emsdk activate latest --permanent
+
+em++ -O3 -std=c++20 interprete.cpp -s EXPORTED_RUNTIME_METHODS=['cwrap'] -o interprete.js

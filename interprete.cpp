@@ -29,38 +29,43 @@ extern "C"
    EMSCRIPTEN_KEEPALIVE
 #endif
 const char* interpreta(const char* codigo, const char* entrada) {
-   static std::string res = "";
-
+   std::ostringstream oss;
    try {
-      std::cerr << "TOKENS:\n";
       std::vector<token_anotada> v = lexer(codigo);
+#ifndef __EMSCRIPTEN__
+      std::cerr << "TOKENS:\n";
       for (const auto& actual : v) {
          std::cerr << actual.tipo << " " << actual << "\n";
       }
-      std::cerr << "SENTENCIAS:\n";
+#endif
       std::vector<std::unique_ptr<sentencia>> w = parser(v.data( ));
+#ifndef __EMSCRIPTEN__
+      std::cerr << "SENTENCIAS:\n";
       for (const auto& actual : w) {
          std::cerr << *actual << "\n";
       }
+#endif
+      int probar = 1;
+#ifndef __EMSCRIPTEN__
       std::cerr << "QUIERES PROBAR EL SEMANTICO? ";
-      int probar;
       std::cin >> probar; getchar( );
+#endif
       if (probar == 1) {
          std::istringstream iss(entrada);
-         std::ostringstream oss;
          evalua(w, { iss, oss });
-         res = std::move(oss).str( );
-         std::cerr << "FIN PRUEBA\n";
       }
    } catch (const error& e) {
       auto ini = codigo, fin = codigo + strlen(codigo);
-      std::cout << "\nError en linea " << linea_de(ini, e.tk) << ", columna " << columna_de(ini, e.tk) << ":\n"
+      oss << "\nError en linea " << linea_de(ini, e.tk) << ", columna " << columna_de(ini, e.tk) << ":\n"
                 << "\t" << vista_de(e.tk, 10, fin) << "\n"
                 << "\t^\n"
                 << e.message << "\n";
    } catch (const std::exception& e) {
-      std::cout << e.what( ) << "\n";
+      oss << e.what( ) << "\n";
    }
+
+   static std::string res;
+   res = std::move(oss).str( );
    return res.c_str( );
 }
 
