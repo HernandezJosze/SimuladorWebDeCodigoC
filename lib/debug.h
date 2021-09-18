@@ -1,7 +1,3 @@
-//
-// Created by :)-|-< on 8/14/2021.
-//
-
 #ifndef SIMULADORWEBDECODIGOC_DEBUG_H
 #define SIMULADORWEBDECODIGOC_DEBUG_H
 

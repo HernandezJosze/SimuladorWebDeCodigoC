@@ -1,7 +1,3 @@
-//
-// Created by Hernandez on 4/18/2021.
-//
-
 #ifndef SIMULADORWEBDECODIGOC_PARSER_SENTENCIA_H
 #define SIMULADORWEBDECODIGOC_PARSER_SENTENCIA_H
 
@@ -48,7 +44,7 @@ struct sentencia_if : sentencia{
    }
 };
 struct sentencia_for : sentencia{
-   std::unique_ptr<sentencia> inicializacion;   // puede ser sentencia_expresiones o sentencia_declaraciones
+   std::unique_ptr<sentencia> inicializacion;
    std::vector<std::unique_ptr<expresion>> condicion;
    std::vector<std::unique_ptr<expresion>> actualizacion;
    std::vector<std::unique_ptr<sentencia>> sentencias;

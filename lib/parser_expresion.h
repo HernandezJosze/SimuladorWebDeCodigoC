@@ -1,7 +1,3 @@
-//
-// Created by Hernandez on 4/18/2021.
-//
-
 #ifndef SIMULADORWEBDECODIGOC_PARSER_EXPRESION_H
 #define SIMULADORWEBDECODIGOC_PARSER_EXPRESION_H
 
@@ -119,7 +115,7 @@ std::unique_ptr<expresion> parsea_expresion_unaria(const token_anotada*& iter){
       return std::make_unique<expresion_op_prefijo>(pos, operador, parsea_expresion_unaria(iter));
    }
    auto pos = iter;
-   auto ex = parsea_expresion_primaria(iter); //si no es un prefijo ya comienza una expresión
+   auto ex = parsea_expresion_primaria(iter);
    while(es_operador_posfijo(iter->tipo)){
       if(iter->tipo == PARENTESIS_I){
          espera(iter, PARENTESIS_I, "Se esperaba (");

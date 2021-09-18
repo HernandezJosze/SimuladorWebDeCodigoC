@@ -1,7 +1,3 @@
-//
-// Created by :)-|-< on 8/25/2021.
-//
-
 #ifndef SIMULADORWEBDECODIGOC_SEMANTICO_EJECUTOR_H
 #define SIMULADORWEBDECODIGOC_SEMANTICO_EJECUTOR_H
 
@@ -97,7 +93,7 @@ struct tabla_temporales {
    }
 };
 
-// procesamiento de la entrada e impresión de instrucciones
+// procesamiento de la entrada e impresion de instrucciones
 
 void esquiva_lectura(std::istream& is, char c) {
    if (isspace(c)) {
@@ -501,7 +497,7 @@ void evalua(const sentencia_declaraciones& s, tabla_simbolos& ts, std::pair<std:
             if(auto checar = dynamic_cast<valor_arreglo<valor_expresion*>*>(evalua(*actual.inicializador, ts, tt, ios)); checar != nullptr){
                for(auto& elemento : checar->valor){
                   if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(elemento, [&](auto checado) {
-                     elementos.push_back((s.tipo->tipo == INT ? (std::unique_ptr<valor_expresion>)std::make_unique<valor_escalar<int>>(checado->valor) : std::make_unique<valor_escalar<float>>(checado->valor)));  //valor que es una copia del del inicializador
+                     elementos.push_back((s.tipo->tipo == INT ? (std::unique_ptr<valor_expresion>)std::make_unique<valor_escalar<int>>(checado->valor) : std::make_unique<valor_escalar<float>>(checado->valor))); 
                   })){
                      throw error(*actual.inicializador->pos, "El tipo del elemento no es valido al inicializar el arreglo");
                   }

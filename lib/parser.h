@@ -1,7 +1,3 @@
-//
-// Created by Hernandez on 4/18/2021.
-//
-
 #ifndef SIMULADORWEBDECODIGOC_PARSER_H
 #define SIMULADORWEBDECODIGOC_PARSER_H
 
