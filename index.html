@@ -97,7 +97,7 @@
     btnDark.click( );
 
     const textarea = document.getElementById('outputC');
-    const posX = 30, posY = 30, tam = 60, container = document.getElementById("containerSVG");
+    const posX = 30, posY = 30, tam = 60, addCY = 120, container = document.getElementById("containerSVG");
     const MAX_X = 1900, MAX_Y = 840;
     let cx = posX, cy = posY;
 	let instructions = [ ], currentInst = 0;
@@ -142,16 +142,16 @@
     }
 
     function auxPlay( ){
-       if(currentInst < instructions.length) {
+       if(currentInst < instructions.length && !btnStop.hasAttribute('disabled')) {
           let timer = setTimeout(( ) => {
              executeNextInstruction( );
              auxPlay();
           }, 800 / parseInt(document.getElementById('speed').value));
-          btnStop.onclick = ( ) => {
+          btnStop.addEventListener('click', ( ) => {
              clearTimeout(timer);
-          };
+          });
        }else{
-          btnStop.click( ); btnNext.click( );
+          btnStop.click( ), btnNext.click( );
        }
     }
 
@@ -200,7 +200,6 @@
 	}
 	
     function executeNextInstruction( ){
-		console.log(currentInst);
 		const command = instructions[currentInst][0];   //command type/name name/value value
 		if(command === "CREA"){
 			const type = instructions[currentInst][1];
@@ -320,11 +319,16 @@
     function createArr(name, values, primera_vez = true){
 		const num = data.get(name)[getLastPos(data.get(name))].tam;
 		if(cx + tam + tam * num >= MAX_X){
-			cx = posX;  cy += 150;
-			if(cy >= MAX_Y || cx + tam * num + tam >= MAX_X){
-				alert("El arreglo es demasiado grande");
+			if(cy + addCY >= MAX_Y || posX + tam * num + tam >= MAX_X){
+                btnStop.click( );
+                btnNext.setAttribute('disabled','');
+                --currentInst;
+                data.get(name).pop( );
+                stack.pop( );
+                alert("El arreglo es demasiado grande");
 				return;
 			}
+            cx = posX;  cy += addCY;
 		}
 		const realName = stack[getLastPos(stack)].name + stack[getLastPos(stack)].version;
 		//Create the name of the array
@@ -386,11 +390,16 @@
 
     function createVar(name){
 		if(cx + tam >= MAX_X){
-			cx = posX; cy += 150;
-			if(cy >= MAX_Y){
-				alert("Espacio lleno");
+			if(cy + addCY >= MAX_Y){
+                btnStop.click( );
+                btnNext.setAttribute('disabled','');
+                --currentInst;
+                data.get(name).pop( );
+                stack.pop( );
+                alert("Espacio lleno");
 				return;
 			}
+            cx = posX; cy += addCY;
 		}
 		const last = data.get(name).length - 1;
 		const lastV = data.get(name)[last].values.length - 1;
@@ -411,7 +420,7 @@
 		const child = document.getElementById('containerSVG').lastChild;
 		if(cx === posX && child){
 			cx = parseInt(child.getAttribute('x')) + tam + tam / 2;
-			cy = cy !== 30 ? cy - 150 : cy;
+			cy = cy !== 30 ? cy - addCY : cy;
 		}
     }
 
