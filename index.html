@@ -79,14 +79,14 @@
       </svg>
    </body>
    <script>
-       let result;
-       Module.onRuntimeInitialized = function( ) {
-           let interpreta = Module.cwrap("interpreta", "string", [ "string", "string" ]);
-           document.getElementById("btnGetText").onclick = function( ) {
-               result = interpreta(document.getElementById("code").value, document.getElementById("inputC").value);
-               initialization( );
-           }
-       };
+    let result;
+    Module.onRuntimeInitialized = function( ) {
+        let interpreta = Module.cwrap("interpreta", "string", [ "string", "string" ]);
+        document.getElementById("btnGetText").onclick = function( ) {
+            result = interpreta(document.getElementById("code").value, document.getElementById("inputC").value);
+            initialization( );
+        }
+    };
     let btnDark = document.getElementById('btnDarkMode');
     btnDark.addEventListener('click', ( ) => {
        document.getElementById('body').classList.toggle('darkModeBody');
@@ -177,8 +177,8 @@
     const btnNext = document.getElementById("btnNextInst");
     btnNext.addEventListener('click', ( ) => {
        if(currentInst < instructions.length) {
-          executeNextInstruction();
           document.getElementById('btnPrevInst').removeAttribute('disabled');
+		  executeNextInstruction( );
        }
        if(currentInst === instructions.length){
           btnNext.setAttribute('disabled','');
