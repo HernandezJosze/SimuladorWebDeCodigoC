@@ -53,7 +53,7 @@
             <textarea class="darkmodeEditor" id="code" style=" width: 99%; height: 98%;"></textarea>
         </div>
         <div>
-           <button id="btnGetText">Cargar Instrucciones / reniciar entorno</button>
+           <button id="btnGetText">Cargar Instrucciones y Entrada/ reniciar entorno</button>
 		   <button id="btnDarkMode">Cambiar a modo oscuro</button>
         </div>
         <div>
@@ -253,8 +253,11 @@
 			textarea.value  = text;
 			textarea.scrollTop = textarea.scrollHeight;
 		}else{
+			btnPrev.setAttribute('disabled','');
+			btnNext.setAttribute('disabled','');
+			btnPlay.setAttribute('disabled','');
+			btnStop.setAttribute('disabled','');
             textarea.value = command;
-            console.log(command);
             return;
         }
 		currentInst++;
