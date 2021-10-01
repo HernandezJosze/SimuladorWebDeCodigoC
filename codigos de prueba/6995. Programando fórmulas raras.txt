@@ -1,0 +1,4 @@
+float x,y,z;
+scanf("%f %f %f",&x, &y, &z);
+float resultado = ((x + x*( y + (z*z))) / ((x + 3.141592)*(y + 3.141592)));
+printf("%f", resultado);

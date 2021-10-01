@@ -327,13 +327,29 @@ valor_expresion* evalua(const expresion_op_binario& e, tabla_simbolos& ts, tabla
          }else if (e.operador->tipo == MAYOR_IGUAL) {
             res = tt.crea<valor_escalar<int>>(checado_izq->valor >= checado_der->valor);
          }else if (e.operador->tipo == MAS) {
-            res = tt.crea<valor_escalar<int>>(checado_izq->valor + checado_der->valor);
+            if(std::is_same_v<TI, float> || std::is_same_v<TD, float>){
+               res = tt.crea<valor_escalar<float>>(checado_izq->valor + checado_der->valor);
+            }else{
+               res = tt.crea<valor_escalar<int>>(checado_izq->valor + checado_der->valor);
+            }
          }else if (e.operador->tipo == MENOS) {
-            res = tt.crea<valor_escalar<int>>(checado_izq->valor - checado_der->valor);
+            if(std::is_same_v<TI, float> || std::is_same_v<TD, float>){
+               res = tt.crea<valor_escalar<float>>(checado_izq->valor - checado_der->valor);
+            }else{
+               res = tt.crea<valor_escalar<int>>(checado_izq->valor - checado_der->valor);
+            }
          }else if (e.operador->tipo == MULTIPLICACION) {
-            res = tt.crea<valor_escalar<int>>(checado_izq->valor * checado_der->valor);
+            if(std::is_same_v<TI, float> || std::is_same_v<TD, float>){
+               res = tt.crea<valor_escalar<float>>(checado_izq->valor * checado_der->valor);
+            }else{
+               res = tt.crea<valor_escalar<int>>(checado_izq->valor * checado_der->valor);
+            }
          }else if (e.operador->tipo == DIVISION) {
-            res = tt.crea<valor_escalar<int>>(checado_izq->valor / checado_der->valor);
+            if(std::is_same_v<TI, float> || std::is_same_v<TD, float>){
+               res = tt.crea<valor_escalar<float>>(checado_izq->valor / checado_der->valor);
+            }else{
+               res = tt.crea<valor_escalar<int>>(checado_izq->valor / checado_der->valor);
+            }
          }else if (e.operador->tipo == MODULO) {
             if constexpr(!std::is_same_v<TI, int> || !std::is_same_v<TI, TD>){
                throw error(*e.pos, "Solo se puede aplicar este operador a enteros");
@@ -497,7 +513,7 @@ void evalua(const sentencia_declaraciones& s, tabla_simbolos& ts, std::pair<std:
             if(auto checar = dynamic_cast<valor_arreglo<valor_expresion*>*>(evalua(*actual.inicializador, ts, tt, ios)); checar != nullptr){
                for(auto& elemento : checar->valor){
                   if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(elemento, [&](auto checado) {
-                     elementos.push_back((s.tipo->tipo == INT ? (std::unique_ptr<valor_expresion>)std::make_unique<valor_escalar<int>>(checado->valor) : std::make_unique<valor_escalar<float>>(checado->valor))); 
+                     elementos.push_back((s.tipo->tipo == INT ? (std::unique_ptr<valor_expresion>)std::make_unique<valor_escalar<int>>(checado->valor) : std::make_unique<valor_escalar<float>>(checado->valor)));
                   })){
                      throw error(*actual.inicializador->pos, "El tipo del elemento no es valido al inicializar el arreglo");
                   }
