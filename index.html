@@ -54,13 +54,22 @@
           .active{
               fill: #52D7FA;
           }
-          @keyframes animationSalida {
-              0%   {background-color: #f6f6f6;}
-              50%  {background-color: lime;}
-              100% {background-color: #f6f6f6;}
-          }
-          .salidaActiva{
+          @keyframes animationSalidaW {
+                         0%   {background-color: #f6f6f6;}
+                         50%  {background-color: limegreen;}
+                         100% {background-color: #f6f6f6;}
+                     }
+          .salidaActivaW{
               animation-name: animationSalidaW;
+              animation-duration: 150ms;
+          }
+          @keyframes animationSalidaD {
+              0%   {background-color: darkgrey;}
+              50%  {background-color: limegreen;}
+              100% {background-color: darkgrey;}
+          }
+          .salidaActivaD{
+              animation-name: animationSalidaD;
               animation-duration: 150ms;
           }
       </style>
@@ -152,16 +161,17 @@ for (int i = 0; i < m; ++i){
        });
     }
     async function resaltaSalida( ){
-       if(!outputProgram.classList.contains('salidaActiva') && outputProgram.classList.contains('whiteMode')){
-          outputProgram.classList.toggle('salidaActiva');
+       if(!outputProgram.classList.contains('salidaActivaW') && outputProgram.classList.contains('whiteMode')){
+          outputProgram.classList.toggle('salidaActivaW');
           await delay(0.15);
-          outputProgram.classList.toggle('salidaActiva');
-       }else if(!outputProgram.classList.contains('salidaActiva') && outputProgram.classList.contains('darkModeContainer')){
-          outputProgram.classList.toggle('salidaActiva');
+          outputProgram.classList.toggle('salidaActivaW');
+       }else if(!outputProgram.classList.contains('salidaActivaD') && outputProgram.classList.contains('darkModeContainer')){
+          outputProgram.classList.toggle('salidaActivaD');
           await delay(0.15);
-          outputProgram.classList.toggle('salidaActiva');
+          outputProgram.classList.toggle('salidaActivaD');
        }
     }
+
     const btnDark = document.getElementById('btnDarkMode');
     btnDark.addEventListener('click', ( ) => {
        document.getElementById('body').classList.toggle('darkModeBody');
