@@ -3,33 +3,42 @@
    <meta charset="utf-8">
    <head>
       <style>
-          #containerSVG {
-              margin-top: 5px;
-              border: 1px solid black;
-              width: 1900px;
-              height: 840px;
-              display: flex;
-              flex-flow: row wrap;
-          }
-
           div{
               margin: 2px;
+          }
+          button{
+              color: black;
+              background-color: lightsteelblue;
+              cursor: pointer;
+              border: gray;
+              border-radius: 10px;
+          }
+          button:disabled,
+          button[disabled] {
+              color: #9B9898;
+              background-color: #EAEAEA;
+          }
+          textarea {
+              width: 98%;
+              height: 85%;
+              background-color: #F4F4F4;
+              border-radius: 10px;
+          }
+          textarea:current{
+              box-shadow: 0px 0px 2px 2px #ec731e;
           }
           .small{
               font: italic 12px "Arial";
               fill: black;
           }
-          .active{
-              fill: darkcyan;
-          }
-          #editor{
-              justify-content: right;
-          }
-          #nums{
-              padding: 5px;
-              width: 1%;
-              height: 98%;
-              text-align: right;
+          #containerSVG {
+              margin-top: 5px;
+              border: 1px solid black;
+              width: 1600px;
+              height: 900px;
+              display: flex;
+              flex-flow: row wrap;
+              border-radius: 15px;
           }
           .darkModeBody{
               background-color: gray;
@@ -43,105 +52,124 @@
           .darkModeContainer{
               background-color: darkgrey;
           }
+          .active{
+              fill: darkcyan;
+          }
+          @keyframes animationSalida {
+              0%   {background-color: #F9E79F;}
+              50%  {background-color: lightyellow;}
+              100% {background-color: #F9E79F;}
+          }
+          .salidaActiva{
+              animation-name: animationSalida;
+              animation-duration: 250ms;
+          }
       </style>
       <script src="interprete.js"></script>
    </head>
    <body id="body">
-      <div style="display: grid; grid-template-columns:1fr 1fr 1fr;">
-         <div id="editor"  style="grid-row: 1 / span 3; grid-column: 1 / span 1; display: flex;">
-            <div id="nums" class="small">1<br>2<br>3<br>4</div>
-            <textarea class="darkmodeEditor" id="code" style=" width: 99%; height: 98%;">int n;
+      <section>
+         <div style="display: grid; grid-template-rows:1fr .3fr .3fr; grid-template-columns:1fr 1fr">
+            <div style="grid-row: 1 / span 1; padding-top: 20px; text-align: center;">
+               Código<br>
+               <textarea class="darkmodeEditor" id="inputCode" style="height:520px;">int n;
 scanf("%d", &n);
 int arr[n];
-for(int i=0;i<n;++i){
-	scanf("%d", &arr[i]);
+for(int i = 0; i < n; ++i){
+   scanf("%d", &arr[i]);
 }
-for(int i=1;i<n;++i){
-	arr[i]+=arr[i-1];
+for(int i = 1; i < n; ++i){
+   arr[i] += arr[i - 1];
 }
 int m;
 scanf("%d", &m);
-for (int i=0;i<m;++i){
-	int ini,ult;
-	scanf("%d %d", &ini, &ult);
-	int result=0;
-	int atras;
-	if(ini == 0){
-		atras = 0;
-	}else{
-		atras = arr[ini - 1];
-	}
-	result = arr[ult] - atras;
-    printf("%d\n", result);
+for (int i = 0; i < m; ++i){
+   int ini, ult;
+   scanf("%d %d", &ini, &ult);
+   int result = 0;
+   int atras;
+   if(ini == 0){
+      atras = 0;
+   }else{
+      atras = arr[ini - 1];
+   }
+   result = arr[ult] - atras;
+   printf("%d\n", result);
 }</textarea>
-        </div>
-        <div>
-           <button id="btnGetText">Cargar Instrucciones y Entrada/ reniciar entorno</button>
-		   <button id="btnDarkMode">Cambiar a modo oscuro</button>
-        </div>
-        <div>
-           <button id="btnPrevInst" disabled>Ejecutar anterior</button>
-           <button id="btnNextInst" disabled>Ejecutar siguiente</button>
-        </div>
-        <div>
-           <button id="btnPlay" disabled>Reproducir</button>
-           <label for="speed">Velocidad</label>
-              <input type="range" id="speed" min="1" max="10" value="2">
-           <button id="btnStop" disabled>Detener</button>
-        </div>
-          <div style="grid-row: 1 / span 3; grid-column: 2 / span 1; display: flex;">
-              <label for="inputC">Entrada del codigo</label>
-              <textarea class="darkmodeEditor" id="inputC" style="width: 99%; height: 98%;">5
+            </div>
+            <div style="grid-row: 2 / span 1; text-align: center;">
+                 Entrada del codigo:<br>
+                 <textarea class="darkmodeEditor" id="inputC">5
 3 1 4 1 6
 2
 0 4
 1 3</textarea>
-          </div>
-          <div style="grid-row: 1 / span 3; grid-column: 3 / span 1; display: flex;">
-              <label for="outputC">Salida del codigo</label>
-              <textarea class="darkmodeEditor" id="outputC" disabled="true" style="width: 99%; height: 98%;"></textarea>
-          </div>
-      </div>
-      <svg id="containerSVG" class="darkmodeContaier">
-      </svg>
+             </div>
+             <div style="grid-row: 3 / span 1; text-align: center;">
+                 Salida del codigo:<br>
+                 <textarea class="darkmodeEditor" id="outputC" disabled="true"></textarea>
+             </div>
+            <div style="grid-row: 1 / span 3; text-align: center;">
+               <div style="display: grid; grid-template-columns: repeat(7, 1fr); grid-column-gap: 30px; grid-template-rows: 30px;">
+                  <button id="btnRunInterpret">Cargar Instrucciones y Entrada/ reniciar entorno</button>
+                  <button id="btnDarkMode">Cambiar a modo oscuro</button>
+                  <button id="btnPlay" disabled>Reproducir</button>
+                  <div style="text-align: center; padding: 0; margin: 0">
+                     Velocidad
+                     <br style="margin: 0; padding: 0;">
+                     <input type="range" id="speed" min="1" max="10" value="2">
+                  </div>
+                  <button id="btnStop" disabled>Detener</button>
+                  <button id="btnPrevInst" disabled>Ejecutar anterior</button>
+                  <button id="btnNextInst" disabled>Ejecutar siguiente</button>
+               </div>
+               <svg id="containerSVG" class="darkmodeContaier"></svg>
+            </div>
+         </div>
+      </section>
+      <footer>
+
+      </footer>
    </body>
    <script>
     let result;
     Module.onRuntimeInitialized = function( ) {
-        let interpreta = Module.cwrap("interpreta", "string", [ "string", "string" ]);
-        document.getElementById("btnGetText").onclick = function( ) {
-            result = interpreta(document.getElementById("code").value, document.getElementById("inputC").value);
+        let interpret = Module.cwrap("interpreta", "string", [ "string", "string" ]);
+        document.getElementById("btnRunInterpret").onclick = function( ) {
+            result = interpret(document.getElementById("inputCode").value, document.getElementById("inputC").value);
             initialization( );
         }
     };
-    let btnDark = document.getElementById('btnDarkMode');
+
+    async function resaltaSalida( ){
+       const salidaCode = document.getElementById("outputC");
+       if(!salidaCode.classList.contains('salidaActiva')){
+          salidaCode.classList.toggle('salidaActiva');
+          await delay(0.25);
+          salidaCode.classList.toggle('salidaActiva');
+       }
+    }
+    const btnDark = document.getElementById('btnDarkMode');
     btnDark.addEventListener('click', ( ) => {
        document.getElementById('body').classList.toggle('darkModeBody');
        document.getElementById('containerSVG').classList.toggle('darkModeContainer');
        document.getElementById('inputC').classList.toggle('darkModeEditor');
        btnDark.innerText = btnDark.textContent === "Cambiar a modo oscuro" ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
     });
-    btnDark.click( );
 
-    const textarea = document.getElementById('outputC');
-    const posX = 30, posY = 30, tam = 60, addCY = 120, container = document.getElementById("containerSVG");
-    const MAX_X = 1900, MAX_Y = 840;
-    let cx = posX, cy = posY;
-	let instructions = [ ], currentInst = 0;
-	let data = new Map( ), data_backup = new Map( );
-	let stack = [], stack_backup = [];
-	let text = "", memoryText = [text];
-    function cleanAll( ){
-		cx = posX, cy = posY;
-		instructions = [ ], currentInst = 0;
-		data = new Map( ), data_backup = new Map( );
-		stack = [], stack_backup = [];
-		text = "", memoryText = [text];
+   const textarea = document.getElementById('outputC'), container = document.getElementById("containerSVG");
+   const MAX_X = 1600, MAX_Y = 900, posX = 30, posY = 30, tam = 60, addCY = 120;
+   let cx = posX, cy = posY, instructions = [ ], currentInst = 0, data = new Map( ),
+       data_backup = new Map( ), stack = [], stack_backup = [], text = "", memoryText = [text];
+   function cleanAll( ){
+		cx = posX, cy = posY, instructions = [ ], currentInst = 0, data = new Map( );
+      data_backup = new Map( ), stack = [], stack_backup = [], text = "", memoryText = [text];
 		document.getElementById('outputC').value = "";
 		while(container.hasChildNodes( )){
 			container.removeChild(container.lastChild);
 		}
-    }
+      btnStop.click( );
+   }
 
     function createSvg(type, svg_attributes, properties) {
        let node = document.createElementNS("http://www.w3.org/2000/svg", type);
@@ -153,19 +181,21 @@ for (int i=0;i<m;++i){
        }
        return node;
     }
+
     function initialization( ){
        cleanAll( );
-       let line = result.split('\04\n'); //separador de instruccion
-       for(let instruction of line){
-          instructions.push(instruction.split('\01'));// Separador de token
-       }
-       if(instructions[getLastPos(instructions)][0] === "")
-           instructions.pop( ); // eliminamos el salto de linea del final
-       let ids = ["btnNextInst", "btnPlay"];
+       const ids = ["btnNextInst", "btnPlay"];
        for(let id of ids){
           document.getElementById(id).removeAttribute("disabled");
        }
        document.getElementById('btnPrevInst').setAttribute('disabled','');
+       const line = result.split('\04\n'); //separador de instruccion
+       for(let instruction of line){
+          instructions.push(instruction.split('\01'));// Separador de token
+       }
+       if(instructions[getLastPos(instructions)][0] === "") {
+          instructions.pop(); // eliminamos el salto de linea del final
+       }
     }
 
     function auxPlay( ){
@@ -180,6 +210,11 @@ for (int i=0;i<m;++i){
        }else{
           btnStop.click( ), btnNext.click( );
        }
+    }
+    function delay(seconds){
+       return new Promise(function(resolve){
+          setTimeout(resolve,seconds*1000);
+       });
     }
 
     const btnPlay = document.getElementById('btnPlay');
@@ -205,14 +240,13 @@ for (int i=0;i<m;++i){
     btnNext.addEventListener('click', ( ) => {
        if(currentInst < instructions.length) {
           document.getElementById('btnPrevInst').removeAttribute('disabled');
-		  executeNextInstruction( );
-       }
-       if(currentInst === instructions.length){
+          executeNextInstruction( );
+       }else if(currentInst === instructions.length){
           btnNext.setAttribute('disabled','');
-		  btnPlay.setAttribute('disabled','');
+          btnPlay.setAttribute('disabled','');
        }
     });
- 
+
 	function wasArray(name){
 		let index = name.indexOf("[");
 		if(index === -1){
@@ -226,13 +260,13 @@ for (int i=0;i<m;++i){
 			return {'name': NAME, 'var': VAR};
 		}
 	}
-	
-    function executeNextInstruction( ){
-		const command = instructions[currentInst][0];   //command type/name name/value value
+
+   function executeNextInstruction( ){
+	   const command = instructions[currentInst][0];   //command type/name name/value value
 		if(command === "CREA"){
 			const type = instructions[currentInst][1];
 			const name = instructions[currentInst][2];
-			stack.push({'name': name, 
+			stack.push({'name': name,
 						'version': 'v' + (data.has(name) ? data.get(name).length : 0)});
 			if(!data.has(name)){
 				data.set(name, []);
@@ -267,7 +301,7 @@ for (int i=0;i<m;++i){
 			while(veces--){
 				const variable = stack.pop( );
 				stack_backup.push(variable);
-				
+
 				deleteVarArrOfHTML(variable.name, variable.version);
 				if(!data_backup.has(variable.name)){
 					data_backup.set(variable.name, []);
@@ -280,27 +314,30 @@ for (int i=0;i<m;++i){
 			memoryText.push(text);
 			textarea.value  = text;
 			textarea.scrollTop = textarea.scrollHeight;
+         resaltaSalida( );
 		}else{
 			btnPrev.setAttribute('disabled','');
 			btnNext.setAttribute('disabled','');
 			btnPlay.setAttribute('disabled','');
 			btnStop.setAttribute('disabled','');
-            textarea.value = command;
-            return;
-        }
+         textarea.value = command;
+         resaltaSalida( );
+         return;
+      }
 		currentInst++;
-    }
+   }
 
     const btnPrev = document.getElementById('btnPrevInst');
     btnPrev.addEventListener('click', ( ) => {
        if(currentInst === 1){
           btnPrev.setAttribute('disabled','');
        }
-       document.getElementById('btnNextInst').removeAttribute('disabled');
+       btnNext.removeAttribute('disabled');
+       btnPlay.removeAttribute('disabled');
        backPrevInstruction( );
     });
 
-    function backPrevInstruction( ){
+   function backPrevInstruction( ){
 		currentInst--;
 		console.log(currentInst);
 		const command = instructions[currentInst][0];
@@ -322,7 +359,7 @@ for (int i=0;i<m;++i){
 				id = `${res.name}v${last}[${res.var}]`;
 			}
 			modifyBox(id, value);
-       }else if(command === 'DESTRUYE'){
+      }else if(command === 'DESTRUYE'){
 			let veces = instructions[currentInst][1];
 			while(veces--){
 				const variable = stack_backup.pop( );
@@ -332,10 +369,11 @@ for (int i=0;i<m;++i){
 			}
 		}else if(command === 'IMPRIME'){
 			memoryText.pop( );
-            textarea.value = text = memoryText[memoryText.length - 1];
+         textarea.value = text = memoryText[memoryText.length - 1];
+         resaltaSalida( );
 		}
-    }
-	
+   }
+
 	function recovery(name){
 		if(data.get(name)[getLastPos(data.get(name))].tam === -1){
 			createVar(name);
@@ -343,23 +381,24 @@ for (int i=0;i<m;++i){
 			createArr(name, [], false);
 		}
 	}
-	
+
 	function getLastPos(arr){
-		return arr.length - 1;
+      return arr.length - 1;
 	}
-    function createArr(name, values, primera_vez = true){
+
+   function createArr(name, values, primera_vez = true){
 		const num = data.get(name)[getLastPos(data.get(name))].tam;
 		if(cx + tam + tam * num >= MAX_X){
 			if(cy + addCY >= MAX_Y || posX + tam * num + tam >= MAX_X){
-                btnStop.click( );
-                btnNext.setAttribute('disabled','');
-                --currentInst;
-                data.get(name).pop( );
-                stack.pop( );
-                alert("El arreglo es demasiado grande");
+            btnStop.click( );
+            btnNext.setAttribute('disabled','');
+            data.get(name).pop( );
+            stack.pop( );
+            --currentInst;
+            alert("El arreglo es demasiado grande");
 				return;
 			}
-            cx = posX;  cy += addCY;
+         cx = posX;  cy += addCY;
 		}
 		const realName = stack[getLastPos(stack)].name + stack[getLastPos(stack)].version;
 		//Create the name of the array
@@ -384,7 +423,8 @@ for (int i=0;i<m;++i){
 		}else{
 			createArrAux(name);
 		}
-    }
+   }
+
 	function createArrAux(name){
 		const num = data.get(name)[getLastPos(data.get(name))].tam;
 		const realName = stack[getLastPos(stack)].name + stack[getLastPos(stack)].version;
@@ -397,6 +437,7 @@ for (int i=0;i<m;++i){
 		}
 		cx += tam;
 	}
+
 	function deleteVarArrOfHTML(name, version){
 		const last = getLastPos(data.get(name));
 		if(data.get(name)[last].tam === -1){
@@ -405,7 +446,8 @@ for (int i=0;i<m;++i){
 			deleteArr(name + version, data.get(name)[last].tam);
 		}
 	}
-    function deleteArr(name, num){
+
+   function deleteArr(name, num){
 		document.getElementById(`svg|${name}|`).remove( );
 		while(num > 0){
 			num -= 1;
@@ -417,17 +459,17 @@ for (int i=0;i<m;++i){
 		}
 		cx = (cx - tam - tam / 2);
 		repositionCY( );
-    }
+   }
 
-    function createVar(name){
+   function createVar(name){
 		if(cx + tam >= MAX_X){
 			if(cy + addCY >= MAX_Y){
-                btnStop.click( );
-                btnNext.setAttribute('disabled','');
-                --currentInst;
-                data.get(name).pop( );
-                stack.pop( );
-                alert("Espacio lleno");
+            btnStop.click( );
+            btnNext.setAttribute('disabled','');
+            --currentInst;
+            data.get(name).pop( );
+            stack.pop( );
+            alert("Espacio lleno");
 				return;
 			}
             cx = posX; cy += addCY;
@@ -436,36 +478,36 @@ for (int i=0;i<m;++i){
 		const lastV = data.get(name)[last].values.length - 1;
 		createSpace(name, '', data.get(name)[last].values[lastV]);
 		cx += 2 * tam;
-    }
+   }
 
-    function deleteVar(name){
+   function deleteVar(name){
 		const ids = [`svg|${name}|box`, `svg|${name}|value`, `svg|${name}|name`];
 		for(const id of ids) {
 			document.getElementById(id).remove( );
 		}
 		cx = cx - 2 * tam;
 		repositionCY( );
-    }
+   }
 
-    function repositionCY( ){
+   function repositionCY( ){
 		const child = document.getElementById('containerSVG').lastChild;
 		if(cx === posX && child){
 			cx = parseInt(child.getAttribute('x')) + tam + tam / 2;
 			cy = cy !== 30 ? cy - addCY : cy;
 		}
-    }
+   }
 
-    function createSpace(name, father, value){
+   function createSpace(name, father, value){
 		const realName = stack[getLastPos(stack)].name + stack[getLastPos(stack)].version;
 		// Create variable's name
 		let node, NAME = (father === '' ? `${realName}` : `${father}[${name}]`);
 		let id = `svg|${NAME}|`;
-		node = createSvg("text", { "x": cx + tam / 2, "y": cy + 15 + tam, "text-anchor":"middle", "class": "small"}, { "textContent": name });
+		node = createSvg("text", {"x": cx + tam / 2, "y": cy + 15 + tam, "text-anchor":"middle", "class": "small"}, { "textContent": name });
 		node.id = id + 'name';
 		container.appendChild(node);
 
 		//Create box variable
-		node = createSvg('rect', { "x": cx, "y": cy, "width": tam, "height": tam, "fill": "lightgray", "stroke":"black"});
+		node = createSvg('rect', {"rx": 2, "x": cx, "y": cy, "width": tam, "height": tam, "fill": "lightgray", "stroke":"black"});
 		node.id = id + 'box';
 		container.appendChild(node);
 
@@ -473,21 +515,20 @@ for (int i=0;i<m;++i){
 		node = createSvg("text", { "x": cx + tam / 2, "y": cy + 5 + tam / 2, "text-anchor":"middle", "class": "small"});
 		node.id = id + 'value';
 		container.appendChild(node);
-		modifyBox(NAME, value);		
-    }
+		modifyBox(NAME, value);
+   }
 
-
-    let lastActive = undefined;
-    function modifyBox(name, value) {
-		let box = document.getElementById(`svg|${name}|box`), node = document.getElementById(`svg|${name}|value`);
-		if (node) {
+   let lastActive = undefined;
+   function modifyBox(name, value) {
+	   let box = document.getElementById(`svg|${name}|box`), node = document.getElementById(`svg|${name}|value`);
+		if(node) {
 			node.textContent = value;
 			if(lastActive) {
 				lastActive.removeAttribute('class');
 			}
 			box.setAttribute('class','active');
 			lastActive = box;
-       }
-    }
+      }
+   }
    </script>
 </html>
