@@ -82,9 +82,12 @@ for (int i = 0; i < m; ++i){
     Module.onRuntimeInitialized = function( ) {
         let interpret = Module.cwrap("interpreta", "string", [ "string", "string" ]);
         document.getElementById("btnRunInterpret").onclick = function( ) {
-            result = interpret(document.getElementById("inputCode").value, inputProgram.value);
-            initialization( );
+           result = interpret(document.getElementById("inputCode").value, inputProgram.value);
+           initialization( );
            MAX_X = container.clientWidth, MAX_Y =  container.clientHeight;
+           const simulador = document.getElementById("simulador");
+           simulador.setAttribute("style", "min-width:" + 1050 + "px; "
+                                         + "min-height:" + 600 + "px;");
         }
     };
     window.addEventListener('resize', ( ) =>{
