@@ -2,85 +2,16 @@
 <html xmlns="http://www.w3.org/1999/html">
    <meta charset="utf-8">
    <head>
-      <style>
-          div{
-              margin: 3px;
-          }
-          button{
-              color: black;
-              background-color: lightsteelblue;
-              cursor: pointer;
-              border: gray;
-              border-radius: 10px;
-          }
-          button:disabled,
-          button[disabled] {
-              color: #9B9898;
-              background-color: #EAEAEA;
-          }
-          textarea {
-              width: 98%;
-              height: 85%;
-              border-radius: 10px;
-          }
-          .small{
-              font: italic 12px "Arial";
-              fill: black;
-          }
-          #containerSVG {
-              margin-top: 5px;
-              border: 1px solid black;
-              width: 1600px;
-              height: 900px;
-              display: flex;
-              flex-flow: row wrap;
-              border-radius: 15px;
-          }
-          .whiteMode{
-              background-color: #f6f6f6;
-          }
-          .darkModeBody{
-              background-color: gray;
-              color: black;
-          }
-          .darkModeEditor{
-              background-color: lightgray;
-              color: black;
-              border-color: lightgray;
-          }
-          .darkModeContainer{
-              background-color: darkgrey;
-          }
-          .active{
-              fill: #52D7FA;
-          }
-          @keyframes animationSalidaW {
-                         0%   {background-color: #f6f6f6;}
-                         50%  {background-color: limegreen;}
-                         100% {background-color: #f6f6f6;}
-                     }
-          .salidaActivaW{
-              animation-name: animationSalidaW;
-              animation-duration: 150ms;
-          }
-          @keyframes animationSalidaD {
-              0%   {background-color: darkgrey;}
-              50%  {background-color: limegreen;}
-              100% {background-color: darkgrey;}
-          }
-          .salidaActivaD{
-              animation-name: animationSalidaD;
-              animation-duration: 150ms;
-          }
-      </style>
+      <link rel="stylesheet" href="simulador.css">
       <script src="interprete.js"></script>
    </head>
    <body id="body">
-      <section>
-         <div style="display: grid; grid-template-rows:1fr .3fr .3fr; grid-template-columns:1fr 1fr">
-            <div style="grid-row: 1 / span 1; padding-top: 20px; text-align: center;">
+   <section style="height: 98%; display: flex; flex-direction: column;">
+      <div id="simulador" style="min-width: 1050px; min-height: 600px;">
+         <div style="display: grid; grid-template-rows: repeat(5, .5fr); text-align: center;">
+            <div style="grid-row: 1 / span 3; margin-top: 20px;">
                Código<br>
-               <textarea id="inputCode" style="height:520px;">int n;
+               <textarea id="inputCode" style="height: 89%">int n;
 scanf("%d", &n);
 int arr[n];
 for(int i = 0; i < n; ++i){
@@ -105,7 +36,7 @@ for (int i = 0; i < m; ++i){
    printf("%d\n", result);
 }</textarea>
             </div>
-            <div style="grid-row: 2 / span 1; text-align: center;">
+            <div style="display:flex; justify-content: flex-end; flex-direction: column;">
                  Entrada del programa:<br>
                  <textarea id="inputProgram">5
 3 1 4 1 6
@@ -113,48 +44,54 @@ for (int i = 0; i < m; ++i){
 0 4
 1 3</textarea>
              </div>
-             <div style="grid-row: 3 / span 1; text-align: center;">
+            <div style="display:flex; justify-content: flex-end; flex-direction: column;">
                  Salida del programa:<br>
                  <textarea id="outputProgram" disabled="true" class="whiteMode"></textarea>
              </div>
-            <div style="grid-row: 1 / span 3; text-align: center;">
-               <div style="display: grid; grid-template-columns: repeat(7, 1fr); grid-column-gap: 30px; grid-template-rows: 30px;">
-                  <button id="btnRunInterpret">Preparar ejecución</button>
-                  <button id="btnDarkMode">Modo oscuro</button>
-                  <button id="btnPlay" disabled>Reproducir</button>
-                  <div style="text-align: center; padding: 0; margin: 0">
-                     Velocidad
-                     <br style="margin: 0; padding: 0;">
-                     <input type="range" id="speed" min="1" max="10" value="2">
-                  </div>
-                  <button id="btnStop" disabled>Detener</button>
-                  <button id="btnPrevInst" disabled>Ejecutar anterior</button>
-                  <button id="btnNextInst" disabled>Ejecutar siguiente</button>
-               </div>
-               <svg id="containerSVG" class="whiteMode"></svg>
-            </div>
          </div>
-      </section>
-      <footer>
-
+         <div style="display: grid; grid-template-columns: repeat(7, 1fr); grid-template-rows: 1fr; grid-column-gap: 1%; grid-template-rows: 32px;">
+               <button id="btnRunInterpret">Preparar ejecución</button>
+               <button id="btnDarkMode">Modo oscuro</button>
+               <button id="btnPlay" disabled>Reproducir</button>
+               <div style="text-align: center; display: flex; justify-content: center; padding: 0; margin: 0;">
+                     <div style="margin: 0; padding: 0; border: 0;"><laber for="speed">Velocidad</laber><input type="range" id="speed" min="1" max="10" value="2"></div>
+                  </div>
+               <button id="btnStop" disabled>Detener</button>
+               <button id="btnPrevInst" disabled>Ejecutar anterior</button>
+               <button id="btnNextInst" disabled>Ejecutar siguiente</button>
+               <svg id="containerSVG" class="whiteMode" style="grid-column: 1 / span 7; width: 100%; height: 100%; margin-top: 8px;"></svg>
+         </div>
+      </div>
+      <footer style="overflow: no-content; display: grid; grid-template-columns: repeat(3, 1fr); text-align: center">
+         <div style="margin: 0;">Este simulador está diseñado para ser una herramienta para la educación.</div>
+         <div style="margin: 0;">Colaboradores: <br>Ing. José Antonio Hernández García, Dr. Rodrigo Alexander Castro Campos.</div>
+         <div style="margin: 0;">Contacto: josehdzg097@gmail.com</div>
       </footer>
+   </section>
    </body>
    <script>
     let result;
     const inputProgram = document.getElementById("inputProgram");
     const outputProgram = document.getElementById("outputProgram");
     const container = document.getElementById("containerSVG");
-    const MAX_X = 1600, MAX_Y = 900, posX = 30, posY = 30, tam = 60, addCY = 120;
+
+    const posX = 30, posY = 30, tam = 60, addCY = 120;
     let cx = posX, cy = posY, instructions = [ ], currentInst = 0, data = new Map( ),
           data_backup = new Map( ), stack = [], stack_backup = [], text = "", memoryText = [text];
+    let MAX_X, MAX_Y, elementoMasDerecha = 0, elementoMasAbajo = 0;
     Module.onRuntimeInitialized = function( ) {
         let interpret = Module.cwrap("interpreta", "string", [ "string", "string" ]);
         document.getElementById("btnRunInterpret").onclick = function( ) {
             result = interpret(document.getElementById("inputCode").value, inputProgram.value);
             initialization( );
+           MAX_X = container.clientWidth, MAX_Y =  container.clientHeight;
         }
     };
-
+    window.addEventListener('resize', ( ) =>{
+       const simulador = document.getElementById("simulador");
+       simulador.setAttribute("style", "min-width:" + Math.max(Math.min(1900, elementoMasDerecha + 300), 1050) + "px; "
+                                     + "min-height:" + Math.max(Math.min(1050, elementoMasAbajo + 300), 600) + "px;");
+    });
     function delay(seconds){
        return new Promise(function(resolve){
           setTimeout(resolve,seconds*1000);
@@ -555,6 +492,8 @@ for (int i = 0; i < m; ++i){
          "fill": "white",
          "stroke": "black"
       });
+      elementoMasDerecha = Math.max(elementoMasDerecha, cx + tam);
+      elementoMasAbajo = Math.max(elementoMasAbajo, cy + 5);
       node.id = id + 'box';
       container.appendChild(node);
 

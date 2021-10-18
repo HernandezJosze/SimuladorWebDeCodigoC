@@ -1,0 +1,88 @@
+div{
+    margin: 3px;
+    height: 99%;
+    width: 99%;
+}
+html, body{
+    height: 98vh;
+    width: 100%;
+    min-width: 1330px;
+    min-height: 768px;
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+button{
+    color: black;
+    background-color: lightsteelblue;
+    cursor: pointer;
+    border: gray;
+    border-radius: 10px;
+}
+button:disabled,
+button[disabled] {
+    color: #9B9898;
+    background-color: #EAEAEA;
+}
+textarea {
+    min-width: 250px;
+    max-width: 300px;
+    max-height: 500px;
+    min-height: 150px;
+    border-radius: 10px;
+    resize: none;
+}
+.small{
+    font: italic 12px "Arial";
+    fill: black;
+}
+#simulador{
+    display: grid;
+    grid-template-columns:.15fr 1fr;
+    width: 100%;
+    max-width: 1900px;
+    max-height: 900px;
+}
+#containerSVG {
+    margin-top: 5px;
+    border: 1px solid black;
+    display: flex;
+    flex-flow: row wrap;
+    border-radius: 15px;
+}
+.whiteMode{
+    background-color: #f6f6f6;
+}
+.darkModeBody{
+    background-color: gray;
+    color: black;
+}
+.darkModeEditor{
+    background-color: lightgray;
+    color: black;
+    border-color: lightgray;
+}
+.darkModeContainer{
+    background-color: darkgrey;
+}
+.active{
+    fill: #52D7FA;
+}
+@keyframes animationSalidaW {
+    0%   {background-color: #f6f6f6;}
+    50%  {background-color: limegreen;}
+    100% {background-color: #f6f6f6;}
+}
+.salidaActivaW{
+    animation-name: animationSalidaW;
+    animation-duration: 150ms;
+}
+@keyframes animationSalidaD {
+    0%   {background-color: darkgrey;}
+    50%  {background-color: limegreen;}
+    100% {background-color: darkgrey;}
+}
+.salidaActivaD{
+    animation-name: animationSalidaD;
+    animation-duration: 150ms;
+}
