@@ -85,10 +85,6 @@ for (int i = 0; i < m; ++i){
         document.getElementById("btnRunInterpret").onclick = function( ) {
            result = interpret(document.getElementById("inputCode").value, inputProgram.value);
            initialization( );
-           MAX_X = container.clientWidth, MAX_Y =  container.clientHeight;
-           const simulador = document.getElementById("simulador");
-           simulador.setAttribute("style", "min-width:" + 1050 + "px; "
-                                         + "min-height:" + 600 + "px;");
         }
     };
     window.addEventListener('resize', ( ) =>{
@@ -129,6 +125,7 @@ for (int i = 0; i < m; ++i){
 		cx = posX, cy = posY, instructions = [ ], currentInst = 0, data = new Map( );
       data_backup = new Map( ), stack = [], stack_backup = [], memoryText = [text], text = "";
       outputProgram.value = "";
+      elementoMasAbajo = 0, elementoMasDerecha = 0;
 		while(container.hasChildNodes( )){
 			container.removeChild(container.lastChild);
 		}
@@ -148,6 +145,10 @@ for (int i = 0; i < m; ++i){
 
    function initialization( ) {
       cleanAll();
+      MAX_X = container.clientWidth, MAX_Y =  container.clientHeight;
+      const simulador = document.getElementById("simulador");
+      simulador.setAttribute("style", "min-width:" + 1050 + "px; "
+            + "min-height:" + 600 + "px;");
       const ids = ["btnNextInst", "btnPlay"];
       for (let id of ids) {
          document.getElementById(id).removeAttribute("disabled");
