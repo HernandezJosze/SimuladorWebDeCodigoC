@@ -91,6 +91,8 @@ for (int i = 0; i < m; ++i){
        const simulador = document.getElementById("simulador");
        simulador.setAttribute("style", "min-width:" + Math.max(Math.min(1900, elementoMasDerecha + 300), 1050) + "px; "
                                      + "min-height:" + Math.max(Math.min(1050, elementoMasAbajo + 300), 600) + "px;");
+
+       MAX_X = container.clientWidth, MAX_Y =  container.clientHeight;
     });
     function delay(seconds){
        return new Promise(function(resolve){
@@ -125,6 +127,7 @@ for (int i = 0; i < m; ++i){
 		cx = posX, cy = posY, instructions = [ ], currentInst = 0, data = new Map( );
       data_backup = new Map( ), stack = [], stack_backup = [], memoryText = [text], text = "";
       outputProgram.value = "";
+      MAX_X = container.clientWidth, MAX_Y =  container.clientHeight;
       elementoMasAbajo = 0, elementoMasDerecha = 0;
 		while(container.hasChildNodes( )){
 			container.removeChild(container.lastChild);
@@ -145,7 +148,6 @@ for (int i = 0; i < m; ++i){
 
    function initialization( ) {
       cleanAll();
-      MAX_X = container.clientWidth, MAX_Y =  container.clientHeight;
       const simulador = document.getElementById("simulador");
       simulador.setAttribute("style", "min-width:" + 1050 + "px; "
             + "min-height:" + 600 + "px;");
