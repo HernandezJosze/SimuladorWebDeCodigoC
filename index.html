@@ -46,15 +46,15 @@ for (int i = 0; i < m; ++i){
              </div>
             <div style="display:flex; justify-content: flex-end; flex-direction: column;">
                  Salida del programa:<br>
-                 <textarea id="outputProgram" disabled="true" class="whiteMode"></textarea>
+                 <textarea id="outputProgram" disabled="disabled" class="whiteMode"></textarea>
              </div>
          </div>
-         <div style="display: grid; grid-template-columns: repeat(7, 1fr); grid-template-rows: 1fr; grid-column-gap: 1%; grid-template-rows: 32px;">
+         <div style="display: grid; grid-template-columns: repeat(7, 1fr); grid-template-rows: 32px 1fr; grid-column-gap: 1%;">
                <button id="btnRunInterpret">Preparar ejecución</button>
                <button id="btnDarkMode">Modo oscuro</button>
                <button id="btnPlay" disabled>Reproducir</button>
                <div style="text-align: center; display: flex; justify-content: center; padding: 0; margin: 0;">
-                     <div style="margin: 0; padding: 0; border: 0;"><laber for="speed">Velocidad</laber><input type="range" id="speed" min="1" max="10" value="2"></div>
+                     <div style="margin: 0; padding: 0; border: 0;"><label for="speed">Velocidad</label><input type="range" id="speed" min="1" max="10" value="2"></div>
                   </div>
                <button id="btnStop" disabled>Detener</button>
                <button id="btnPrevInst" disabled>Ejecutar anterior</button>
