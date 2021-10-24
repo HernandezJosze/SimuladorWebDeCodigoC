@@ -3,11 +3,8 @@
 #include <algorithm>
 #include <fstream>
 #include <sstream>
-#include <stdlib.h>
 #include <string.h>
 #include "lib/debug.h"
-#include "lib/lexer.h"
-#include "lib/parser.h"
 #include "lib/semantico_ejecutor.h"
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
