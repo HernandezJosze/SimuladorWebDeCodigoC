@@ -12,3 +12,5 @@ package.json
 *.exe
 *.o
 *.stackdump
+node_modules/
+package-lock.json
