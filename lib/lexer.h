@@ -18,11 +18,13 @@ enum token{
    WHILE,
    INT,
    FLOAT,
+   CHAR,
    BREAK,
    CONTINUE,
    LITERAL_ENTERA,
    LITERAL_FLOTANTE,
    LITERAL_CADENA,
+   LITERAL_CHAR,
    IDENTIFICADOR,
    END_FILE,
    WRONG_TOKEN,
@@ -112,6 +114,7 @@ const trie keywords = {
    {"while", WHILE},
    {"int", INT},
    {"float", FLOAT},
+   {"char", CHAR},
    {"break", BREAK},
    {"continue", CONTINUE}
 };
@@ -180,6 +183,21 @@ bool isString(const char *ptr, int& advance, token& tipo){
    advance = ++ptr_end - ptr, tipo = LITERAL_CADENA;
    return true;
 }
+bool isChar(const char *ptr, int& advance, token& tipo){
+   auto ptr_end = ptr;
+   if(*ptr_end++ != '\''){
+      return false;
+   }
+   if(*ptr_end == '\\'){
+      ++ptr_end;
+   }
+   ++ptr_end;
+   if(*ptr_end != '\''){
+      return false;
+   }
+   advance = ++ptr_end - ptr, tipo = LITERAL_CHAR;
+   return true;
+}
 bool isNumeric(const char *ptr, int& advance, token& tipo){
    auto ptr_endi = const_cast<char*>(ptr), ptr_endf = ptr_endi;
    auto resi = strtol(ptr, &ptr_endi, 0);
@@ -215,7 +233,8 @@ std::vector<token_anotada> lexer(const char* ptr){
          ptr += 1;
       }else if(isComment(ptr, advance)) {
          ptr += advance;
-      }else if(isString(ptr, advance, tipo) ||
+      }else if(isChar(ptr, advance, tipo) ||
+               isString(ptr, advance, tipo) ||
                isSymbol(ptr, advance, tipo) ||
                isNumeric(ptr, advance, tipo) ||
                isAlphaNumeric(ptr, advance, tipo)) {

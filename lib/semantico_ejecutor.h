@@ -108,7 +108,7 @@ void emite_imprime(std::ostream& os, const std::string& s) {
    os << "IMPRIME\01" << s << "\04\n";
 }
 void emite_crea(std::ostream& os, valor_expresion* v, const tabla_simbolos& ts) {
-   valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_arreglo<std::unique_ptr<valor_expresion>>*>(v, [&](auto checado) {
+   valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*, valor_arreglo<std::unique_ptr<valor_expresion>>*>(v, [&](auto checado) {
       if constexpr(std::is_arithmetic_v<decltype(checado->valor)>) {
          os << "CREA\01VAR\01" << ts.busca(checado) << "\04\n";
       } else {
@@ -117,13 +117,13 @@ void emite_crea(std::ostream& os, valor_expresion* v, const tabla_simbolos& ts) 
    });
 }
 void emite_crea_escribe(std::ostream& os, valor_expresion* v, const tabla_simbolos& ts) {
-   valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_arreglo<std::unique_ptr<valor_expresion>>*>(v, [&](auto checado) {
+   valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*, valor_arreglo<std::unique_ptr<valor_expresion>>*>(v, [&](auto checado) {
       if constexpr(std::is_scalar_v<decltype(checado->valor)>) {
          os << "CREA\01VAR\01" << ts.busca(checado) << "\01" << checado->valor << "\04\n";
       } else {
          os << "CREA\01ARR\01" << ts.busca(checado) << "\01" << checado->valor.size( ) << "\01";
          for (int i = 0; i < checado->valor.size( ); ++i) {
-            valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(checado->valor[i].get( ), [&](auto elem) {
+            valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*>(checado->valor[i].get( ), [&](auto elem) {
                os << elem->valor << (i + 1 < checado->valor.size( ) ? "," : "\04\n");
             });
          }
@@ -131,7 +131,7 @@ void emite_crea_escribe(std::ostream& os, valor_expresion* v, const tabla_simbol
    });
 }
 void emite_escribe(std::ostream& os, valor_expresion* v, const tabla_simbolos& ts) {
-   valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_arreglo<std::unique_ptr<valor_expresion>>*>(v, [&](auto checado) {
+   valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*, valor_arreglo<std::unique_ptr<valor_expresion>>*>(v, [&](auto checado) {
       if constexpr(std::is_scalar_v<decltype(checado->valor)>) {
          os << "ESCRIBE\01" << ts.busca(checado) << "\01" << checado->valor << "\04\n";
       } else {
@@ -152,7 +152,7 @@ void emite_destruye(std::ostream& os, const tabla_simbolos& ts) {
 template<typename T>
 valor_escalar<T>* castea(valor_expresion* v, tabla_temporales& tt, const token_anotada& pos) {
    valor_escalar<T>* res = nullptr;
-   valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(v, [&]<typename U>(valor_escalar<U>* checado) {
+   valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*>(v, [&]<typename U>(valor_escalar<U>* checado) {
       if constexpr(std::is_same_v<T, U>) {
          res = checado;
       } else {
@@ -160,7 +160,7 @@ valor_escalar<T>* castea(valor_expresion* v, tabla_temporales& tt, const token_a
       }
    });
    if(res == nullptr){
-      throw error(pos, "Solo se permiten manipular valores int y float en un cast");
+      throw error(pos, "Solo se permiten manipular valores int, float y char en un cast");
    }
    return res;
 }
@@ -173,6 +173,9 @@ valor_expresion* evalua(const expresion_terminal& e, tabla_simbolos& ts, tabla_t
       return tt.crea<valor_escalar<float>>(std::stof(std::string(e.tk->location)));
    }else if (e.tk->tipo == LITERAL_CADENA) {
       return tt.crea<valor_escalar<std::string_view>>(e.tk->location);
+   }else if(e.tk->tipo == LITERAL_CHAR){
+      std::string s = std::string(e.tk->location);
+      return tt.crea<valor_escalar<char>>(char(s[1] == '\\' ? s[1] + s[2] : s[1]));
    }else if (e.tk->tipo == IDENTIFICADOR) {
       if (auto p = ts.busca(e.tk->location); p != nullptr) {
          return p;
@@ -189,58 +192,58 @@ valor_expresion* evalua(const expresion_op_prefijo& e, tabla_simbolos& ts, tabla
       if (tt.es_temporal(sobre)) {
          throw error(*e.operador, "No se puede incrementar un temporal");
       }
-      if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
+      if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*>(sobre, [&](auto checado) {
          checado->valor += 1;
          emite_escribe(ios.second, checado, ts);
       })) {
          return sobre;
       } else {
-         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros, flotantes o chars");
       }
    } else if (e.operador->tipo == DECREMENTO) {
       if (tt.es_temporal(sobre)) {
          throw error(*e.operador, "No se puede decrementar un temporal");
       }
-      if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
+      if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*>(sobre, [&](auto checado) {
          checado->valor -= 1;
          emite_escribe(ios.second, checado, ts);
       })) {
          return sobre;
       } else {
-         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros, flotantes o chars");
       }
    } else if (e.operador->tipo == MAS) {
-      if (valida<valor_escalar<int>*, valor_escalar<float>*>(sobre)) {
+      if (valida<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*>(sobre)) {
          return sobre;
       } else {
-         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros, flotantes o chars");
       }
    } else if (e.operador->tipo == MENOS) {
       valor_expresion* res;
-      if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&]<typename T>(valor_escalar<T>* checado) {
+      if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*>(sobre, [&]<typename T>(valor_escalar<T>* checado) {
          res = tt.crea<valor_escalar<T>>(-checado->valor);
       })) {
          return res;
       } else {
-         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros, flotantes o chars");
       }
    } else if (e.operador->tipo == NOT) {
       valor_expresion* res;
-      if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&](auto checado) {
+      if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*>(sobre, [&](auto checado) {
          res = tt.crea<valor_escalar<int>>(!checado->valor);    // crear un temporal entero con el resultado del !
       })) {
          return res;
       } else {
-         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros, flotantes o chars");
       }
    } else if (e.operador->tipo == DIRECCION) {
       valor_expresion* res;
-      if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&]<typename T>(valor_escalar<T>* checado) {
+      if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*>(sobre, [&]<typename T>(valor_escalar<T>* checado) {
          res = tt.crea<valor_escalar<valor_escalar<T>*>>(checado);
       })) {
          return res;
       } else {
-         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros, flotantes o chars");
       }
    } else {
       return nullptr;
@@ -253,26 +256,26 @@ valor_expresion* evalua(const expresion_op_posfijo& e, tabla_simbolos& ts, tabla
          throw error(*e.operador, "No se puede incrementar un temporal");
       }
       valor_expresion* res;
-      if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&]<typename T>(valor_escalar<T>* checado) {
+      if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*>(sobre, [&]<typename T>(valor_escalar<T>* checado) {
          res = tt.crea<valor_escalar<T>>(checado->valor++);
          emite_escribe(ios.second, checado, ts);
       })) {
          return res;
       } else {
-         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros, flotantes o chars");
       }
    } else if (e.operador->tipo == DECREMENTO) {
       if (tt.es_temporal(sobre)) {
          throw error(*e.operador, "No se puede decrementar un temporal");
       }
       valor_expresion* res;
-      if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(sobre, [&]<typename T>(valor_escalar<T>* checado) {
+      if (valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*>(sobre, [&]<typename T>(valor_escalar<T>* checado) {
          res = tt.crea<valor_escalar<T>>(checado->valor--);
          emite_escribe(ios.second, checado, ts);
       })) {
          return res;
       } else {
-         throw error(*e.operador, "Solo se puede aplicar el operador a enteros o flotantes");
+         throw error(*e.operador, "Solo se puede aplicar el operador a enteros, flotantes o chars");
       }
    } else {
       return nullptr;
@@ -289,8 +292,8 @@ valor_expresion* evalua(const expresion_op_binario& e, tabla_simbolos& ts, tabla
    }
 
    valor_expresion* res = nullptr;
-   valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(*e.izq, ts, tt, ios), [&]<typename TI>(valor_escalar<TI>* checado_izq) {
-      valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(*e.der, ts, tt, ios),[&]<typename TD>(valor_escalar<TD>* checado_der) {
+   valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*>(evalua(*e.izq, ts, tt, ios), [&]<typename TI>(valor_escalar<TI>* checado_izq) {
+      valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*>(evalua(*e.der, ts, tt, ios),[&]<typename TD>(valor_escalar<TD>* checado_der) {
          if (es_operador_asignacion(e.operador->tipo)) {
             if (tt.es_temporal(checado_izq)) {
                throw error(*e.operador, "No se puede realizar una asignacion un temporal");
@@ -306,8 +309,8 @@ valor_expresion* evalua(const expresion_op_binario& e, tabla_simbolos& ts, tabla
             }else if (e.operador->tipo == DIVIDE_IGUAL) {
                checado_izq->valor /= checado_der->valor;
             }else if (e.operador->tipo == MODULO_IGUAL) {
-               if constexpr(!std::is_same_v<TI, int> || !std::is_same_v<TI, TD>){
-                  throw error(*e.pos, "Solo se puede aplicar este operador a enteros");
+               if constexpr(!(std::is_same_v<TI, int> || std::is_same_v<TI, char>) || !std::is_same_v<TI, TD>){
+                  throw error(*e.pos, "Solo se puede aplicar este operador a enteros y chars");
                } else {
                   checado_izq->valor %= checado_der->valor;
                }
@@ -329,39 +332,49 @@ valor_expresion* evalua(const expresion_op_binario& e, tabla_simbolos& ts, tabla
          }else if (e.operador->tipo == MAS) {
             if(std::is_same_v<TI, float> || std::is_same_v<TD, float>){
                res = tt.crea<valor_escalar<float>>(checado_izq->valor + checado_der->valor);
-            }else{
+            }else if(std::is_same_v<TI, int> || std::is_same_v<TD, int>){
                res = tt.crea<valor_escalar<int>>(checado_izq->valor + checado_der->valor);
+            }else{
+               res = tt.crea<valor_escalar<char>>(checado_izq->valor + checado_der->valor);
             }
          }else if (e.operador->tipo == MENOS) {
             if(std::is_same_v<TI, float> || std::is_same_v<TD, float>){
                res = tt.crea<valor_escalar<float>>(checado_izq->valor - checado_der->valor);
-            }else{
+            }else if(std::is_same_v<TI, int> || std::is_same_v<TD, int>){
                res = tt.crea<valor_escalar<int>>(checado_izq->valor - checado_der->valor);
+            }else{
+               res = tt.crea<valor_escalar<char>>(checado_izq->valor - checado_der->valor);
             }
          }else if (e.operador->tipo == MULTIPLICACION) {
             if(std::is_same_v<TI, float> || std::is_same_v<TD, float>){
                res = tt.crea<valor_escalar<float>>(checado_izq->valor * checado_der->valor);
-            }else{
+            }else if(std::is_same_v<TI, int> || std::is_same_v<TD, int>){
                res = tt.crea<valor_escalar<int>>(checado_izq->valor * checado_der->valor);
+            }else{
+               res = tt.crea<valor_escalar<char>>(checado_izq->valor * checado_der->valor);
             }
          }else if (e.operador->tipo == DIVISION) {
             if(std::is_same_v<TI, float> || std::is_same_v<TD, float>){
                res = tt.crea<valor_escalar<float>>(checado_izq->valor / checado_der->valor);
-            }else{
+            }else if(std::is_same_v<TI, int> || std::is_same_v<TD, int>){
                res = tt.crea<valor_escalar<int>>(checado_izq->valor / checado_der->valor);
+            }else{
+               res = tt.crea<valor_escalar<char>>(checado_izq->valor / checado_der->valor);
             }
          }else if (e.operador->tipo == MODULO) {
-            if constexpr(!std::is_same_v<TI, int> || !std::is_same_v<TI, TD>){
-               throw error(*e.pos, "Solo se puede aplicar este operador a enteros");
-            } else {
+            if constexpr(!(std::is_same_v<TI, int> || std::is_same_v<TI, char>) || !std::is_same_v<TI, TD>){
+               throw error(*e.pos, "Solo se puede aplicar este operador a enteros y chars");
+            } else if(std::is_same_v<TI, int> || std::is_same_v<TD, int>){
                res = tt.crea<valor_escalar<int>>(checado_izq->valor % checado_der->valor);
+            }else{
+               res = tt.crea<valor_escalar<char>>(checado_izq->valor % checado_der->valor);
             }
          }
       });
    });
 
    if (res == nullptr){
-      throw error(*e.pos, "Solo se puede aplicar operadores a int o float");
+      throw error(*e.pos, "Solo se puede aplicar operadores a int, float o char");
    }
    return res;
 }
@@ -397,9 +410,11 @@ valor_expresion* evalua(const expresion_llamada& e, tabla_simbolos& ts, tabla_te
             if (actual >= params.size( )) {
                throw error(*e.func->pos, "No hay suficientes parametros");
             }
-            if (!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<valor_escalar<int>*>*, valor_escalar<valor_escalar<float>*>*>(params[actual++], [&]<typename T>(valor_escalar<T>* checado) {
+            if (!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*,
+                valor_escalar<valor_escalar<int>*>*, valor_escalar<valor_escalar<float>*>*, valor_escalar<valor_escalar<char>*>*>(params[actual++], [&]<typename T>(valor_escalar<T>* checado) {
                if (cad->valor[i] == 'd' && (funcion == printf && std::is_same_v<T, int> || funcion == scanf && std::is_same_v<T, valor_escalar<int>*>) ||
-                   cad->valor[i] == 'f' && (funcion == printf && std::is_same_v<T, float> || funcion == scanf && std::is_same_v<T, valor_escalar<float>*>)) {
+                   cad->valor[i] == 'f' && (funcion == printf && std::is_same_v<T, float> || funcion == scanf && std::is_same_v<T, valor_escalar<float>*>) ||
+                   cad->valor[i] == 'c' && (funcion == printf && std::is_same_v<T, char> || funcion == scanf && std::is_same_v<T, valor_escalar<char>*>)) {
                   if constexpr(std::is_arithmetic_v<T>) {
                      bufer << checado->valor, res += 1;
                   } else if (ios.first >> checado->valor->valor) {
@@ -441,10 +456,16 @@ valor_expresion* evalua(const expresion_corchetes& e, tabla_simbolos& ts, tabla_
          } else {
             throw error(*e.pos, "El valor esta fuera de rango");
          }
+      } else if(auto indice = dynamic_cast<valor_escalar<char>*>(evalua(*e.dentro, ts, tt, ios)); indice != nullptr){
+         if (indice->valor >= 0 && indice->valor < arr->valor.size( )){
+            return arr->valor[indice->valor].get( );
+         } else {
+            throw error(*e.pos, "El valor esta fuera de rango");
+         }
       } else {
          throw error(*e.pos, "El indice dado se sale del arreglo");
       }
-   } else {
+   }else{
       throw error(*e.pos, "Solo se puede aplicar este operador a un arreglo");
    }
 }
@@ -495,15 +516,27 @@ void evalua(const sentencia_declaraciones& s, tabla_simbolos& ts, std::pair<std:
    tabla_temporales tt;
    for(const auto& actual : s.subdeclaraciones) {
       std::unique_ptr<valor_expresion> valor;
-      if(!actual.arreglo.second) {
+      if(!actual.arreglo.second) { // no array
          if (actual.inicializador == nullptr) {
-            valor = (s.tipo->tipo == INT ? (std::unique_ptr<valor_expresion>)std::make_unique<valor_escalar<int>>( ) : std::make_unique<valor_escalar<float>>( ));
-         } else if (!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(*actual.inicializador, ts, tt, ios), [&](auto checado) {
-            valor = (s.tipo->tipo == INT ? (std::unique_ptr<valor_expresion>)std::make_unique<valor_escalar<int>>(checado->valor) : std::make_unique<valor_escalar<float>>(checado->valor));
+            if(s.tipo->tipo == FLOAT){
+               valor = std::make_unique<valor_escalar<float>>( );
+            }else if(s.tipo->tipo == INT){
+               valor = std::make_unique<valor_escalar<int>>( );
+            }else if(s.tipo->tipo == CHAR){
+               valor = std::make_unique<valor_escalar<char>>( );
+            }
+         } else if (!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*>(evalua(*actual.inicializador, ts, tt, ios), [&](auto checado) {
+            if(s.tipo->tipo == FLOAT){
+               valor = std::make_unique<valor_escalar<float>>(checado->valor);
+            }else if(s.tipo->tipo == INT){
+               valor = std::make_unique<valor_escalar<int>>(checado->valor);
+            }else if(s.tipo->tipo == CHAR){
+               valor = std::make_unique<valor_escalar<char>>(checado->valor);
+            }
          })){
             throw error(*actual.inicializador->pos, "El inicializador no es compatible con la declaracion");
          }
-      }else{
+      }else{ // is array
          if (actual.inicializador == nullptr && actual.arreglo.first == nullptr) {
             throw error(*actual.nombre, "No se puede deducir el tamanio del arreglo.");
          }
@@ -511,26 +544,48 @@ void evalua(const sentencia_declaraciones& s, tabla_simbolos& ts, std::pair<std:
          std::vector<std::unique_ptr<valor_expresion>> elementos;
          if (actual.inicializador != nullptr) {
             if(auto checar = dynamic_cast<valor_arreglo<valor_expresion*>*>(evalua(*actual.inicializador, ts, tt, ios)); checar != nullptr){
+               bool esChar = false;
                for(auto& elemento : checar->valor){
-                  if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(elemento, [&](auto checado) {
-                     elementos.push_back((s.tipo->tipo == INT ? (std::unique_ptr<valor_expresion>)std::make_unique<valor_escalar<int>>(checado->valor) : std::make_unique<valor_escalar<float>>(checado->valor)));
+                  if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*>(elemento, [&](auto checado) {
+                     if(s.tipo->tipo == FLOAT){
+                        elementos.push_back(std::make_unique<valor_escalar<float>>(checado->valor));
+                     }else if(s.tipo->tipo == INT){
+                        elementos.push_back(std::make_unique<valor_escalar<int>>(checado->valor));
+                     }else if(s.tipo->tipo == CHAR){
+                        elementos.push_back(std::make_unique<valor_escalar<char>>(checado->valor));
+                        esChar = true;
+                     }
                   })){
                      throw error(*actual.inicializador->pos, "El tipo del elemento no es valido al inicializar el arreglo");
                   }
                }
+               if(esChar){
+                  elementos.push_back(std::make_unique<valor_escalar<char>>('?'));
+               }
+            }else if(auto checar = dynamic_cast<valor_escalar<std::string_view>*>(evalua(*actual.inicializador, ts, tt, ios)); checar != nullptr && s.tipo->tipo == CHAR){
+               for(int i = 1; i < checar->valor.size( ) - 1; ++i){
+                  elementos.push_back(std::make_unique<valor_escalar<char>>(checar->valor[i]));
+               }
+                  elementos.push_back(std::make_unique<valor_escalar<char>>('?'));
             } else {
                throw error(*actual.inicializador->pos, "El inicializador no es compatible con la declaracion");
             }
          }
          if (actual.arreglo.first != nullptr) {
-            if (auto tam = dynamic_cast<valor_escalar<int>*>(evalua(*actual.arreglo.first, ts, tt, ios)); tam != nullptr){
+            if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<char>*>(evalua(*actual.arreglo.first, ts, tt, ios), [&](auto tam){
                if(elementos.size( ) > tam->valor){
                   throw error(*actual.inicializador->pos, "El el inicializador tiene elementos en exceso");
                }
                while(elementos.size( ) < tam->valor) {
-                  elementos.push_back(s.tipo->tipo == INT ? std::unique_ptr<valor_expresion>(std::make_unique<valor_escalar<int>>( )) : std::make_unique<valor_escalar<float>>( ));
+                  if(s.tipo->tipo == FLOAT){
+                    elementos.push_back(std::make_unique<valor_escalar<float>>( ));
+                  }else if(s.tipo->tipo == INT){
+                     elementos.push_back(std::make_unique<valor_escalar<int>>( ));
+                  }else if(s.tipo->tipo == CHAR){
+                     elementos.push_back(std::make_unique<valor_escalar<char>>( ));
+                  }
                }
-            } else {
+            })){
                throw error(*actual.arreglo.first->pos, "El tamanio debe de ser un valor entero");
             }
          }
@@ -553,7 +608,7 @@ void evalua(const sentencia_if& s, tabla_simbolos& ts, std::pair<std::istream&, 
    tabla_simbolos ts_ambito(&ts);
    scope_exit fin_ambito([&]{ emite_destruye(ios.second, ts_ambito); });
 
-   if (!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(s.condicion, ts, tt, ios), [&](auto checado) {
+   if (!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*>(evalua(s.condicion, ts, tt, ios), [&](auto checado) {
       if (checado->valor) {
          for(const auto& si : s.parte_si){
             evalua(*si, ts_ambito, ios);
@@ -577,7 +632,7 @@ void evalua(const sentencia_for& s, tabla_simbolos& ts, std::pair<std::istream&,
       tabla_simbolos ts_ambito(&ts_init);
       scope_exit fin_ambito([&]{ emite_destruye(ios.second, ts_ambito); });
 
-      if(!s.condicion.empty( ) && !valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(s.condicion, ts_ambito, tt, ios), [&](auto checado){
+      if(!s.condicion.empty( ) && !valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*>(evalua(s.condicion, ts_ambito, tt, ios), [&](auto checado){
          b = checado->valor;
       })){
          throw error(*s.pos, "Tipo invalido de condicion");
@@ -614,7 +669,7 @@ void evalua(const sentencia_do& s, tabla_simbolos& ts, std::pair<std::istream&, 
          ;
       }
 
-      if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(s.condicion, ts, tt, ios), [&](auto checado){
+      if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*>(evalua(s.condicion, ts, tt, ios), [&](auto checado){
          b = checado->valor;
       })){
          throw error(*s.pos, "Tipo invalido de condicion");
@@ -630,7 +685,7 @@ void evalua(const sentencia_while& s, tabla_simbolos& ts, std::pair<std::istream
       tabla_simbolos ts_ambito(&ts);
       scope_exit fin_ambito([&]{ emite_destruye(ios.second, ts_ambito); });
 
-      if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*>(evalua(s.condicion, ts, tt, ios), [&](auto checado){
+      if(!valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*>(evalua(s.condicion, ts, tt, ios), [&](auto checado){
          b = checado->valor;
       })){
          throw error(*s.pos, "Tipo invalido de condicion");

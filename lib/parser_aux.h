@@ -56,11 +56,11 @@ bool es_operador_binario(token t){
 }
 
 bool es_tipo(token t){
-    return t == INT || t == FLOAT;
+    return t == INT || t == FLOAT || t == CHAR;
 }
 
 bool es_literal(token t){
-   return t == LITERAL_ENTERA || t == LITERAL_FLOTANTE || t == LITERAL_CADENA;
+   return t == LITERAL_ENTERA || t == LITERAL_FLOTANTE || t == LITERAL_CADENA || t == LITERAL_CHAR;
 }
 
 bool es_terminal(token t){

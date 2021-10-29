@@ -14,3 +14,8 @@ package.json
 *.stackdump
 node_modules/
 package-lock.json
+main.js
+c.txt
+in.txt
+interprete
+out.txt
