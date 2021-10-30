@@ -180,7 +180,7 @@ bool isString(const char *ptr, int& advance, token& tipo){
       }
       ++ptr_end;
    }
-   advance = ++ptr_end - ptr, tipo = LITERAL_CADENA;
+   advance = ptr_end - ptr, tipo = LITERAL_CADENA;
    return true;
 }
 bool isChar(const char *ptr, int& advance, token& tipo){
@@ -195,7 +195,7 @@ bool isChar(const char *ptr, int& advance, token& tipo){
    if(*ptr_end != '\''){
       return false;
    }
-   advance = ++ptr_end - ptr, tipo = LITERAL_CHAR;
+   advance = ptr_end - ptr, tipo = LITERAL_CHAR;
    return true;
 }
 bool isNumeric(const char *ptr, int& advance, token& tipo){
@@ -234,8 +234,10 @@ std::vector<token_anotada> lexer(const char* ptr){
       }else if(isComment(ptr, advance)) {
          ptr += advance;
       }else if(isChar(ptr, advance, tipo) ||
-               isString(ptr, advance, tipo) ||
-               isSymbol(ptr, advance, tipo) ||
+               isString(ptr, advance, tipo)) {
+         vectorLexer.push_back(token_anotada{tipo, std::string_view(++ptr, advance - 1)}); // no incluir el ' o " del inicio y fin;
+         ptr += advance;
+      }else if(isSymbol(ptr, advance, tipo) ||
                isNumeric(ptr, advance, tipo) ||
                isAlphaNumeric(ptr, advance, tipo)) {
          vectorLexer.push_back(token_anotada{tipo, std::string_view(ptr, advance)});

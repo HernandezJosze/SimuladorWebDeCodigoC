@@ -175,7 +175,7 @@ valor_expresion* evalua(const expresion_terminal& e, tabla_simbolos& ts, tabla_t
       return tt.crea<valor_escalar<std::string_view>>(e.tk->location);
    }else if(e.tk->tipo == LITERAL_CHAR){
       std::string s = std::string(e.tk->location);
-      return tt.crea<valor_escalar<char>>(char(s[1] == '\\' ? s[1] + s[2] : s[1]));
+      return tt.crea<valor_escalar<char>>(char(s[0] == '\\' ? s[0] + s[1] : s[0]));
    }else if (e.tk->tipo == IDENTIFICADOR) {
       if (auto p = ts.busca(e.tk->location); p != nullptr) {
          return p;
@@ -404,7 +404,7 @@ valor_expresion* evalua(const expresion_llamada& e, tabla_simbolos& ts, tabla_te
    };
 
    int res = 0; std::ostringstream bufer;
-   for(int i = 1, actual = 1; i < cad->valor.size( ) - 1; ++i){
+   for(int i = 0, actual = 1; i < cad->valor.size( ); ++i){
       if (cad->valor[i] == '%') {
          if (cad->valor[++i] != '%') {
             if (actual >= params.size( )) {
@@ -563,7 +563,7 @@ void evalua(const sentencia_declaraciones& s, tabla_simbolos& ts, std::pair<std:
                   elementos.push_back(std::make_unique<valor_escalar<char>>('?'));
                }
             }else if(auto checar = dynamic_cast<valor_escalar<std::string_view>*>(evalua(*actual.inicializador, ts, tt, ios)); checar != nullptr && s.tipo->tipo == CHAR){
-               for(int i = 1; i < checar->valor.size( ) - 1; ++i){
+               for(int i = 0; i < checar->valor.size( ); ++i){
                   elementos.push_back(std::make_unique<valor_escalar<char>>(checar->valor[i]));
                }
                   elementos.push_back(std::make_unique<valor_escalar<char>>('?'));
@@ -582,7 +582,9 @@ void evalua(const sentencia_declaraciones& s, tabla_simbolos& ts, std::pair<std:
                   }else if(s.tipo->tipo == INT){
                      elementos.push_back(std::make_unique<valor_escalar<int>>( ));
                   }else if(s.tipo->tipo == CHAR){
-                     elementos.push_back(std::make_unique<valor_escalar<char>>( ));
+                     elementos.push_back(std::make_unique<valor_escalar<char>>('?'));
+                  }else{
+                     throw error(*actual.arreglo.first->pos, "El tamanio debe de ser un valor entero.");
                   }
                }
             })){
