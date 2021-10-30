@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <string_view>
 #include <set>
 #include <type_traits>
@@ -294,6 +295,9 @@ valor_expresion* evalua(const expresion_op_binario& e, tabla_simbolos& ts, tabla
    valor_expresion* res = nullptr;
    valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*>(evalua(*e.izq, ts, tt, ios), [&]<typename TI>(valor_escalar<TI>* checado_izq) {
       valida_ejecuta<valor_escalar<int>*, valor_escalar<float>*, valor_escalar<char>*>(evalua(*e.der, ts, tt, ios),[&]<typename TD>(valor_escalar<TD>* checado_der) {
+         if (checado_der->valor == 0 && (e.operador->tipo == DIVISION || e.operador->tipo == MODULO || e.operador->tipo == DIVIDE_IGUAL || e.operador->tipo == MODULO_IGUAL)) {
+            throw error(*e.operador, "Division entre cero");
+         }
          if (es_operador_asignacion(e.operador->tipo)) {
             if (tt.es_temporal(checado_izq)) {
                throw error(*e.operador, "No se puede realizar una asignacion un temporal");
@@ -449,25 +453,21 @@ valor_expresion* evalua(const expresion_llamada& e, tabla_simbolos& ts, tabla_te
    return tt.crea<valor_escalar<int>>(res);
 }
 valor_expresion* evalua(const expresion_corchetes& e, tabla_simbolos& ts, tabla_temporales& tt, std::pair<std::istream&, std::ostream&> ios) {
+   valor_expresion* res = nullptr;
    if (auto arr = dynamic_cast<valor_arreglo<std::unique_ptr<valor_expresion>>*>(evalua(*e.ex, ts, tt, ios)); arr != nullptr) {
-      if (auto indice = dynamic_cast<valor_escalar<int>*>(evalua(*e.dentro, ts, tt, ios)); indice != nullptr) {
-         if (indice->valor >= 0 && indice->valor < arr->valor.size( )){
-            return arr->valor[indice->valor].get( );
+      if (!valida_ejecuta<valor_escalar<int>*, valor_escalar<char>*>(evalua(*e.dentro, ts, tt, ios), [&](auto checado) {
+         if (checado->valor >= 0 && checado->valor < arr->valor.size( )){
+            res = arr->valor[checado->valor].get( );
          } else {
-            throw error(*e.pos, "El valor esta fuera de rango");
+            throw error(*e.pos, "El indice dado se sale del arreglo");
          }
-      } else if(auto indice = dynamic_cast<valor_escalar<char>*>(evalua(*e.dentro, ts, tt, ios)); indice != nullptr){
-         if (indice->valor >= 0 && indice->valor < arr->valor.size( )){
-            return arr->valor[indice->valor].get( );
-         } else {
-            throw error(*e.pos, "El valor esta fuera de rango");
-         }
-      } else {
-         throw error(*e.pos, "El indice dado se sale del arreglo");
+      })) {
+         throw error(*e.pos, "El indice debe ser un entero");
       }
    }else{
       throw error(*e.pos, "Solo se puede aplicar este operador a un arreglo");
    }
+   return res;
 }
 valor_expresion* evalua(const expresion_arreglo& e, tabla_simbolos& ts, tabla_temporales& tt, std::pair<std::istream&, std::ostream&> ios) {
    std::vector<valor_expresion*> v;
